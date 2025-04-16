@@ -1,0 +1,36 @@
+<resources>
+    <string name="app_name">ALG Gestão</string>
+    
+    <!-- Login -->
+    <string name="login">Login</string>
+    <string name="email">E-mail</string>
+    <string name="password">Senha</string>
+    <string name="login_button">Entrar</string>
+    <string name="login_error">E-mail ou senha incorretos</string>
+    
+    <!-- Menu -->
+    <string name="dashboard">Painel Principal</string>
+    <string name="clients">Clientes</string>
+    <string name="companies">Empresas</string>
+    <string name="contracts">Contratos</string>
+    <string name="equipments">Equipamentos</string>
+    <string name="invoices">Faturas</string>
+    <string name="returns">Devoluções</string>
+    <string name="logout">Sair</string>
+    
+    <!-- Ações -->
+    <string name="search">Buscar</string>
+    <string name="add">Adicionar</string>
+    <string name="edit">Editar</string>
+    <string name="delete">Excluir</string>
+    <string name="save">Salvar</string>
+    <string name="cancel">Cancelar</string>
+    <string name="confirm_delete">Tem certeza que deseja excluir?</string>
+    <string name="more">Mais opções</string>
+    
+    <!-- Estados da UI -->
+    <string name="loading">Carregando…</string>
+    <string name="empty_list">Nenhum item encontrado</string>
+    <string name="error_message">Ocorreu um erro. Tente novamente.</string>
+    <string name="network_error">Erro de conexão. Verifique sua internet.</string>
+</resources>

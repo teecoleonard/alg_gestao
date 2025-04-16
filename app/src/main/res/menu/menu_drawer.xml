@@ -1,0 +1,42 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_dashboard"
+            android:icon="@android:drawable/ic_menu_compass"
+            android:title="@string/dashboard" />
+        <item
+            android:id="@+id/nav_clientes"
+            android:icon="@android:drawable/ic_menu_myplaces"
+            android:title="@string/clients" />
+        <item
+            android:id="@+id/nav_empresas"
+            android:icon="@android:drawable/ic_menu_gallery"
+            android:title="@string/companies" />
+        <item
+            android:id="@+id/nav_contratos"
+            android:icon="@android:drawable/ic_menu_edit"
+            android:title="@string/contracts" />
+        <item
+            android:id="@+id/nav_equipamentos"
+            android:icon="@android:drawable/ic_menu_manage"
+            android:title="@string/equipments" />
+        <item
+            android:id="@+id/nav_faturas"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="@string/invoices" />
+        <item
+            android:id="@+id/nav_devolucoes"
+            android:icon="@android:drawable/ic_menu_revert"
+            android:title="@string/returns" />
+    </group>
+    
+    <item android:title="Configurações">
+        <menu>
+            <item
+                android:id="@+id/nav_logout"
+                android:icon="@android:drawable/ic_menu_close_clear_cancel"
+                android:title="@string/logout" />
+        </menu>
+    </item>
+</menu> 
