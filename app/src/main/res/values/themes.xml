@@ -1,24 +1,114 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Base.Theme.ALG_Gestao_02" parent="Theme.Material3.DayNight.NoActionBar">
+    <style name="Base.Theme.ALG_Gestao_02" parent="Theme.Material3.Light.NoActionBar">
         <!-- Customize your light theme here. -->
         <item name="colorPrimary">@color/primary</item>
         <item name="colorPrimaryDark">@color/primary_dark</item>
         <item name="colorPrimaryVariant">@color/primary_dark</item>
         <item name="colorOnPrimary">@color/white</item>
-        <item name="colorSecondary">@color/accent</item>
-        <item name="colorSecondaryVariant">@color/accent</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary</item>
         <item name="colorOnSecondary">@color/white</item>
         <item name="colorError">@color/error</item>
         <item name="colorOnError">@color/white</item>
-        <item name="colorBackground">@color/background</item>
         <item name="backgroundColor">@color/background</item>
         <item name="colorOnBackground">@color/text_primary</item>
-        <item name="colorSurface">@color/white</item>
+        <item name="colorSurface">@color/card_background</item>
         <item name="colorOnSurface">@color/text_primary</item>
-        <item name="android:statusBarColor">@color/primary_dark</item>
-        <item name="android:windowLightStatusBar">false</item>
+        <item name="android:statusBarColor">@color/background</item>
+        <item name="android:windowLightStatusBar">true</item>
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:fontFamily">@font/poppins</item>
     </style>
 
     <style name="Theme.ALG_Gestao_02" parent="Base.Theme.ALG_Gestao_02" />
+    
+    <!-- Estilo de texto para títulos -->
+    <style name="TextAppearance.ALG.Title" parent="TextAppearance.MaterialComponents.Headline6">
+        <item name="fontFamily">@font/poppins_medium</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    
+    <!-- Estilo de texto para subtítulos -->
+    <style name="TextAppearance.ALG.Subtitle" parent="TextAppearance.MaterialComponents.Subtitle1">
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="android:textSize">16sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    
+    <!-- Estilo de texto para corpo de texto -->
+    <style name="TextAppearance.ALG.Body" parent="TextAppearance.MaterialComponents.Body1">
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    
+    <!-- Estilo de texto para legendas/rótulos -->
+    <style name="TextAppearance.ALG.Caption" parent="TextAppearance.MaterialComponents.Caption">
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="android:textSize">12sp</item>
+        <item name="android:textColor">@color/text_secondary</item>
+    </style>
+    
+    <!-- Estilo para botões principais -->
+    <style name="Widget.ALG.Button.Primary" parent="Widget.MaterialComponents.Button">
+        <item name="android:textColor">@color/white</item>
+        <item name="backgroundTint">@color/primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="fontFamily">@font/poppins_medium</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    
+    <!-- Estilo para botões secundários -->
+    <style name="Widget.ALG.Button.Secondary" parent="Widget.MaterialComponents.Button.OutlinedButton">
+        <item name="android:textColor">@color/primary</item>
+        <item name="strokeColor">@color/primary</item>
+        <item name="cornerRadius">12dp</item>
+        <item name="android:textAllCaps">false</item>
+        <item name="fontFamily">@font/poppins_medium</item>
+        <item name="android:fontFamily">@font/poppins_medium</item>
+        <item name="android:paddingTop">12dp</item>
+        <item name="android:paddingBottom">12dp</item>
+    </style>
+    
+    <!-- Estilo para campos de entrada -->
+    <style name="Widget.ALG.TextInputLayout" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxCornerRadiusTopStart">12dp</item>
+        <item name="boxCornerRadiusTopEnd">12dp</item>
+        <item name="boxCornerRadiusBottomStart">12dp</item>
+        <item name="boxCornerRadiusBottomEnd">12dp</item>
+        <item name="boxBackgroundColor">@color/input_background</item>
+        <item name="boxStrokeColor">@color/divider</item>
+        <item name="hintTextColor">@color/text_secondary</item>
+    </style>
+
+    <!-- Tema sem ActionBar para telas de splash e login -->
+    <style name="Theme.ALG_Gestao_02.NoActionBar" parent="Theme.Material3.Light.NoActionBar">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorPrimaryDark">@color/primary_dark</item>
+        <item name="colorPrimaryVariant">@color/primary_dark</item>
+        <item name="colorOnPrimary">@color/white</item>
+        <item name="colorSecondary">@color/secondary</item>
+        <item name="colorSecondaryVariant">@color/secondary</item>
+        <item name="colorOnSecondary">@color/white</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOnError">@color/white</item>
+        <item name="backgroundColor">@color/background</item>
+        <item name="colorOnBackground">@color/text_primary</item>
+        <item name="colorSurface">@color/card_background</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="android:statusBarColor">@color/primary</item>
+        <item name="android:windowLightStatusBar">false</item>
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="android:windowBackground">@color/background</item>
+    </style>
 </resources>

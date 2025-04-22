@@ -3,6 +3,7 @@ package com.example.alg_gestao_02.dashboard
 import android.content.Intent
 import android.os.Bundle
 import android.view.MenuItem
+import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
@@ -33,7 +34,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         
         sessionManager = SessionManager(this)
         setupToolbar()
-        setupNavigation()
+        setupNavigationDrawer()
+        setupUserInfo()
         setupBackPressHandler()
         
         // Exibe o Fragment do Dashboard por padrão
@@ -45,18 +47,31 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         }
     }
     
-    private fun setupToolbar() {
-        setSupportActionBar(binding.toolbar)
-        supportActionBar?.title = getString(R.string.dashboard)
+    private fun setupUserInfo() {
+        // Configurar informações do usuário no toolbar
+        binding.tvUsername.text = sessionManager.getUserName()
+        binding.tvUserRole.text = sessionManager.getUserRole()
+        
+        // Configurar clique no ícone de notificação
+        binding.ivNotification.setOnClickListener {
+            LogUtils.debug("DashboardActivity", "Ícone de notificação clicado")
+            // Implementar exibição de notificações (em desenvolvimento)
+        }
     }
     
-    private fun setupNavigation() {
+    private fun setupToolbar() {
+        // Ocultar o título na toolbar, já que usamos layout personalizado
+        setSupportActionBar(binding.toolbar)
+        supportActionBar?.setDisplayShowTitleEnabled(false)
+    }
+    
+    private fun setupNavigationDrawer() {
         toggle = ActionBarDrawerToggle(
             this,
             binding.drawerLayout,
             binding.toolbar,
-            R.string.app_name,
-            R.string.app_name
+            R.string.navigation_drawer_open,
+            R.string.navigation_drawer_close
         )
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
@@ -65,8 +80,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         
         // Atualiza os dados do cabeçalho do menu
         val headerView = binding.navView.getHeaderView(0)
-        val tvUserName = headerView.findViewById<android.widget.TextView>(R.id.tvUserName)
-        val tvUserEmail = headerView.findViewById<android.widget.TextView>(R.id.tvUserEmail)
+        val tvUserName = headerView.findViewById<TextView>(R.id.tvUserName)
+        val tvUserEmail = headerView.findViewById<TextView>(R.id.tvUserEmail)
         
         tvUserName.text = sessionManager.getUserName()
         tvUserEmail.text = sessionManager.getUserEmail()
@@ -91,25 +106,23 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         val fragment: Fragment = when (item.itemId) {
             R.id.nav_dashboard -> {
-                supportActionBar?.title = getString(R.string.dashboard)
                 DashboardFragment()
             }
             R.id.nav_clientes -> {
-                supportActionBar?.title = getString(R.string.clients)
                 ClientesFragment()
             }
             R.id.nav_empresas -> {
-                supportActionBar?.title = getString(R.string.companies)
                 EmpresasFragment()
             }
             R.id.nav_contratos -> {
-                supportActionBar?.title = getString(R.string.contracts)
                 ContratosFragment()
             }
             R.id.nav_logout -> {
                 LogUtils.info("DashboardActivity", "Usuário solicitou logout")
                 sessionManager.logout()
-                startActivity(Intent(this, LoginActivity::class.java))
+                val intent = Intent(this, LoginActivity::class.java)
+                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                startActivity(intent)
                 finish()
                 return true
             }

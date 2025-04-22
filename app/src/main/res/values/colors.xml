@@ -3,16 +3,27 @@
     <color name="black">#FF000000</color>
     <color name="white">#FFFFFFFF</color>
     
-    <!-- Cores do aplicativo -->
-    <color name="primary">#1976D2</color>
-    <color name="primary_dark">#1565C0</color>
-    <color name="primary_light">#42A5F5</color>
-    <color name="accent">#FF5722</color>
-    <color name="text_primary">#212121</color>
-    <color name="text_secondary">#757575</color>
-    <color name="divider">#BDBDBD</color>
-    <color name="error">#D32F2F</color>
-    <color name="success">#4CAF50</color>
-    <color name="warning">#FFC107</color>
-    <color name="background">#F5F5F5</color>
+    <!-- Cores do aplicativo (baseadas no Figma) -->
+    <color name="primary">#3843FF</color>
+    <color name="primary_dark">#2D36CC</color>
+    <color name="primary_light">#6E7AFF</color>
+    <color name="secondary">#4CD080</color>
+    <color name="tertiary">#F57F17</color>
+    <color name="text_primary">#252E48</color>
+    <color name="text_secondary">#8F959E</color>
+    <color name="divider">#E6E8EB</color>
+    <color name="error">#FF4471</color>
+    <color name="success">#4CD080</color>
+    <color name="warning">#FEAF38</color>
+    <color name="background">#F8FAFB</color>
+    <color name="card_background">#FFFFFF</color>
+    <color name="input_background">#F8FAFB</color>
+    <color name="disabled">#E6E8EB</color>
+    
+    <!-- Cores para os chips de filtro -->
+    <color name="chip_background_color">@color/card_background</color>
+    <color name="chip_background_color_selected">@color/primary</color>
+    <color name="chip_text_color">@color/text_secondary</color>
+    <color name="chip_text_color_selected">@color/white</color>
+    <color name="chip_stroke_color">@color/divider</color>
 </resources>

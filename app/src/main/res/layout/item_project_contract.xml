@@ -1,0 +1,95 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="12dp"
+    app:cardBackgroundColor="@android:color/transparent"
+    app:cardCornerRadius="0dp"
+    app:cardElevation="0dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="8dp">
+
+        <!-- Ícone de status -->
+        <androidx.cardview.widget.CardView
+            android:id="@+id/cardStatus"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            app:cardCornerRadius="20dp"
+            app:cardElevation="0dp"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <ImageView
+                android:id="@+id/ivStatus"
+                android:layout_width="24dp"
+                android:layout_height="24dp"
+                android:layout_gravity="center"
+                android:src="@drawable/ic_arrow_right"
+                app:tint="@color/white" />
+        </androidx.cardview.widget.CardView>
+
+        <!-- Nome do contrato -->
+        <TextView
+            android:id="@+id/tvContractName"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
+            android:layout_marginEnd="12dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Mohil Prajapati"
+            android:textColor="@color/text_primary"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tvContractDescription"
+            app:layout_constraintEnd_toStartOf="@+id/tvContractValue"
+            app:layout_constraintStart_toEndOf="@+id/cardStatus"
+            app:layout_constraintTop_toTopOf="@+id/cardStatus" />
+
+        <!-- Descrição do contrato -->
+        <TextView
+            android:id="@+id/tvContractDescription"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:text="Description here..."
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintBottom_toBottomOf="@+id/cardStatus"
+            app:layout_constraintEnd_toEndOf="@+id/tvContractName"
+            app:layout_constraintStart_toStartOf="@+id/tvContractName"
+            app:layout_constraintTop_toBottomOf="@+id/tvContractName" />
+
+        <!-- Valor do contrato -->
+        <TextView
+            android:id="@+id/tvContractValue"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="₹50,000"
+            android:textColor="@color/success"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            app:layout_constraintBottom_toTopOf="@+id/tvContractDate"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="@+id/cardStatus" />
+
+        <!-- Data do contrato -->
+        <TextView
+            android:id="@+id/tvContractDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="30 Sep 2024, 07:23 PM"
+            android:textColor="@color/text_secondary"
+            android:textSize="12sp"
+            app:layout_constraintBottom_toBottomOf="@+id/cardStatus"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvContractValue" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.cardview.widget.CardView> 

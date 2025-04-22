@@ -75,6 +75,9 @@ dependencies {
     // SwipeRefreshLayout
     implementation("androidx.swiperefreshlayout:swiperefreshlayout:1.1.0")
     
+    // Lottie Animation
+    implementation("com.airbnb.android:lottie:6.3.0")
+    
     // Teste
     testImplementation(libs.junit)
     androidTestImplementation(libs.androidx.junit)

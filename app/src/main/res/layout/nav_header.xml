@@ -6,27 +6,28 @@
     android:gravity="bottom"
     android:orientation="vertical"
     android:padding="16dp"
-    android:theme="@style/ThemeOverlay.AppCompat.Dark">
+    android:theme="@style/ThemeOverlay.MaterialComponents.Dark">
 
     <ImageView
-        android:layout_width="70dp"
-        android:layout_height="70dp"
+        android:layout_width="64dp"
+        android:layout_height="64dp"
         android:contentDescription="@string/app_name"
-        android:src="@mipmap/ic_launcher_round" />
+        android:src="@drawable/logo_alg" />
 
     <TextView
         android:id="@+id/tvUserName"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="8dp"
-        android:text="Nome do Usuário"
-        android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+        android:text="Nome do usuário"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
         android:textStyle="bold" />
 
     <TextView
         android:id="@+id/tvUserEmail"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="email@exemplo.com" />
+        android:text="usuario@example.com"
+        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 
 </LinearLayout> 

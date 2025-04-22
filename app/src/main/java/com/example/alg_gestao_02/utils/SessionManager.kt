@@ -19,6 +19,7 @@ class SessionManager(context: Context) {
         private const val KEY_USER_ID = "userId"
         private const val KEY_USER_NAME = "userName"
         private const val KEY_USER_EMAIL = "userEmail"
+        private const val KEY_USER_ROLE = "userRole"
         private const val KEY_EXPIRES_IN = "expiresIn"
         
         // 30 dias em milissegundos
@@ -57,6 +58,7 @@ class SessionManager(context: Context) {
         editor.putString(KEY_USER_ID, user.id)
         editor.putString(KEY_USER_NAME, user.name)
         editor.putString(KEY_USER_EMAIL, user.email)
+        editor.putString(KEY_USER_ROLE, user.role)
         editor.putLong(KEY_EXPIRES_IN, expiresIn)
         editor.apply()
         
@@ -89,6 +91,13 @@ class SessionManager(context: Context) {
      */
     fun getUserEmail(): String? {
         return prefs.getString(KEY_USER_EMAIL, null)
+    }
+    
+    /**
+     * Obtém o cargo do usuário logado
+     */
+    fun getUserRole(): String {
+        return prefs.getString(KEY_USER_ROLE, "Supervisor") ?: "Supervisor"
     }
     
     /**

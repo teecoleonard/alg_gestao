@@ -1,26 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources>
     <string name="app_name">ALG Gestão</string>
     
-    <!-- Login -->
+    <!-- Títulos de telas -->
+    <string name="dashboard">Dashboard</string>
     <string name="login">Login</string>
-    <string name="email">E-mail</string>
-    <string name="password">Senha</string>
+    <string name="clients">Clientes</string>
+    <string name="companies">Empresas</string>
+    <string name="contracts">Contratos</string>
+    
+    <!-- Menu de navegação -->
+    <string name="account">Conta</string>
+    <string name="profile">Perfil</string>
+    <string name="settings">Configurações</string>
+    <string name="logout">Sair</string>
+    <string name="navigation_drawer_open">Abrir menu de navegação</string>
+    <string name="navigation_drawer_close">Fechar menu de navegação</string>
+    
+    <!-- Placeholders -->
+    <string name="email_hint">E-mail</string>
+    <string name="password_hint">Senha</string>
+    <string name="forgot_password">Esqueci minha senha</string>
+    <string name="enter">Entrar</string>
+    <string name="terms_of_use">Termos de Uso</string>
+    
+    <!-- Login -->
     <string name="login_button">Entrar</string>
     <string name="login_error">E-mail ou senha incorretos</string>
     
     <!-- Menu -->
-    <string name="dashboard">Painel Principal</string>
-    <string name="clients">Clientes</string>
-    <string name="companies">Empresas</string>
-    <string name="contracts">Contratos</string>
     <string name="equipments">Equipamentos</string>
     <string name="invoices">Faturas</string>
     <string name="returns">Devoluções</string>
-    <string name="logout">Sair</string>
     
     <!-- Ações -->
     <string name="search">Buscar</string>
     <string name="add">Adicionar</string>
+    <string name="add_cliente">Adicionar cliente</string>
+    <string name="add_empresa">Adicionar empresa</string>
     <string name="edit">Editar</string>
     <string name="delete">Excluir</string>
     <string name="save">Salvar</string>

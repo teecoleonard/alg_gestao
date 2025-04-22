@@ -22,7 +22,9 @@
         <activity
             android:name=".SplashActivity"
             android:exported="true"
-            android:theme="@style/Theme.ALG_Gestao_02">
+            android:theme="@style/Theme.ALG_Gestao_02.NoActionBar"
+            android:screenOrientation="portrait"
+            android:noHistory="true">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
                 <category android:name="android.intent.category.LAUNCHER" />
@@ -44,6 +46,12 @@
         <activity
             android:name=".MainActivity"
             android:exported="false" />
+
+        <!-- ProjectDetailActivity: Detalhes do projeto -->
+        <activity
+            android:name=".dashboard.fragments.client.ProjectDetailActivity"
+            android:exported="false"
+            android:theme="@style/Theme.ALG_Gestao_02.NoActionBar" />
     </application>
 
 </manifest>

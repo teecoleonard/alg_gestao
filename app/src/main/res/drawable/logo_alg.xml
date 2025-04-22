@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="240dp"
+    android:height="240dp"
+    android:viewportWidth="240"
+    android:viewportHeight="240">
+    
+    <!-- Logo ALG - versão moderna conforme imagem de referência -->
+    
+    <!-- Símbolo labirinto quadrado -->
+    <path
+        android:fillColor="@color/primary"
+        android:pathData="M60,60 L180,60 L180,75 L165,75 L165,75 L165,105 L135,105 L135,90 L150,90 L150,75 L75,75 L75,150 L90,150 L90,135 L105,135 L105,165 L75,165 L75,180 L180,180 L180,165 L120,165 L120,150 L150,150 L150,120 L165,120 L165,165 L165,165 L180,165 L180,75 L180,75 L180,60 L60,60 L60,180 L75,180 L75,165 L60,165 L60,60 Z" />
+    
+    <!-- Texto ALG - A com forma triangular -->
+    <path
+        android:fillColor="@color/primary_dark"
+        android:pathData="M70,200 L100,200 L115,230 L130,200 L160,200 L120,260 L110,260 L70,200 Z" />
+
+    <!-- Texto ALG - L como forma retangular -->
+    <path
+        android:fillColor="@color/primary_dark"
+        android:pathData="M170,200 L190,200 L190,260 L170,260 L170,200 Z" />
+
+    <!-- Texto ALG - G como forma especial -->
+    <path
+        android:fillColor="@color/primary_dark"
+        android:pathData="M200,200 L240,200 L240,260 L200,260 L200,240 L220,240 L220,220 L200,220 L200,200 Z" />
+</vector> 
