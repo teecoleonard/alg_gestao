@@ -9,11 +9,11 @@ data class User(
     @SerializedName("id")
     val id: String,
     
-    @SerializedName("name")
-    val name: String,
+    @SerializedName("cpf")
+    val cpf: String,
     
-    @SerializedName("email")
-    val email: String,
+    @SerializedName("nome")
+    val name: String,
     
     @SerializedName("role")
     val role: String

@@ -6,7 +6,6 @@
     <string name="dashboard">Dashboard</string>
     <string name="login">Login</string>
     <string name="clients">Clientes</string>
-    <string name="companies">Empresas</string>
     <string name="contracts">Contratos</string>
     
     <!-- Menu de navegação -->
@@ -36,10 +35,10 @@
     <!-- Ações -->
     <string name="search">Buscar</string>
     <string name="add">Adicionar</string>
-    <string name="add_cliente">Adicionar cliente</string>
-    <string name="add_empresa">Adicionar empresa</string>
-    <string name="edit">Editar</string>
-    <string name="delete">Excluir</string>
+    <string name="add_cliente">Adicionar Cliente</string>
+    <string name="add_empresa">Adicionar Empresa</string>
+    <string name="edit">Editar cliente</string>
+    <string name="delete">Excluir cliente</string>
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>
     <string name="confirm_delete">Tem certeza que deseja excluir?</string>
@@ -50,4 +49,59 @@
     <string name="empty_list">Nenhum item encontrado</string>
     <string name="error_message">Ocorreu um erro. Tente novamente.</string>
     <string name="network_error">Erro de conexão. Verifique sua internet.</string>
+    
+    <!-- Faturas -->
+    <string name="invoice_number">Número da Fatura</string>
+    <string name="invoice_value">Valor</string>
+    <string name="issue_date">Data de Emissão</string>
+    <string name="due_date">Vencimento</string>
+    <string name="menu_options">Opções</string>
+    <string name="invoice_status_paid">Pago</string>
+    <string name="invoice_status_pending">Pendente</string>
+    <string name="invoice_status_overdue">Em Atraso</string>
+    <string name="invoice_status_cancelled">Cancelado</string>
+    
+    <!-- Status -->
+    <string name="status_paid">Pago</string>
+    <string name="status_pending">Pendente</string>
+    <string name="status_overdue">Em Atraso</string>
+    <string name="status_cancelled">Cancelado</string>
+    
+    <!-- Novas strings para o módulo de clientes -->
+    <string name="edit_cliente">Editar Cliente</string>
+    <string name="delete_cliente">Excluir Cliente</string>
+    <string name="todos">Todos</string>
+    <string name="ativos">Ativos</string>
+    <string name="inativos">Inativos</string>
+    <string name="search_hint">Buscar clientes...</string>
+    <string name="refresh">Atualizar</string>
+    
+    <!-- Mensagens de erro padronizadas -->
+    <string name="error_network">Não foi possível conectar ao servidor. Verifique sua conexão e tente novamente.</string>
+    <string name="error_api">Ocorreu um erro no servidor. Tente novamente mais tarde.</string>
+    <string name="error_database">Erro ao acessar dados locais. Tente reiniciar o aplicativo.</string>
+    <string name="error_auth">Erro de autenticação. Faça login novamente.</string>
+    <string name="error_validation">Verifique os dados informados e tente novamente.</string>
+    <string name="error_unknown">Ocorreu um erro inesperado. Tente novamente.</string>
+    <string name="action_retry">Tentar novamente</string>
+    
+    <!-- Módulo de Empresas -->
+    <string name="ramo_atividade">Ramo de Atividade</string>
+    <string name="telefone">Telefone</string>
+    <string name="status_description">Status da empresa</string>
+    <string name="edit_empresa">Editar Empresa</string>
+    <string name="delete_empresa">Excluir Empresa</string>
+    <string name="search_empresa_hint">Buscar empresas...</string>
+    <string name="empresas">Empresas</string>
+    
+    <!-- Módulo de Contratos -->
+    <string name="search_contratos_hint">Buscar contratos...</string>
+    <string name="contratos">Contratos</string>
+    <string name="add_contrato">Adicionar Contrato</string>
+    <string name="edit_contrato">Editar Contrato</string>
+    <string name="delete_contrato">Excluir Contrato</string>
+    <string name="contrato_details">Detalhes do Contrato</string>
+    <string name="contract_value">Valor do Contrato</string>
+    <string name="contract_dates">Período</string>
+    <string name="contract_status">Status</string>
 </resources>

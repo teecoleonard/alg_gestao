@@ -13,17 +13,28 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
+        <ImageView
+            android:id="@+id/ivTipoCliente"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:contentDescription="Tipo de cliente"
+            android:src="@drawable/ic_person"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/primary" />
+
         <TextView
             android:id="@+id/tvNome"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textColor="@color/text_primary"
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/btnMore"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Nome do Cliente" />
 
@@ -31,9 +42,10 @@
             android:id="@+id/tvDocumento"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
             app:layout_constraintEnd_toStartOf="@+id/btnMore"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
             app:layout_constraintTop_toBottomOf="@+id/tvNome"
             tools:text="CPF/CNPJ: 123.456.789-00" />
 
@@ -41,9 +53,10 @@
             android:id="@+id/tvTelefone"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
+            android:layout_marginStart="12dp"
             android:layout_marginTop="4dp"
             app:layout_constraintEnd_toStartOf="@+id/btnMore"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
             app:layout_constraintTop_toBottomOf="@+id/tvDocumento"
             tools:text="Tel: (11) 99999-9999" />
 
@@ -54,7 +67,7 @@
             android:background="?selectableItemBackgroundBorderless"
             android:contentDescription="@string/more"
             android:padding="8dp"
-            android:src="@android:drawable/ic_menu_more"
+            android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
 

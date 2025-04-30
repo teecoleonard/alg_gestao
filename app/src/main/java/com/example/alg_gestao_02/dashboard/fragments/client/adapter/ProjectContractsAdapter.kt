@@ -49,33 +49,27 @@ class ProjectContractsAdapter(
             tvContractName.text = contract.name
             tvContractDescription.text = contract.description
             
-            // Formata o valor para moeda
-            val formatter = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-            tvContractValue.text = formatter.format(contract.value)
+            // Formata o valor para o formato indiano com símbolo ₹
+            val formattedValue = "₹" + formatNumberWithCommas(contract.value.toInt().toString())
+            tvContractValue.text = formattedValue
             
+            // Formata a data
             tvContractDate.text = contract.date
             
             // Configura o estilo baseado no tipo (pagamento ou débito)
             when (contract.type) {
                 "payment" -> {
+                    // Pagamento: círculo verde com seta para direita
                     cardStatus.setCardBackgroundColor(itemView.context.getColor(R.color.success))
+                    ivStatus.setImageResource(R.drawable.ic_arrow_right)
                     tvContractValue.setTextColor(itemView.context.getColor(R.color.success))
                 }
                 "debt" -> {
+                    // Débito: círculo vermelho com seta para esquerda
                     cardStatus.setCardBackgroundColor(itemView.context.getColor(R.color.error))
+                    ivStatus.setImageResource(R.drawable.ic_arrow_left)
                     tvContractValue.setTextColor(itemView.context.getColor(R.color.error))
                 }
-                else -> {
-                    cardStatus.setCardBackgroundColor(itemView.context.getColor(R.color.tertiary))
-                    tvContractValue.setTextColor(itemView.context.getColor(R.color.tertiary))
-                }
-            }
-            
-            // Configura o ícone com base no status
-            if (contract.type == "payment") {
-                ivStatus.setImageResource(R.drawable.ic_arrow_right)
-            } else {
-                ivStatus.setImageResource(R.drawable.ic_arrow_left)
             }
             
             // Configura o clique no item
@@ -83,6 +77,30 @@ class ProjectContractsAdapter(
                 LogUtils.debug("ProjectContractsAdapter", "Contrato clicado: ${contract.id}")
                 onItemClick(contract)
             }
+        }
+        
+        // Função para formatar números com vírgulas no estilo indiano: 1,00,000
+        private fun formatNumberWithCommas(number: String): String {
+            val length = number.length
+            if (length <= 3) return number
+            
+            var result = ""
+            var count = 0
+            
+            for (i in length - 1 downTo 0) {
+                result = number[i] + result
+                count++
+                
+                if (count == 3 && i > 0) {
+                    result = "," + result
+                    count = 0
+                } else if (count == 2 && i > 0 && result.contains(",")) {
+                    result = "," + result
+                    count = 0
+                }
+            }
+            
+            return result
         }
     }
 } 

@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import android.view.animation.AnimationUtils
 import android.widget.Toast
+import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.app.ActivityOptionsCompat
 import androidx.lifecycle.ViewModelProvider
@@ -13,6 +14,7 @@ import com.example.alg_gestao_02.dashboard.DashboardActivity
 import com.example.alg_gestao_02.databinding.ActivityLoginBinding
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
+import com.example.alg_gestao_02.utils.TextMaskUtils
 
 class LoginActivity : AppCompatActivity() {
     private lateinit var binding: ActivityLoginBinding
@@ -40,6 +42,23 @@ class LoginActivity : AppCompatActivity() {
         setupListeners()
         observeViewModel()
         animateUI()
+        setupBackNavigation()
+        setupMasks()
+    }
+    
+    private fun setupMasks() {
+        // Aplicar máscara de CPF
+        binding.etLogin.addTextChangedListener(TextMaskUtils.insertCpfMask(binding.etLogin))
+    }
+    
+    private fun setupBackNavigation() {
+        // Configura o comportamento do botão voltar para sair do aplicativo
+        onBackPressedDispatcher.addCallback(this, object : OnBackPressedCallback(true) {
+            override fun handleOnBackPressed() {
+                LogUtils.debug("LoginActivity", "Botão voltar pressionado, finalizando aplicativo")
+                finishAffinity()
+            }
+        })
     }
     
     private fun animateUI() {
@@ -61,29 +80,28 @@ class LoginActivity : AppCompatActivity() {
     
     private fun setupListeners() {
         binding.btnLogin.setOnClickListener {
-            val email = binding.etLogin.text.toString().trim()
-            val password = binding.etPassword.text.toString().trim()
+            val cpf = binding.etLogin.text.toString().trim()
+            val senha = binding.etPassword.text.toString().trim()
             
-            if (email.isEmpty() || password.isEmpty()) {
+            if (cpf.isEmpty() || senha.isEmpty()) {
                 Toast.makeText(this, "Preencha todos os campos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             
-            // Validação básica de email
-            if (!android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
-                Toast.makeText(this, "Digite um email válido", Toast.LENGTH_SHORT).show()
+            // Validação básica de CPF
+            if (cpf.replace("[^0-9]".toRegex(), "").length != 11) {
+                Toast.makeText(this, "Digite um CPF válido", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             
-            LogUtils.debug("LoginActivity", "Tentativa de login para: $email")
+            LogUtils.debug("LoginActivity", "Tentativa de login para CPF: $cpf")
             
             // Usa as credenciais fornecidas pelo usuário
-            viewModel.login(email, password) 
-            
-            // Dica para desenvolvimento (remover em produção)
-            if (email != "admin@alg.com") {
-                Toast.makeText(this, "Dica: tente admin@alg.com / 123456", Toast.LENGTH_LONG).show()
-            }
+            viewModel.login(cpf, senha)
+        }
+        
+        binding.tvRegister.setOnClickListener {
+            startActivity(Intent(this, RegisterActivity::class.java))
         }
         
         binding.tvForgotPassword.setOnClickListener {
@@ -150,6 +168,10 @@ class LoginActivity : AppCompatActivity() {
         }
     }
     
+    /**
+     * Substituído pelo método setupBackNavigation() que usa OnBackPressedDispatcher
+     */
+    @Deprecated("Substituído pelo novo mecanismo OnBackPressedDispatcher")
     override fun onBackPressed() {
         super.onBackPressed()
         finishAffinity()

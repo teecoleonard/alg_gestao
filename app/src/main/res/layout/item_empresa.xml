@@ -4,62 +4,141 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    android:layout_marginBottom="8dp"
+    app:cardBackgroundColor="@color/card_background"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="0dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <TextView
-            android:id="@+id/tvRazaoSocial"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:ellipsize="end"
-            android:maxLines="1"
-            android:textColor="@color/text_primary"
-            android:textSize="16sp"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/btnMore"
+        <!-- Status Indicator -->
+        <ImageView
+            android:id="@+id/imgStatus"
+            android:layout_width="12dp"
+            android:layout_height="12dp"
+            android:contentDescription="@string/status_description"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Razão Social da Empresa" />
+            tools:src="@drawable/ic_status_active" />
 
+        <!-- Nome da Empresa -->
         <TextView
-            android:id="@+id/tvNomeFantasia"
+            android:id="@+id/tvNomeEmpresa"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="16dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="1"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            app:layout_constraintEnd_toStartOf="@id/btnOptions"
+            app:layout_constraintStart_toEndOf="@id/imgStatus"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Tech Solutions" />
+
+        <!-- CNPJ -->
+        <TextView
+            android:id="@+id/tvCnpjEmpresa"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
             android:ellipsize="end"
             android:maxLines="1"
-            app:layout_constraintEnd_toStartOf="@+id/btnMore"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvRazaoSocial"
-            tools:text="Nome Fantasia" />
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            android:textColor="@color/text_secondary"
+            android:textSize="14sp"
+            app:layout_constraintEnd_toEndOf="@id/tvNomeEmpresa"
+            app:layout_constraintStart_toStartOf="@id/tvNomeEmpresa"
+            app:layout_constraintTop_toBottomOf="@id/tvNomeEmpresa"
+            tools:text="CNPJ: 45.678.901/0001-23" />
 
-        <TextView
-            android:id="@+id/tvCnpj"
-            android:layout_width="0dp"
+        <!-- Divider -->
+        <View
+            android:id="@+id/divider"
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="12dp"
+            android:background="@color/divider"
+            app:layout_constraintTop_toBottomOf="@id/tvCnpjEmpresa" />
+
+        <!-- Info Row -->
+        <LinearLayout
+            android:id="@+id/infoRow"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            app:layout_constraintEnd_toStartOf="@+id/btnMore"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toBottomOf="@+id/tvNomeFantasia"
-            tools:text="CNPJ: 00.000.000/0001-00" />
+            android:layout_marginTop="12dp"
+            android:orientation="horizontal"
+            app:layout_constraintTop_toBottomOf="@id/divider">
 
+            <!-- Ramo de Atividade -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/ramo_atividade"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textColor="@color/tertiary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvRamoAtividade"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    tools:text="Tecnologia" />
+            </LinearLayout>
+
+            <!-- Telefone -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="@string/telefone"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textColor="@color/tertiary"
+                    android:textSize="12sp" />
+
+                <TextView
+                    android:id="@+id/tvTelefoneEmpresa"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="2dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/text_primary"
+                    android:textSize="14sp"
+                    tools:text="(31) 4444-5555" />
+            </LinearLayout>
+        </LinearLayout>
+
+        <!-- Options Menu -->
         <ImageButton
-            android:id="@+id/btnMore"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:background="?selectableItemBackgroundBorderless"
-            android:contentDescription="@string/more"
+            android:id="@+id/btnOptions"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="@string/menu_options"
             android:padding="8dp"
-            android:src="@android:drawable/ic_menu_more"
+            android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent" />
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/text_secondary" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
-
 </androidx.cardview.widget.CardView> 

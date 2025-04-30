@@ -12,10 +12,9 @@ import androidx.fragment.app.Fragment
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.auth.LoginActivity
 import com.example.alg_gestao_02.dashboard.fragments.DashboardFragment
-import com.example.alg_gestao_02.dashboard.fragments.client.ClientesFragment
-import com.example.alg_gestao_02.dashboard.fragments.company.EmpresasFragment
 import com.example.alg_gestao_02.dashboard.fragments.contract.ContratosFragment
 import com.example.alg_gestao_02.databinding.ActivityDashboardBinding
+import com.example.alg_gestao_02.ui.cliente.ClientesFragment
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.navigation.NavigationView
@@ -84,7 +83,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         val tvUserEmail = headerView.findViewById<TextView>(R.id.tvUserEmail)
         
         tvUserName.text = sessionManager.getUserName()
-        tvUserEmail.text = sessionManager.getUserEmail()
+        tvUserEmail.text = sessionManager.getUserCpf()
     }
     
     private fun setupBackPressHandler() {
@@ -110,9 +109,6 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             }
             R.id.nav_clientes -> {
                 ClientesFragment()
-            }
-            R.id.nav_empresas -> {
-                EmpresasFragment()
             }
             R.id.nav_contratos -> {
                 ContratosFragment()

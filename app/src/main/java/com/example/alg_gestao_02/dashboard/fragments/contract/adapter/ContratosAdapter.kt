@@ -44,7 +44,7 @@ class ContratosAdapter(
         private val tvStatus: TextView = itemView.findViewById(R.id.tvStatus)
 
         fun bind(contrato: Contrato) {
-            tvCompanyName.text = contrato.companyName
+            tvCompanyName.text = contrato.client
             tvContractNumber.text = "Contrato #${contrato.contractNumber}"
             
             // Formatação do valor do contrato para moeda brasileira

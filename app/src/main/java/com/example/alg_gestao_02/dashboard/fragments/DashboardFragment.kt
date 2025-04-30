@@ -5,20 +5,32 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.LinearLayout
 import android.widget.Toast
-import androidx.fragment.app.Fragment
+import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
+import androidx.recyclerview.widget.RecyclerView
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.dashboard.fragments.client.ProjectDetailActivity
 import com.example.alg_gestao_02.dashboard.fragments.contract.ContratosFragment
 import com.example.alg_gestao_02.dashboard.fragments.dashboard.adapter.ProjectsAdapter
 import com.example.alg_gestao_02.dashboard.fragments.dashboard.model.Project
+import com.example.alg_gestao_02.ui.common.BaseFragment
+import com.example.alg_gestao_02.ui.common.ErrorViewModel
+import com.example.alg_gestao_02.ui.dashboard.repository.ProjectRepository
+import com.example.alg_gestao_02.ui.dashboard.viewmodel.DashboardViewModel
+import com.example.alg_gestao_02.ui.dashboard.viewmodel.DashboardViewModelFactory
+import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 
-class DashboardFragment : Fragment() {
+class DashboardFragment : BaseFragment() {
     
     private lateinit var projectsAdapter: ProjectsAdapter
-    private val projectsList = mutableListOf<Project>()
+    private lateinit var viewModel: DashboardViewModel
+    private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var recyclerProjects: RecyclerView
+    private lateinit var layoutEmpty: LinearLayout
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -29,58 +41,111 @@ class DashboardFragment : Fragment() {
     }
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
-        super.onViewCreated(view, savedInstanceState)
-        
         LogUtils.debug("DashboardFragment", "Inicializando fragmento do dashboard")
         
-        setupRecyclerView(view)
+        initViews(view)
+        setupViewModel()
+        
+        // Agora chamamos o método da classe pai depois de inicializar o viewModel
+        super.onViewCreated(view, savedInstanceState)
+        
+        setupRecyclerView()
         setupListeners(view)
-        loadMockData()
     }
     
-    private fun setupRecyclerView(view: View) {
-        val rvProjects = view.findViewById<androidx.recyclerview.widget.RecyclerView>(R.id.rvProjects)
+    /**
+     * Implementa o método abstrato getErrorViewModels para fornecer
+     * a lista de ViewModels que tratam erros
+     */
+    override fun getErrorViewModels(): List<ErrorViewModel> {
+        return listOf(viewModel.errorHandler)
+    }
+    
+    /**
+     * Implementa o método onErrorRetry para quando o usuário
+     * clica em "Tentar novamente" após um erro
+     */
+    override fun onErrorRetry(errorEvent: ErrorViewModel.ErrorEvent) {
+        viewModel.refreshProjects()
+    }
+    
+    private fun initViews(view: View) {
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        recyclerProjects = view.findViewById(R.id.recyclerProjects)
+        layoutEmpty = view.findViewById(R.id.layoutEmpty)
+    }
+    
+    private fun setupViewModel() {
+        val factory = DashboardViewModelFactory(ProjectRepository())
+        viewModel = ViewModelProvider(this, factory)[DashboardViewModel::class.java]
         
-        projectsAdapter = ProjectsAdapter(emptyList()) { project ->
-            LogUtils.debug("DashboardFragment", "Projeto clicado: ${project.name}")
-            // Toast será exibido pela ação no adapter
+        viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> showLoading()
+                is UiState.Success -> showProjects(state.data)
+                is UiState.Empty -> showEmpty()
+                is UiState.Error -> {
+                    // Atualiza UI para parar o loading
+                    swipeRefresh.isRefreshing = false
+                    // O BaseFragment já cuida de mostrar o erro
+                }
+            }
         }
+    }
+    
+    private fun setupRecyclerView() {
+        projectsAdapter = ProjectsAdapter(
+            emptyList(),
+            onItemClick = { project ->
+                LogUtils.debug("DashboardFragment", "Projeto clicado: ${project.name}")
+                // Navegar para tela de detalhes do projeto
+                val intent = Intent(requireContext(), ProjectDetailActivity::class.java)
+                intent.putExtra("project_id", project.id)
+                intent.putExtra("project_name", project.name)
+                startActivity(intent)
+            }
+        )
         
-        rvProjects.layoutManager = LinearLayoutManager(context)
-        rvProjects.adapter = projectsAdapter
+        recyclerProjects.layoutManager = LinearLayoutManager(context)
+        recyclerProjects.adapter = projectsAdapter
     }
     
     private fun setupListeners(view: View) {
+        swipeRefresh.setOnRefreshListener {
+            LogUtils.debug("DashboardFragment", "Atualizando projetos via swipe refresh")
+            viewModel.refreshProjects()
+        }
+        
         // Configurar botão de busca
-        view.findViewById<View>(R.id.cardSearch).setOnClickListener {
+        view.findViewById<View>(R.id.cardSearch)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Busca clicada")
             Toast.makeText(context, "Função de busca em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
         // Botão "ver todos" dos insights
-        view.findViewById<View>(R.id.tvViewAll).setOnClickListener {
+        view.findViewById<View>(R.id.tvViewAll)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Ver todos os insights clicado")
             Toast.makeText(context, "Ver todos os insights em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
         // Cards de insights
-        view.findViewById<View>(R.id.cardMaterials).setOnClickListener {
+        view.findViewById<View>(R.id.cardMaterials)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de materiais clicado")
             Toast.makeText(context, "Lista de materiais em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
-        view.findViewById<View>(R.id.cardWorkers).setOnClickListener {
+        view.findViewById<View>(R.id.cardWorkers)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de funcionários clicado")
             Toast.makeText(context, "Lista de funcionários em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
-        view.findViewById<View>(R.id.cardTasks).setOnClickListener {
+        view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de tarefas clicado")
             Toast.makeText(context, "Lista de tarefas em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
         // Botão para contratos
-        view.findViewById<View>(R.id.fabContratos).setOnClickListener {
+        view.findViewById<View>(R.id.fabContratos)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Botão contratos clicado")
             
             // Navegar para a página de contratos
@@ -99,36 +164,25 @@ class DashboardFragment : Fragment() {
         }
     }
     
-    private fun loadMockData() {
-        // Dados simulados para testes
-        projectsList.clear()
-        projectsList.addAll(
-            listOf(
-                Project(
-                    id = "1",
-                    name = "Monte Carlo Casino",
-                    location = "Surat, Gujarat, Índia",
-                    status = "in_progress",
-                    budget = "R$ 5.481.245,59",
-                    expenses = "R$ 1.842.195,40",
-                    startDate = "30/09/2024",
-                    endDate = "01/01/2026",
-                    imageUrl = ""
-                ),
-                Project(
-                    id = "2",
-                    name = "Resort Paradise",
-                    location = "Rio de Janeiro, Brasil",
-                    status = "in_progress",
-                    budget = "R$ 3.781.245,59",
-                    expenses = "R$ 1.342.195,40",
-                    startDate = "15/08/2024",
-                    endDate = "25/12/2025",
-                    imageUrl = ""
-                )
-            )
-        )
-        
-        projectsAdapter.updateData(projectsList)
+    private fun showLoading() {
+        swipeRefresh.isRefreshing = true
+        layoutEmpty.visibility = View.GONE
+    }
+    
+    private fun showProjects(projects: List<Project>) {
+        swipeRefresh.isRefreshing = false
+        layoutEmpty.visibility = View.GONE
+        projectsAdapter.updateData(projects)
+    }
+    
+    private fun showEmpty() {
+        swipeRefresh.isRefreshing = false
+        layoutEmpty.visibility = View.VISIBLE
+        projectsAdapter.updateData(emptyList())
+    }
+    
+    override fun onResume() {
+        super.onResume()
+        viewModel.refreshProjects()
     }
 } 

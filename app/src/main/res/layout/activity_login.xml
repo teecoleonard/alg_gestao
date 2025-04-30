@@ -86,15 +86,16 @@
                     style="@style/Widget.ALG.TextInputLayout"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:hint="E-mail"
-                    app:startIconDrawable="@drawable/ic_email"
+                    android:hint="CPF"
+                    app:startIconDrawable="@drawable/ic_person"
                     app:startIconTint="@color/text_secondary">
 
                     <com.google.android.material.textfield.TextInputEditText
                         android:id="@+id/etLogin"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:inputType="textEmailAddress" />
+                        android:inputType="number"
+                        android:maxLength="14" />
                 </com.google.android.material.textfield.TextInputLayout>
 
                 <!-- Campo Senha -->
@@ -136,6 +137,37 @@
                     android:layout_marginTop="24dp"
                     android:text="Entrar"
                     android:textSize="16sp" />
+
+                <ProgressBar
+                    android:id="@+id/progress_bar"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center_horizontal"
+                    android:layout_marginTop="16dp"
+                    android:visibility="gone" />
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:gravity="center"
+                    android:orientation="horizontal">
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Não tem conta? "
+                        android:textColor="@color/text_secondary" />
+
+                    <TextView
+                        android:id="@+id/tv_register"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Cadastre-se"
+                        android:textColor="@color/primary"
+                        android:textStyle="bold" />
+
+                </LinearLayout>
             </LinearLayout>
         </androidx.cardview.widget.CardView>
 
@@ -145,7 +177,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginBottom="16dp"
-            android:text="Versão 0.0.2"
+            android:text="Versão 0.0.3"
             android:textColor="@color/text_secondary"
             android:textSize="12sp"
             app:layout_constraintBottom_toTopOf="@+id/tvTerms"

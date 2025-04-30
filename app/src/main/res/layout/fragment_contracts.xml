@@ -124,73 +124,48 @@
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipAll"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.App.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:checkable="true"
                     android:checked="true"
-                    android:text="Todos"
-                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                    android:textColor="@color/chip_text_color"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipStrokeColor="@color/chip_stroke_color"
-                    app:chipStrokeWidth="1dp" />
+                    android:text="Todos" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipActive"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.App.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:checkable="true"
-                    android:text="Ativos"
-                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                    android:textColor="@color/chip_text_color"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipStrokeColor="@color/chip_stroke_color"
-                    app:chipStrokeWidth="1dp" />
+                    android:text="Ativos" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipPending"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.App.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:checkable="true"
-                    android:text="Pendentes"
-                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                    android:textColor="@color/chip_text_color"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipStrokeColor="@color/chip_stroke_color"
-                    app:chipStrokeWidth="1dp" />
+                    android:text="Pendentes" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCompleted"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.App.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="8dp"
                     android:checkable="true"
-                    android:text="Concluídos"
-                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                    android:textColor="@color/chip_text_color"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipStrokeColor="@color/chip_stroke_color"
-                    app:chipStrokeWidth="1dp" />
+                    android:text="Concluídos" />
 
                 <com.google.android.material.chip.Chip
                     android:id="@+id/chipCancelled"
-                    style="@style/Widget.MaterialComponents.Chip.Choice"
+                    style="@style/Widget.App.Chip.Filter"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:checkable="true"
-                    android:text="Cancelados"
-                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                    android:textColor="@color/chip_text_color"
-                    app:chipBackgroundColor="@color/chip_background_color"
-                    app:chipStrokeColor="@color/chip_stroke_color"
-                    app:chipStrokeWidth="1dp" />
+                    android:text="Cancelados" />
 
             </LinearLayout>
 

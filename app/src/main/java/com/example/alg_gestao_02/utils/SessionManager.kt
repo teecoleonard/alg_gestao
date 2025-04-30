@@ -18,7 +18,7 @@ class SessionManager(context: Context) {
         private const val KEY_TOKEN = "token"
         private const val KEY_USER_ID = "userId"
         private const val KEY_USER_NAME = "userName"
-        private const val KEY_USER_EMAIL = "userEmail"
+        private const val KEY_USER_CPF = "userCpf"
         private const val KEY_USER_ROLE = "userRole"
         private const val KEY_EXPIRES_IN = "expiresIn"
         
@@ -57,7 +57,7 @@ class SessionManager(context: Context) {
         editor.putString(KEY_TOKEN, token)
         editor.putString(KEY_USER_ID, user.id)
         editor.putString(KEY_USER_NAME, user.name)
-        editor.putString(KEY_USER_EMAIL, user.email)
+        editor.putString(KEY_USER_CPF, user.cpf)
         editor.putString(KEY_USER_ROLE, user.role)
         editor.putLong(KEY_EXPIRES_IN, expiresIn)
         editor.apply()
@@ -87,17 +87,17 @@ class SessionManager(context: Context) {
     }
     
     /**
-     * Obtém o email do usuário logado
+     * Obtém o CPF do usuário logado
      */
-    fun getUserEmail(): String? {
-        return prefs.getString(KEY_USER_EMAIL, null)
+    fun getUserCpf(): String? {
+        return prefs.getString(KEY_USER_CPF, null)
     }
     
     /**
      * Obtém o cargo do usuário logado
      */
     fun getUserRole(): String {
-        return prefs.getString(KEY_USER_ROLE, "Supervisor") ?: "Supervisor"
+        return prefs.getString(KEY_USER_ROLE, "cliente") ?: "cliente"
     }
     
     /**
