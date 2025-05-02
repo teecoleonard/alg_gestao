@@ -117,6 +117,7 @@ class ProjectDetailActivity : AppCompatActivity() {
     @Deprecated("Substituído pelo novo mecanismo OnBackPressedDispatcher")
     override fun onBackPressed() {
         LogUtils.debug("ProjectDetailActivity", "onBackPressed")
+        super.onBackPressed()
         finishActivity()
     }
     

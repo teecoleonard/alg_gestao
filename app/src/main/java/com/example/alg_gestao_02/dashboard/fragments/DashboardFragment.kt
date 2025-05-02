@@ -21,6 +21,7 @@ import com.example.alg_gestao_02.ui.common.ErrorViewModel
 import com.example.alg_gestao_02.ui.dashboard.repository.ProjectRepository
 import com.example.alg_gestao_02.ui.dashboard.viewmodel.DashboardViewModel
 import com.example.alg_gestao_02.ui.dashboard.viewmodel.DashboardViewModelFactory
+import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 
@@ -128,25 +129,34 @@ class DashboardFragment : BaseFragment() {
             Toast.makeText(context, "Ver todos os insights em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
-        // Cards de insights
+        // Card de Materiais
         view.findViewById<View>(R.id.cardMaterials)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de materiais clicado")
             Toast.makeText(context, "Lista de materiais em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
         
+        // Card de Equipamentos
+        view.findViewById<View>(R.id.cardEquipamentos)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card de equipamentos clicado")
+            
+            // Navegar para a página de equipamentos
+            val transaction = requireActivity().supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.fragmentContainer, EquipamentosFragment())
+            transaction.addToBackStack(null)
+            transaction.commit()
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_equipamentos)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+        // Card de Contratos
         view.findViewById<View>(R.id.cardWorkers)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de funcionários clicado")
-            Toast.makeText(context, "Lista de funcionários em desenvolvimento", Toast.LENGTH_SHORT).show()
-        }
-        
-        view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de tarefas clicado")
-            Toast.makeText(context, "Lista de tarefas em desenvolvimento", Toast.LENGTH_SHORT).show()
-        }
-        
-        // Botão para contratos
-        view.findViewById<View>(R.id.fabContratos)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Botão contratos clicado")
+            LogUtils.debug("DashboardFragment", "Card de contratos clicado")
             
             // Navegar para a página de contratos
             val transaction = requireActivity().supportFragmentManager.beginTransaction()
@@ -161,6 +171,12 @@ class DashboardFragment : BaseFragment() {
             } catch (e: Exception) {
                 LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
             }
+        }
+        
+        // Card de Clientes
+        view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card de clientes clicado")
+            Toast.makeText(context, "Lista de clientes em desenvolvimento", Toast.LENGTH_SHORT).show()
         }
     }
     

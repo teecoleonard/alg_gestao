@@ -1,0 +1,43 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:gravity="center"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <ImageView
+        android:id="@+id/ivError"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:contentDescription="Erro"
+        android:src="@drawable/ic_no_data"
+        app:tint="@color/primary_light" />
+
+    <TextView
+        android:id="@+id/tvErrorTitle"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Ocorreu um erro"
+        android:textAppearance="@style/TextAppearance.ALG.Title"
+        android:textSize="18sp" />
+
+    <TextView
+        android:id="@+id/tvErrorMessage"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="8dp"
+        android:gravity="center"
+        android:text="Não foi possível carregar os dados. Tente novamente mais tarde."
+        android:textAppearance="@style/TextAppearance.ALG.Subtitle" />
+
+    <Button
+        android:id="@+id/btnRetry"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginTop="16dp"
+        android:text="Tentar novamente" />
+
+</LinearLayout> 

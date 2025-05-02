@@ -15,6 +15,7 @@ import com.example.alg_gestao_02.dashboard.fragments.DashboardFragment
 import com.example.alg_gestao_02.dashboard.fragments.contract.ContratosFragment
 import com.example.alg_gestao_02.databinding.ActivityDashboardBinding
 import com.example.alg_gestao_02.ui.cliente.ClientesFragment
+import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.navigation.NavigationView
@@ -112,6 +113,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             }
             R.id.nav_contratos -> {
                 ContratosFragment()
+            }
+            R.id.nav_equipamentos -> {
+                EquipamentosFragment()
             }
             R.id.nav_logout -> {
                 LogUtils.info("DashboardActivity", "Usuário solicitou logout")

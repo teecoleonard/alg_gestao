@@ -26,7 +26,7 @@
     
     <!-- Cores semânticas -->
     <color name="success">#4CAF50</color>
-    <color name="warning">#FF9800</color>
+    <color name="warning">#FFC107</color>
     <color name="error">#F44336</color>
     <color name="info">#2196F3</color>
     
@@ -55,4 +55,6 @@
     <color name="chip_text_selected">@color/white</color>
     <color name="chip_text_unselected">@color/text_primary</color>
     <color name="chip_stroke_color">@color/divider</color>
+    
+    <color name="price_text">#2E7D32</color>
 </resources>

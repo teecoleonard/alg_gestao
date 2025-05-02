@@ -1,0 +1,220 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:padding="16dp">
+
+        <!-- Nome do Equipamento -->
+        <TextView
+            android:id="@+id/tvDetalhesNomeEquipamento"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="20sp"
+            tools:text="Furadeira Industrial" />
+
+        <!-- Código do Equipamento -->
+        <TextView
+            android:id="@+id/tvDetalhesCodigoEquipamento"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.ALG.Subtitle"
+            android:textColor="@color/text_secondary"
+            tools:text="Código: FUR-001" />
+
+        <!-- Quantidade disponível -->
+        <TextView
+            android:id="@+id/tvDetalhesQuantidadeEquipamento"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            android:textColor="@color/text_secondary"
+            tools:text="Quantidade disponível: 5" />
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/divider" />
+
+        <!-- Tabela de preços -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Tabela de Preços"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp" />
+
+        <!-- Tabela de preços -->
+        <TableLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp">
+
+            <!-- Diária -->
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:text="Diária:"
+                    android:textAppearance="@style/TextAppearance.ALG.Body" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesPrecoDiaria"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/price_text"
+                    android:textStyle="bold"
+                    tools:text="R$ 150,00" />
+            </TableRow>
+
+            <!-- Semanal -->
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:text="Semanal:"
+                    android:textAppearance="@style/TextAppearance.ALG.Body" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesPrecoSemanal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/price_text"
+                    android:textStyle="bold"
+                    tools:text="R$ 900,00" />
+            </TableRow>
+
+            <!-- Quinzenal -->
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:text="Quinzenal:"
+                    android:textAppearance="@style/TextAppearance.ALG.Body" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesPrecoQuinzenal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/price_text"
+                    android:textStyle="bold"
+                    tools:text="R$ 1.800,00" />
+            </TableRow>
+
+            <!-- Mensal -->
+            <TableRow
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:text="Mensal:"
+                    android:textAppearance="@style/TextAppearance.ALG.Body" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesPrecoMensal"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:padding="8dp"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textColor="@color/price_text"
+                    android:textStyle="bold"
+                    tools:text="R$ 3.500,00" />
+            </TableRow>
+        </TableLayout>
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/divider" />
+
+        <!-- Valor Patrimonial -->
+        <TextView
+            android:id="@+id/labelValorPatrimonio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Valor Patrimonial"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp" />
+
+        <TextView
+            android:id="@+id/tvDetalhesValorPatrimonio"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            android:textColor="@color/price_text"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="R$ 12.000,00" />
+
+        <!-- Botões -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnFecharDetalhes"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Fechar" />
+
+            <Button
+                android:id="@+id/btnEditarEquipamento"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Editar" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView> 

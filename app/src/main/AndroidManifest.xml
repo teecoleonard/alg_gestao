@@ -17,6 +17,7 @@
         android:theme="@style/Theme.ALG_Gestao_02"
         android:usesCleartextTraffic="true"
         android:enableOnBackInvokedCallback="true"
+        android:name=".AlgGestaoApplication"
         tools:targetApi="31">
         
         <!-- SplashActivity: Ponto de entrada do aplicativo -->
