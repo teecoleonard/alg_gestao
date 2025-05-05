@@ -3,6 +3,7 @@ package com.example.alg_gestao_02.data.api
 import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.data.models.User
 import com.example.alg_gestao_02.data.models.Cliente
+import com.example.alg_gestao_02.data.models.Contrato
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -100,6 +101,49 @@ interface ApiService {
      */
     @DELETE("api/clientes/{id}")
     suspend fun deleteCliente(@Path("id") id: Int): Response<Void>
+
+    /**
+     * ENDPOINTS DE CONTRATOS 
+     */
+    
+    /**
+     * Obter todos os contratos
+     */
+    @GET("api/contratos")
+    suspend fun getContratos(): Response<List<Contrato>>
+    
+    /**
+     * Obter um contrato específico por ID
+     */
+    @GET("api/contratos/{id}")
+    suspend fun getContratoById(@Path("id") id: Int): Response<Contrato>
+    
+    /**
+     * Obter contratos de um cliente específico
+     */
+    @GET("api/contratos/cliente/{clienteId}")
+    suspend fun getContratosByCliente(@Path("clienteId") clienteId: Int): Response<List<Contrato>>
+    
+    /**
+     * Criar um novo contrato
+     */
+    @POST("api/contratos")
+    suspend fun createContrato(@Body contrato: Contrato): Response<Contrato>
+    
+    /**
+     * Atualizar um contrato existente
+     */
+    @PUT("api/contratos/{id}")
+    suspend fun updateContrato(
+        @Path("id") id: Int,
+        @Body contrato: Contrato
+    ): Response<Contrato>
+    
+    /**
+     * Excluir um contrato
+     */
+    @DELETE("api/contratos/{id}")
+    suspend fun deleteContrato(@Path("id") id: Int): Response<Void>
     
     /**
      * Classe para requisição de login

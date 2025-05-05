@@ -1,0 +1,247 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <androidx.core.widget.NestedScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:fillViewport="true">
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:padding="16dp">
+
+            <!-- Toolbar com título -->
+            <androidx.appcompat.widget.Toolbar
+                android:id="@+id/toolbar"
+                android:layout_width="match_parent"
+                android:layout_height="?attr/actionBarSize"
+                android:background="@color/primary"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <TextView
+                    android:id="@+id/tvTitle"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Novo Contrato"
+                    android:textColor="@android:color/white"
+                    android:textSize="18sp"
+                    android:textStyle="bold" />
+
+            </androidx.appcompat.widget.Toolbar>
+
+            <!-- Seleção de Cliente (apenas para novos contratos) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilCliente"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Cliente"
+                app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+                <AutoCompleteTextView
+                    android:id="@+id/actvCliente"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Número do Contrato (Autopopulado) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContratoNum"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Número do Contrato"
+                app:endIconMode="clear_text"
+                app:helperText="Preenchimento automático"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/tilCliente">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContratoNum"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:enabled="false"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Valor do Contrato (Obrigatório) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContratoValor"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Valor do Contrato (R$)"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/tilContratoNum">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContratoValor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="numberDecimal" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Local da Obra (Obrigatório) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilObraLocal"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Local da Obra"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/tilContratoValor">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etObraLocal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Período do Contrato (Obrigatório) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContratoPeriodo"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Período do Contrato"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/tilObraLocal">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContratoPeriodo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Local de Entrega (Obrigatório) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEntregaLocal"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Local de Entrega"
+                app:endIconMode="clear_text"
+                app:layout_constraintTop_toBottomOf="@id/tilContratoPeriodo">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEntregaLocal"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPostalAddress" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Responsável pelo Pedido (Opcional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilRespPedido"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Responsável pelo Pedido"
+                app:endIconMode="clear_text"
+                app:helperText="Opcional"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/tilEntregaLocal">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRespPedido"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Assinatura do Contrato (Opcional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilContratoAss"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Assinatura do Contrato"
+                app:endIconMode="clear_text"
+                app:helperText="Opcional"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/tilRespPedido">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etContratoAss"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textMultiLine"
+                    android:lines="3" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Botões de ação -->
+            <LinearLayout
+                android:id="@+id/llButtons"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:gravity="end"
+                android:orientation="horizontal"
+                app:layout_constraintTop_toBottomOf="@id/tilContratoAss">
+
+                <Button
+                    android:id="@+id/btnCancel"
+                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:text="Cancelar" />
+
+                <Button
+                    android:id="@+id/btnSave"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:backgroundTint="@color/primary"
+                    android:text="Salvar" />
+
+            </LinearLayout>
+
+            <!-- Loading View -->
+            <FrameLayout
+                android:id="@+id/loadingView"
+                android:layout_width="0dp"
+                android:layout_height="0dp"
+                android:background="#80000000"
+                android:clickable="true"
+                android:focusable="true"
+                android:visibility="gone"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent">
+
+                <ProgressBar
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_gravity="center" />
+
+            </FrameLayout>
+
+        </androidx.constraintlayout.widget.ConstraintLayout>
+
+    </androidx.core.widget.NestedScrollView>
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout> 
