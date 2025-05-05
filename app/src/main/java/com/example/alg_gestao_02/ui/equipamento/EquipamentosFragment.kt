@@ -1,12 +1,14 @@
 package com.example.alg_gestao_02.ui.equipamento
 
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.Menu
 import android.view.MenuInflater
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.LinearLayout
 import android.widget.PopupMenu
 import android.widget.Toast
@@ -25,6 +27,7 @@ import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textfield.TextInputEditText
 
 /**
  * Fragment para listar e gerenciar equipamentos
@@ -38,6 +41,7 @@ class EquipamentosFragment : BaseFragment() {
     private lateinit var layoutEmpty: LinearLayout
     private lateinit var swipeRefresh: SwipeRefreshLayout
     private lateinit var fabAddEquipamento: FloatingActionButton
+    private lateinit var etSearch: TextInputEditText
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -75,23 +79,6 @@ class EquipamentosFragment : BaseFragment() {
     
     override fun onCreateOptionsMenu(menu: Menu, inflater: MenuInflater) {
         inflater.inflate(R.menu.menu_equipamentos, menu)
-        
-        // Configurar SearchView
-        val searchItem = menu.findItem(R.id.action_search)
-        val searchView = searchItem.actionView as SearchView
-        
-        searchView.setOnQueryTextListener(object : SearchView.OnQueryTextListener {
-            override fun onQueryTextSubmit(query: String?): Boolean {
-                query?.let { viewModel.setTextoBusca(it) }
-                return true
-            }
-            
-            override fun onQueryTextChange(newText: String?): Boolean {
-                newText?.let { viewModel.setTextoBusca(it) }
-                return true
-            }
-        })
-        
         super.onCreateOptionsMenu(menu, inflater)
     }
     
@@ -120,6 +107,7 @@ class EquipamentosFragment : BaseFragment() {
         layoutEmpty = view.findViewById(R.id.layoutEmpty)
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
         fabAddEquipamento = view.findViewById(R.id.fabAddEquipamento)
+        etSearch = view.findViewById(R.id.etSearch)
     }
     
     private fun setupRecyclerView() {
@@ -171,6 +159,19 @@ class EquipamentosFragment : BaseFragment() {
         swipeRefresh.setOnRefreshListener {
             LogUtils.debug("EquipamentosFragment", "SwipeRefresh acionado")
             viewModel.loadEquipamentos()
+        }
+        
+        // Configurar listener para busca
+        etSearch.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || 
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                val searchTerm = etSearch.text.toString().trim()
+                LogUtils.debug("EquipamentosFragment", "Buscando por: $searchTerm")
+                viewModel.setTextoBusca(searchTerm)
+                true
+            } else {
+                false
+            }
         }
     }
     

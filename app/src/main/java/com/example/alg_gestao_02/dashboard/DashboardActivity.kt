@@ -12,10 +12,10 @@ import androidx.fragment.app.Fragment
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.auth.LoginActivity
 import com.example.alg_gestao_02.dashboard.fragments.DashboardFragment
-import com.example.alg_gestao_02.dashboard.fragments.contract.ContratosFragment
 import com.example.alg_gestao_02.databinding.ActivityDashboardBinding
 import com.example.alg_gestao_02.ui.cliente.ClientesFragment
 import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
+import com.example.alg_gestao_02.ui.contrato.ContratosFragment
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.navigation.NavigationView

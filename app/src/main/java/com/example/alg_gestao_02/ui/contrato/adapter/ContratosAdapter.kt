@@ -38,7 +38,7 @@ class ContratosAdapter(
          */
         fun bind(contrato: Contrato) {
             // Define o nome do cliente
-            tvClienteNome.text = contrato.getClienteNome()
+            tvClienteNome.text = contrato.resolverNomeCliente()
             
             // Define o número do contrato
             tvContratoNumero.text = "Contrato #${contrato.contratoNum}"

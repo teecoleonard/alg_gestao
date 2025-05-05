@@ -1,9 +1,11 @@
 package com.example.alg_gestao_02.ui.cliente
 
 import android.os.Bundle
+import android.view.KeyEvent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
@@ -19,6 +21,7 @@ import com.example.alg_gestao_02.ui.cliente.viewmodel.ClientesViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.google.android.material.floatingactionbutton.FloatingActionButton
+import com.google.android.material.textfield.TextInputEditText
 
 /**
  * Fragment para listagem e gestão de clientes
@@ -34,6 +37,7 @@ class ClientesFragment : Fragment() {
     private lateinit var viewLoading: View
     private lateinit var viewEmpty: View
     private lateinit var viewError: View
+    private lateinit var etSearch: TextInputEditText
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -53,6 +57,10 @@ class ClientesFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         observeViewModel()
+        
+        // Carregar clientes imediatamente
+        LogUtils.debug("ClientesFragment", "Carregando lista de clientes inicialmente")
+        viewModel.loadClientes()
     }
     
     private fun initViews(view: View) {
@@ -62,6 +70,7 @@ class ClientesFragment : Fragment() {
         viewLoading = view.findViewById(R.id.viewLoading)
         viewEmpty = view.findViewById(R.id.viewEmpty)
         viewError = view.findViewById(R.id.viewError)
+        etSearch = view.findViewById(R.id.etSearch)
     }
     
     private fun setupViewModel() {
@@ -93,6 +102,19 @@ class ClientesFragment : Fragment() {
         fabNovoCliente.setOnClickListener {
             showCadastroClienteDialog()
         }
+        
+        // Configurar listener para busca
+        etSearch.setOnEditorActionListener { v, actionId, event ->
+            if (actionId == EditorInfo.IME_ACTION_SEARCH || 
+                (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
+                val searchTerm = etSearch.text.toString().trim()
+                LogUtils.debug("ClientesFragment", "Buscando por: $searchTerm")
+                viewModel.setSearchTerm(searchTerm)
+                true
+            } else {
+                false
+            }
+        }
     }
     
     private fun observeViewModel() {
@@ -101,6 +123,7 @@ class ClientesFragment : Fragment() {
             
             when (state) {
                 is UiState.Loading -> {
+                    LogUtils.debug("ClientesFragment", "Estado: Loading")
                     viewLoading.visibility = View.VISIBLE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.GONE
@@ -108,6 +131,7 @@ class ClientesFragment : Fragment() {
                 }
                 
                 is UiState.Success -> {
+                    LogUtils.debug("ClientesFragment", "Estado: Success - Clientes: ${state.data.size}")
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.GONE
@@ -117,6 +141,7 @@ class ClientesFragment : Fragment() {
                 }
                 
                 is UiState.Empty -> {
+                    LogUtils.debug("ClientesFragment", "Estado: Empty")
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.VISIBLE
                     viewError.visibility = View.GONE
@@ -124,6 +149,7 @@ class ClientesFragment : Fragment() {
                 }
                 
                 is UiState.Error -> {
+                    LogUtils.debug("ClientesFragment", "Estado: Error - ${state.message}")
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.VISIBLE

@@ -297,7 +297,7 @@ O aplicativo não possuía um mecanismo de persistência de dados local, dificul
 ### Benefícios da Implementação
 - Funcionamento do aplicativo mesmo sem conexão com internet
 - Melhor experiência do usuário com carregamento mais rápido de dados
-- Redução do consumo de dados móveis e de bateria com cache local eficiente
+- Redução do consumo de dados móveis, carregando apenas o necessário
 - Resiliência contra problemas de conectividade intermitente
 - Sincronização automática quando a conexão é restaurada
 
@@ -572,3 +572,338 @@ kotlinx.coroutines.JobCancellationException: Job was cancelled; job=SupervisorJo
 
 ### Data da Correção
 05/05/2025
+
+---
+
+## Implementação de busca por nome de cliente no módulo de Contratos
+
+### Problema Detectado
+O módulo de Contratos não possuía uma funcionalidade de busca eficiente, contando apenas com filtros por chips (Todos, Ativos, Pendentes, etc.) que não permitiam localizar rapidamente contratos específicos por nome de cliente.
+
+### Detalhes da Implementação
+
+#### 1. Correção de conflito no modelo Contrato
+- Renomeamos o método `getClienteNome()` para `resolverNomeCliente()` para evitar conflitos com a propriedade `clienteNome`
+- Implementamos lógica para priorizar o objeto Cliente aninhado, seguido pelo nome do cliente simples e, por último, um fallback para o ID
+
+```kotlin
+fun resolverNomeCliente(): String {
+    // Preferência pelo cliente aninhado se disponível
+    return when {
+        cliente?.contratante != null -> cliente.contratante
+        clienteNome != null -> clienteNome
+        else -> "Cliente #$clienteId"
+    }
+}
+```
+
+#### 2. Atualização da interface do usuário
+- Modificamos o layout `fragment_contratos.xml` para incluir um campo de busca no topo
+- Removemos os chips de filtro (Todos, Ativos, Pendentes, etc.) para simplificar a interface
+- Implementamos um TextInputLayout com ícone de busca e sugestão clara
+
+#### 3. Implementação da funcionalidade de busca
+- Adicionamos o atributo `_searchTerm` ao ViewModel para armazenar o termo de busca
+- Implementamos o método `setSearchTerm(term: String)` para atualizar o termo de busca
+- Implementamos o método `applySearchFilter(term: String)` para filtrar a lista de contratos
+
+#### 4. Tratamento de estados
+- Atualizamos o ViewFlipper para exibir diferentes estados:
+  - Loading durante a busca
+  - Lista de resultados quando há contratos correspondentes
+  - Estado vazio quando nenhum contrato corresponde ao critério de busca
+  - Estado de erro em caso de falhas
+
+### Benefícios da Implementação
+- Melhor experiência do usuário ao localizar contratos específicos
+- Interface mais limpa sem os chips de filtro
+- Feedback visual claro durante o processo de busca
+- Implementação seguindo o padrão MVVM existente
+
+### Data da Implementação
+06/05/2025
+
+---
+
+## Implementação de busca por nome de cliente no módulo de Clientes
+
+### Problema Detectado
+Similar ao módulo de Contratos, o módulo de Clientes não possuía uma funcionalidade de busca eficiente para localizar clientes específicos por nome.
+
+### Detalhes da Implementação
+
+#### 1. Atualização da interface do usuário
+- Modificamos o layout `fragment_clientes.xml` para incluir um campo de busca no topo
+- Implementamos um TextInputLayout com ícone de busca e sugestão clara para o usuário
+
+#### 2. Implementação da lógica de busca no ViewModel
+- Adicionamos os atributos necessários no `ClientesViewModel`:
+  - Lista completa de clientes para filtragem local (`allClientes`)
+  - Termo de busca atual (`_searchTerm`)
+- Implementamos o método `setSearchTerm(term: String)` para atualizar o termo de busca
+- Implementamos o método `applySearchFilter(term: String)` para filtrar a lista de clientes
+
+```kotlin
+private fun applySearchFilter(term: String) {
+    if (allClientes.isEmpty()) {
+        _uiState.value = UiState.Empty()
+        return
+    }
+    
+    if (term.isEmpty()) {
+        _uiState.value = UiState.Success(allClientes)
+        return
+    }
+    
+    val filteredList = allClientes.filter { cliente ->
+        val nome = cliente.contratante.lowercase()
+        nome.contains(term.lowercase())
+    }
+    
+    if (filteredList.isEmpty()) {
+        _uiState.value = UiState.Empty()
+    } else {
+        _uiState.value = UiState.Success(filteredList)
+    }
+}
+```
+
+#### 3. Tratamento de visibilidade de views
+- Implementamos o tratamento adequado da visibilidade das diferentes views de estado:
+  - Estado de carregamento (viewLoading)
+  - Estado vazio (viewEmpty)
+  - Estado de erro (viewError)
+  - Lista de resultados (recyclerView)
+
+#### 4. Integração com SwipeRefreshLayout
+- Mantivemos a integração com SwipeRefreshLayout para permitir atualizar a lista de clientes
+- Garantimos que o estado de refreshing é desativado em todos os callbacks de estado
+
+### Benefícios da Implementação
+- Interface consistente com o módulo de Contratos
+- Experiência de usuário aprimorada para localização de clientes específicos
+- Resposta imediata às entradas de busca do usuário
+- Feedback visual adequado em todos os estados da operação
+
+### Data da Implementação
+06/05/2025
+
+---
+
+## Correção de problemas com o ViewFlipper no módulo de Contratos
+
+### Problema Detectado
+O ViewFlipper utilizado para alternar entre diferentes estados da UI no fragmento de contratos não funcionava corretamente, resultando em múltiplas views visíveis simultaneamente ou nenhuma view visível.
+
+### Detalhes da Correção
+
+#### 1. Identificação do problema
+- O ViewFlipper não estava sendo manipulado corretamente nos callbacks de estado
+- Algumas views estavam com visibility GONE mas o ViewFlipper estava tentando exibi-las
+- Debugging mostrou problemas de sincronização entre a visibilidade de views individuais e o índice do ViewFlipper
+
+#### 2. Solução implementada
+- Adotamos uma abordagem consistente para manipular o ViewFlipper:
+  - Definimos índices claros para cada estado (0 = Loading, 1 = Empty, 2 = List, 3 = Error)
+  - Utilizamos `viewFlipper.displayedChild = índice` em vez de manipular visibilidade individual
+- Adicionamos logs detalhados para depuração:
+```kotlin
+LogUtils.debug("ContratosFragment", "ViewFlipper exibindo tela de ${estadoAtual} (índice ${viewFlipper.displayedChild})")
+```
+
+### Benefícios da Correção
+- Transições suaves entre os diferentes estados da UI
+- Eliminação de problemas de visibilidade inconsistente
+- Melhor organização do código com índices bem definidos
+
+### Data da Correção
+05/05/2025
+
+---
+
+## Implementação de busca por nome no módulo de Equipamentos
+
+### Problema Detectado
+O módulo de Equipamentos utilizava uma SearchView no menu da tela para realizar buscas, tornando a interface inconsistente com os demais módulos do aplicativo (Contratos e Clientes) que utilizam um campo de busca diretamente no layout.
+
+### Detalhes da Implementação
+
+#### 1. Atualização do layout
+- Modificamos o layout `fragment_equipamentos.xml` para incluir um campo de busca no topo:
+  - Substituímos a estrutura de layout para usar um ConstraintLayout como container principal
+  - Adicionamos um TextInputLayout com um EditText para busca
+  - Mantivemos o SwipeRefreshLayout como container dos itens, agora abaixo do campo de busca
+
+#### 2. Remoção da busca via menu
+- Removemos o item de busca `action_search` do menu `menu_equipamentos.xml`
+- Simplificamos o menu para manter apenas as opções de filtro e atualização
+
+#### 3. Implementação do listener de busca
+- Adicionamos o listener `setOnEditorActionListener` no EditText de busca
+- Implementamos o tratamento para os eventos de teclado (tecla Enter e botão de Pesquisar)
+- Continuamos utilizando o método `viewModel.setTextoBusca()` que já estava implementado
+
+#### 4. Melhoria no feedback visual
+- Atualizamos o texto exibido no estado vazio para incluir a sugestão de ajustar a busca
+- Mantivemos a consistência visual com os demais módulos para uma experiência de usuário uniforme
+
+### Benefícios da Implementação
+- Interface consistente em todos os módulos do aplicativo
+- Melhor experiência do usuário com feedback visual uniforme
+- Campo de busca sempre visível e facilmente acessível
+- Redução de cliques necessários para realizar uma busca (não precisa mais abrir o menu)
+
+### Data da Implementação
+05/05/2025
+
+---
+
+## Integração do módulo de Clientes com o Dashboard
+
+### Problema Detectado
+O Dashboard possuía um card para acesso rápido ao módulo de Clientes, mas ao clicar nele era exibida apenas uma mensagem Toast informando que a "Lista de clientes em desenvolvimento", não permitindo a navegação direta para a lista de clientes existente.
+
+### Detalhes da Implementação
+
+#### 1. Análise da estrutura atual
+- Verificamos que os cards de Equipamentos e Contratos já possuíam implementação funcional de navegação
+- Identificamos que o card de Clientes (com ID `cardTasks`) apenas exibia um Toast sem realizar navegação
+
+#### 2. Implementação da navegação
+- Modificamos o método `setupListeners()` no `DashboardFragment`
+- Implementamos o listener do card de Clientes para realizar a navegação:
+  ```kotlin
+  view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
+      LogUtils.debug("DashboardFragment", "Card de clientes clicado")
+      
+      // Navegar para a página de clientes
+      val transaction = requireActivity().supportFragmentManager.beginTransaction()
+      transaction.replace(R.id.fragmentContainer, ClientesFragment())
+      transaction.addToBackStack(null)
+      transaction.commit()
+      
+      // Atualizar item selecionado no menu de navegação
+      try {
+          requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+              .setCheckedItem(R.id.nav_clientes)
+      } catch (e: Exception) {
+          LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+      }
+  }
+  ```
+
+#### 3. Consistência com outros módulos
+- Seguimos o mesmo padrão de navegação já implementado para Equipamentos e Contratos
+- Mantivemos o código para atualização do item selecionado no menu de navegação
+
+### Benefícios da Implementação
+- Navegação consistente entre todos os módulos do aplicativo
+- Melhor experiência do usuário com acesso direto ao módulo de Clientes
+- Aproveitamento do módulo de Clientes já implementado
+- Interface mais intuitiva e funcional
+
+### Data da Implementação
+05/05/2025
+
+---
+
+## Remoção do painel de Materiais do Dashboard
+
+### Problema Detectado
+O Dashboard exibia quatro cards na seção de Insights: Materiais, Equipamentos, Contratos e Clientes. No entanto, o card de Materiais não era funcional, exibindo apenas uma mensagem Toast informando que a funcionalidade estava em desenvolvimento, além de desviar a atenção dos módulos realmente implementados.
+
+### Detalhes da Implementação
+
+#### 1. Modificação do layout
+- Removemos completamente o card de Materiais do layout do Dashboard
+- Reestruturamos o layout para que o card de Equipamentos ocupasse toda a largura na primeira linha
+- Mantivemos os cards de Contratos e Clientes na segunda linha com a mesma estrutura anterior
+
+#### 2. Atualização do código do Fragment
+- Removemos o listener do botão de Materiais que não existe mais:
+```kotlin
+// Card de Materiais
+view.findViewById<View>(R.id.cardMaterials)?.setOnClickListener {
+    LogUtils.debug("DashboardFragment", "Card de materiais clicado")
+    Toast.makeText(context, "Lista de materiais em desenvolvimento", Toast.LENGTH_SHORT).show()
+}
+```
+
+#### 3. Manutenção da consistência visual
+- Ajustamos os parâmetros de layout para manter a aparência harmoniosa:
+  - Removemos margens e pesos específicos do card de Equipamentos
+  - Configuramos o card para ocupar o `match_parent` da largura disponível
+  - Mantivemos o espaçamento entre as linhas de cards
+
+### Benefícios da Implementação
+- Interface mais limpa e focada nos módulos realmente funcionais
+- Melhor experiência do usuário ao evitar opções não implementadas
+- Redução de código desnecessário
+- Destaque para os módulos principais: Equipamentos, Contratos e Clientes
+
+### Data da Implementação
+05/05/2025
+
+---
+
+## Remoção do módulo ProjectDetailActivity e suas dependências
+
+### Problema Detectado
+O aplicativo continha um módulo de "Projetos" com a tela `ProjectDetailActivity` que apresentava detalhes de projetos distribuídos em abas (Sumário, Contratos, Devoluções, Faturas). Este módulo utilizava dados simulados e não estava integrado com a API existente. Além disso, o conceito de "Projetos" não fazia parte do escopo principal do sistema, que está focado em gerenciar Contratos, Clientes e Equipamentos.
+
+### Análise da Situação
+Após análise do código, verificamos que:
+1. O `ProjectDetailActivity` era acessado a partir da lista de projetos exibida no Dashboard
+2. Utilizava dados simulados de um repositório local (`ProjectRepository`) que não se conectava com nenhuma API real
+3. As telas implementadas dentro deste módulo duplicavam funcionalidades já existentes em outros módulos
+4. A manutenção deste módulo separado criava inconsistências e complexidade desnecessária
+
+### Implementação da Remoção
+A remoção incluiu os seguintes arquivos e componentes:
+- `ProjectDetailActivity.kt` e `activity_project_detail.xml`
+- Fragments associados:
+  - `ProjectSummaryFragment.kt`
+  - `ProjectContractsFragment.kt`
+  - `ProjectInvoicesFragment.kt`
+- Modelos, adaptadores e repositórios relacionados:
+  - Classes no pacote `dashboard.fragments.client`
+  - Classes no pacote `dashboard.fragments.dashboard.model`
+  - Referências no `DashboardFragment`
+
+### Ajustes na Interface do Dashboard
+- Removemos a lista de "Todos os Contratos" do Dashboard que levava ao ProjectDetailActivity
+- Mantivemos a navegação direta para os módulos principais (Equipamentos, Contratos e Clientes)
+- Simplificamos a interface para focar apenas nas funcionalidades que realmente serão utilizadas
+
+### Justificativa
+A remoção deste módulo traz os seguintes benefícios:
+1. Simplifica a arquitetura do aplicativo
+2. Remove código não utilizado
+3. Diminui o escopo de manutenção
+4. Evita confusão para os usuários com interfaces duplicadas
+5. Permite foco total na integração com a API real para os módulos principais
+
+### Data da Implementação
+05/05/2025
+
+### Adaptações para resolver problemas de compilação
+
+Para garantir que o projeto continuasse compilando após a remoção do módulo de Projetos, fizemos as seguintes adaptações:
+
+1. **Criação de modelos substitutos:**
+   - Criamos o modelo `ContratoProjeto` para substituir o antigo `ProjectContractItem`
+   - Criamos o modelo `FaturaProjeto` para substituir o antigo `ProjectInvoiceItem`
+
+2. **Atualização de repositórios:**
+   - Atualizamos o `ContractRepository` nos pacotes `data/repository` e `ui/contract/repository` para usar o novo modelo `ContratoProjeto`
+   - Atualizamos o `InvoiceRepository` nos pacotes `data/repository` e `ui/invoice/repository` para usar o novo modelo `FaturaProjeto`
+
+3. **Atualização de mapeadores:**
+   - Corrigimos o `ProjectContractMapper` para mapear corretamente entre `ContratoProjeto` e `ProjectContractEntity`
+   - Adicionamos métodos de formatação de moeda para converter entre representações de string e double
+
+4. **Atualização de ViewModels:**
+   - Atualizamos o `ProjectInvoicesViewModel` para usar `FaturaProjeto` em vez de `ProjectInvoiceItem`
+   - Adaptamos o `ProjectInvoicesViewModelFactory` para compatibilidade com as novas implementações
+
+Essas adaptações foram necessárias para manter a compatibilidade com componentes de banco de dados e outras partes do sistema que dependiam de funcionalidades que foram removidas, enquanto seguimos com nosso objetivo de simplificar a aplicação.

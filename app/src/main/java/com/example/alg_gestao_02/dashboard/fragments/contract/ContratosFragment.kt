@@ -23,7 +23,6 @@ import com.example.alg_gestao_02.ui.contract.viewmodel.ContratosViewModel
 import com.example.alg_gestao_02.ui.contract.viewmodel.ContratosViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
-import com.google.android.material.chip.ChipGroup
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.snackbar.Snackbar
@@ -39,7 +38,6 @@ class ContratosFragment : BaseFragment() {
     private lateinit var viewModel: ContratosViewModel
     private lateinit var rvContratos: RecyclerView
     private lateinit var viewFlipper: ViewFlipper
-    private lateinit var chipGroupStatus: ChipGroup
     private lateinit var searchView: SearchView
     
     companion object {
@@ -72,7 +70,6 @@ class ContratosFragment : BaseFragment() {
         // Chama o método da classe pai depois de inicializar o viewModel
         super.onViewCreated(view, savedInstanceState)
         
-        setupFilterListeners()
         setupAddButton(view)
     }
     
@@ -132,7 +129,6 @@ class ContratosFragment : BaseFragment() {
     private fun initViews(view: View) {
         rvContratos = view.findViewById(R.id.rvContratos)
         viewFlipper = view.findViewById(R.id.viewFlipper)
-        chipGroupStatus = view.findViewById(R.id.chipGroupStatus)
     }
     
     private fun setupRecyclerView() {
@@ -175,20 +171,6 @@ class ContratosFragment : BaseFragment() {
                     if (contratosAdapter.itemCount == 0) {
                         viewFlipper.displayedChild = STATE_EMPTY
                     }
-                }
-            }
-        }
-    }
-    
-    private fun setupFilterListeners() {
-        chipGroupStatus.setOnCheckedStateChangeListener { _, checkedIds ->
-            if (checkedIds.isNotEmpty()) {
-                when (checkedIds[0]) {
-                    R.id.chipAll -> viewModel.setFiltroTipo(ContratosViewModel.FiltroContrato.TODOS)
-                    R.id.chipActive -> viewModel.setFiltroTipo(ContratosViewModel.FiltroContrato.ATIVOS)
-                    R.id.chipPending -> viewModel.setFiltroTipo(ContratosViewModel.FiltroContrato.PENDENTES)
-                    R.id.chipCompleted -> viewModel.setFiltroTipo(ContratosViewModel.FiltroContrato.CONCLUIDOS)
-                    R.id.chipCancelled -> viewModel.setFiltroTipo(ContratosViewModel.FiltroContrato.CANCELADOS)
                 }
             }
         }

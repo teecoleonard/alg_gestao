@@ -25,11 +25,18 @@ class ClientesViewModel(
     val uiState: LiveData<UiState<List<Cliente>>> = _uiState
     
     // Estado da operação de criação/edição/exclusão
-    private val _operationState = MutableLiveData<UiState<Cliente>>()
-    val operationState: LiveData<UiState<Cliente>> = _operationState
+    private val _operationState = MutableLiveData<UiState<Cliente>?>()
+    val operationState: LiveData<UiState<Cliente>?> = _operationState
     
     // ViewModel para tratamento de erros
     val errorViewModel = ErrorViewModel()
+    
+    // Lista completa de clientes (para filtragem local)
+    private var allClientes: List<Cliente> = emptyList()
+    
+    // Termo de busca atual
+    private val _searchTerm = MutableLiveData<String>("")
+    val searchTerm: LiveData<String> = _searchTerm
     
     init {
         loadClientes()
@@ -49,9 +56,11 @@ class ClientesViewModel(
                     val clientes = result.data
                     if (clientes.isNotEmpty()) {
                         LogUtils.info("ClientesViewModel", "Clientes carregados com sucesso: ${clientes.size}")
-                        _uiState.value = UiState.Success(clientes)
+                        allClientes = clientes
+                        applySearchFilter(_searchTerm.value ?: "")
                     } else {
                         LogUtils.info("ClientesViewModel", "Nenhum cliente encontrado")
+                        allClientes = emptyList()
                         _uiState.value = UiState.Empty()
                     }
                 }
@@ -71,6 +80,40 @@ class ClientesViewModel(
                     _uiState.value = UiState.Error("Estado desconhecido")
                 }
             }
+        }
+    }
+    
+    /**
+     * Define o termo de busca e aplica o filtro
+     */
+    fun setSearchTerm(term: String) {
+        _searchTerm.value = term
+        applySearchFilter(term)
+    }
+    
+    /**
+     * Aplica o filtro de busca por nome de cliente
+     */
+    private fun applySearchFilter(term: String) {
+        if (allClientes.isEmpty()) {
+            _uiState.value = UiState.Empty()
+            return
+        }
+        
+        if (term.isEmpty()) {
+            _uiState.value = UiState.Success(allClientes)
+            return
+        }
+        
+        val filteredList = allClientes.filter { cliente ->
+            val nome = cliente.contratante.lowercase()
+            nome.contains(term.lowercase())
+        }
+        
+        if (filteredList.isEmpty()) {
+            _uiState.value = UiState.Empty()
+        } else {
+            _uiState.value = UiState.Success(filteredList)
         }
     }
     

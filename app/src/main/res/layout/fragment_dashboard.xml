@@ -125,66 +125,18 @@
                     android:orientation="vertical"
                     app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle">
 
-                    <!-- Primeira linha: Materiais e Equipamentos -->
+                    <!-- Primeira linha: Equipamentos -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="horizontal"
                         android:layout_marginBottom="8dp">
 
-                        <!-- Card Materiais -->
-                        <androidx.cardview.widget.CardView
-                            android:id="@+id/cardMaterials"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_marginEnd="8dp"
-                            android:layout_weight="1"
-                            app:cardBackgroundColor="@color/white"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Materiais"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
-
-                                <TextView
-                                    android:id="@+id/tvMaterialsCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="124"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/primary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-
                         <!-- Card Equipamentos -->
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cardEquipamentos"
-                            android:layout_width="0dp"
+                            android:layout_width="match_parent"
                             android:layout_height="wrap_content"
-                            android:layout_marginStart="8dp"
-                            android:layout_weight="1"
                             app:cardBackgroundColor="@color/white"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp">
@@ -324,33 +276,6 @@
                         </androidx.cardview.widget.CardView>
                     </LinearLayout>
                 </LinearLayout>
-
-                <!-- Seção Todos os Projetos -->
-                <TextView
-                    android:id="@+id/tvAllProjectsTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="Todos os Contratos"
-                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                    android:textSize="18sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/llInsightsCards" />
-
-                <!-- Lista de projetos -->
-                <androidx.recyclerview.widget.RecyclerView
-                    android:id="@+id/recyclerProjects"
-                    android:layout_width="match_parent"
-                    android:layout_height="0dp"
-                    android:layout_marginTop="16dp"
-                    android:clipToPadding="false"
-                    android:orientation="vertical"
-                    android:paddingBottom="80dp"
-                    app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
-                    app:layout_constraintBottom_toBottomOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/tvAllProjectsTitle"
-                    tools:itemCount="2"
-                    tools:listitem="@layout/item_project" />
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>

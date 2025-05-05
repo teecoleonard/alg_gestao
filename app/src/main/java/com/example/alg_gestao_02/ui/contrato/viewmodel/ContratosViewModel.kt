@@ -29,8 +29,8 @@ class ContratosViewModel(
     val uiState: LiveData<UiState<List<Contrato>>> = _uiState
     
     // Estado da operação de criação/edição/exclusão
-    private val _operationState = MutableLiveData<UiState<Contrato>>()
-    val operationState: LiveData<UiState<Contrato>> = _operationState
+    private val _operationState = MutableLiveData<UiState<Contrato>?>()
+    val operationState: LiveData<UiState<Contrato>?> = _operationState
     
     // Lista de clientes para seleção
     private val _clientesState = MutableLiveData<UiState<List<Cliente>>>()
@@ -42,6 +42,13 @@ class ContratosViewModel(
     // Cliente selecionado para novo contrato
     private val _selectedCliente = MutableLiveData<Cliente?>()
     val selectedCliente: LiveData<Cliente?> = _selectedCliente
+    
+    // Lista completa de contratos (para filtragem local)
+    private var allContratos: List<Contrato> = emptyList()
+    
+    // Termo de busca atual
+    private val _searchTerm = MutableLiveData<String>("")
+    val searchTerm: LiveData<String> = _searchTerm
     
     init {
         loadContratos()
@@ -62,9 +69,11 @@ class ContratosViewModel(
                     val contratos = result.data
                     if (contratos.isNotEmpty()) {
                         LogUtils.info("ContratosViewModel", "Contratos carregados com sucesso: ${contratos.size}")
-                        _uiState.value = UiState.Success(contratos)
+                        allContratos = contratos
+                        applySearchFilter(_searchTerm.value ?: "")
                     } else {
                         LogUtils.info("ContratosViewModel", "Nenhum contrato encontrado")
+                        allContratos = emptyList()
                         _uiState.value = UiState.Empty()
                     }
                 }
@@ -77,6 +86,11 @@ class ContratosViewModel(
                         LogUtils.error("ContratosViewModel", "Erro ao carregar contratos: ${result.message}")
                         _uiState.value = UiState.Error(result.message)
                     }
+                }
+                
+                else -> {
+                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao carregar contratos")
+                    _uiState.value = UiState.Error("Estado desconhecido")
                 }
             }
         }
@@ -106,6 +120,11 @@ class ContratosViewModel(
                 is Resource.Error -> {
                     LogUtils.error("ContratosViewModel", "Erro ao carregar clientes: ${result.message}")
                     _clientesState.value = UiState.Error(result.message)
+                }
+                
+                else -> {
+                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao carregar clientes")
+                    _clientesState.value = UiState.Error("Estado desconhecido")
                 }
             }
         }
@@ -156,6 +175,11 @@ class ContratosViewModel(
                         _operationState.value = UiState.Error(result.message)
                     }
                 }
+                
+                else -> {
+                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao criar contrato")
+                    _operationState.value = UiState.Error("Estado desconhecido")
+                }
             }
         }
     }
@@ -190,6 +214,11 @@ class ContratosViewModel(
                         LogUtils.error("ContratosViewModel", "Erro ao atualizar contrato: ${result.message}")
                         _operationState.value = UiState.Error(result.message)
                     }
+                }
+                
+                else -> {
+                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao atualizar contrato")
+                    _operationState.value = UiState.Error("Estado desconhecido")
                 }
             }
         }
@@ -238,6 +267,11 @@ class ContratosViewModel(
                         _operationState.value = UiState.Error(result.message)
                     }
                 }
+                
+                else -> {
+                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao excluir contrato")
+                    _operationState.value = UiState.Error("Estado desconhecido")
+                }
             }
         }
     }
@@ -256,6 +290,40 @@ class ContratosViewModel(
         val dataHoraEmissao = repository.getDataHoraAtual()
         val dataVencimento = repository.getDataVencimento()
         return Pair(dataHoraEmissao, dataVencimento)
+    }
+    
+    /**
+     * Define o termo de busca e aplica o filtro
+     */
+    fun setSearchTerm(term: String) {
+        _searchTerm.value = term
+        applySearchFilter(term)
+    }
+    
+    /**
+     * Aplica o filtro de busca por nome de cliente
+     */
+    private fun applySearchFilter(term: String) {
+        if (allContratos.isEmpty()) {
+            _uiState.value = UiState.Empty()
+            return
+        }
+        
+        if (term.isEmpty()) {
+            _uiState.value = UiState.Success(allContratos)
+            return
+        }
+        
+        val filteredList = allContratos.filter { contrato ->
+            val clienteNome = contrato.resolverNomeCliente().lowercase()
+            clienteNome.contains(term.lowercase())
+        }
+        
+        if (filteredList.isEmpty()) {
+            _uiState.value = UiState.Empty()
+        } else {
+            _uiState.value = UiState.Success(filteredList)
+        }
     }
 }
 

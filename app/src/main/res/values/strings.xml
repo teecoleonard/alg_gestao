@@ -104,4 +104,11 @@
     <string name="contract_value">Valor do Contrato</string>
     <string name="contract_dates">Período</string>
     <string name="contract_status">Status</string>
+    <string name="title_novo_contrato">Novo Contrato</string>
+    <string name="title_editar_contrato">Editar Contrato</string>
+    <string name="campo_obrigatorio">Campo obrigatório</string>
+    <string name="valor_invalido">Valor inválido</string>
+    <string name="contrato_criado_sucesso">Contrato criado com sucesso</string>
+    <string name="contrato_atualizado_sucesso">Contrato atualizado com sucesso</string>
+    <string name="contrato_excluido_sucesso">Contrato excluído com sucesso</string>
 </resources>

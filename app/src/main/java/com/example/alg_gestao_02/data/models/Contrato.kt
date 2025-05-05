@@ -48,7 +48,11 @@ data class Contrato(
     
     // Campo adicional para nome do cliente
     @SerializedName("cliente_nome")
-    val clienteNome: String? = null
+    val clienteNome: String? = null,
+    
+    // Objeto cliente completo que vem aninhado na resposta da API
+    @SerializedName("cliente")
+    val cliente: Cliente? = null
 ) : Parcelable {
     
     /**
@@ -99,7 +103,12 @@ data class Contrato(
     /**
      * Retorna o nome do cliente do contrato
      */
-    fun getClienteNome(): String {
-        return clienteNome ?: "Cliente #$clienteId"
+    fun resolverNomeCliente(): String {
+        // Preferência pelo cliente aninhado se disponível
+        return when {
+            cliente?.contratante != null -> cliente.contratante
+            clienteNome != null -> clienteNome
+            else -> "Cliente #$clienteId"
+        }
     }
 } 
