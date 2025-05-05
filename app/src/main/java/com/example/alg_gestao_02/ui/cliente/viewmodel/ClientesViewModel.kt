@@ -11,6 +11,7 @@ import com.example.alg_gestao_02.ui.common.ErrorViewModel
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 
 /**
  * ViewModel para gerenciar a tela de listagem e CRUD de clientes
@@ -56,8 +57,13 @@ class ClientesViewModel(
                 }
                 
                 is com.example.alg_gestao_02.utils.Resource.Error -> {
-                    LogUtils.error("ClientesViewModel", "Erro ao carregar clientes: ${result.message}")
-                    _uiState.value = UiState.Error(result.message)
+                    if (result.message == "Operação cancelada") {
+                        // Não exibir erro para operações canceladas normalmente
+                        LogUtils.debug("ClientesViewModel", "Carregamento de clientes cancelado")
+                    } else {
+                        LogUtils.error("ClientesViewModel", "Erro ao carregar clientes: ${result.message}")
+                        _uiState.value = UiState.Error(result.message)
+                    }
                 }
                 
                 else -> {
@@ -82,11 +88,22 @@ class ClientesViewModel(
                     LogUtils.info("ClientesViewModel", "Cliente criado com sucesso: ${cliente.contratante}")
                     _operationState.value = UiState.Success(result.data)
                     loadClientes() // Recarrega a lista
+                    // Resetar o estado após um breve delay para garantir que o observador já processou o resultado
+                    viewModelScope.launch {
+                        kotlinx.coroutines.delay(500)
+                        _operationState.value = null
+                    }
                 }
                 
                 is com.example.alg_gestao_02.utils.Resource.Error -> {
-                    LogUtils.error("ClientesViewModel", "Erro ao criar cliente: ${result.message}")
-                    _operationState.value = UiState.Error(result.message)
+                    if (result.message == "Operação cancelada") {
+                        // Não exibir erro para operações canceladas normalmente
+                        LogUtils.debug("ClientesViewModel", "Criação de cliente cancelada")
+                        _operationState.value = null
+                    } else {
+                        LogUtils.error("ClientesViewModel", "Erro ao criar cliente: ${result.message}")
+                        _operationState.value = UiState.Error(result.message)
+                    }
                 }
                 
                 else -> {
@@ -111,11 +128,22 @@ class ClientesViewModel(
                     LogUtils.info("ClientesViewModel", "Cliente atualizado com sucesso: ${cliente.contratante}")
                     _operationState.value = UiState.Success(result.data)
                     loadClientes() // Recarrega a lista
+                    // Resetar o estado após um breve delay para garantir que o observador já processou o resultado
+                    viewModelScope.launch {
+                        kotlinx.coroutines.delay(500)
+                        _operationState.value = null
+                    }
                 }
                 
                 is com.example.alg_gestao_02.utils.Resource.Error -> {
-                    LogUtils.error("ClientesViewModel", "Erro ao atualizar cliente: ${result.message}")
-                    _operationState.value = UiState.Error(result.message)
+                    if (result.message == "Operação cancelada") {
+                        // Não exibir erro para operações canceladas normalmente
+                        LogUtils.debug("ClientesViewModel", "Atualização de cliente cancelada")
+                        _operationState.value = null
+                    } else {
+                        LogUtils.error("ClientesViewModel", "Erro ao atualizar cliente: ${result.message}")
+                        _operationState.value = UiState.Error(result.message)
+                    }
                 }
                 
                 else -> {
@@ -140,11 +168,22 @@ class ClientesViewModel(
                     LogUtils.info("ClientesViewModel", "Cliente excluído com sucesso: $id")
                     _operationState.value = UiState.Success(Cliente(id = id, contratante = "", cpfCnpj = "", rgIe = "", endereco = "", bairro = "", cidade = "", estado = ""))
                     loadClientes() // Recarrega a lista
+                    // Resetar o estado após um breve delay para garantir que o observador já processou o resultado
+                    viewModelScope.launch {
+                        delay(500)
+                        _operationState.value = null
+                    }
                 }
                 
                 is com.example.alg_gestao_02.utils.Resource.Error -> {
-                    LogUtils.error("ClientesViewModel", "Erro ao excluir cliente: ${result.message}")
-                    _operationState.value = UiState.Error(result.message)
+                    if (result.message == "Operação cancelada") {
+                        // Não exibir erro para operações canceladas normalmente
+                        LogUtils.debug("ClientesViewModel", "Exclusão de cliente cancelada")
+                        _operationState.value = null
+                    } else {
+                        LogUtils.error("ClientesViewModel", "Erro ao excluir cliente: ${result.message}")
+                        _operationState.value = UiState.Error(result.message)
+                    }
                 }
                 
                 else -> {

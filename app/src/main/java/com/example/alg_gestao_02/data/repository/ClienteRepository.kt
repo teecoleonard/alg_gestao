@@ -4,6 +4,7 @@ import com.example.alg_gestao_02.data.api.ApiClient
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
+import kotlinx.coroutines.CancellationException
 
 /**
  * Repositório para gerenciar operações com Clientes
@@ -27,6 +28,10 @@ class ClienteRepository {
                 LogUtils.warning("ClienteRepository", "Falha ao buscar clientes: ${response.code()}")
                 Resource.Error("Erro ao buscar clientes: ${response.message()}")
             }
+        } catch (e: CancellationException) {
+            // Tratamento específico para cancelamento de job
+            LogUtils.debug("ClienteRepository", "Operação de busca de clientes cancelada")
+            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ClienteRepository", "Erro ao buscar clientes", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -49,6 +54,10 @@ class ClienteRepository {
                 LogUtils.warning("ClienteRepository", "Falha ao buscar cliente: ${response.code()}")
                 Resource.Error("Erro ao buscar cliente: ${response.message()}")
             }
+        } catch (e: CancellationException) {
+            // Tratamento específico para cancelamento de job
+            LogUtils.debug("ClienteRepository", "Operação de busca de cliente cancelada")
+            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ClienteRepository", "Erro ao buscar cliente", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -71,6 +80,10 @@ class ClienteRepository {
                 LogUtils.warning("ClienteRepository", "Falha ao criar cliente: ${response.code()}")
                 Resource.Error("Erro ao criar cliente: ${response.message()}")
             }
+        } catch (e: CancellationException) {
+            // Tratamento específico para cancelamento de job
+            LogUtils.debug("ClienteRepository", "Operação de criação de cliente cancelada")
+            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ClienteRepository", "Erro ao criar cliente", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -93,6 +106,10 @@ class ClienteRepository {
                 LogUtils.warning("ClienteRepository", "Falha ao atualizar cliente: ${response.code()}")
                 Resource.Error("Erro ao atualizar cliente: ${response.message()}")
             }
+        } catch (e: CancellationException) {
+            // Tratamento específico para cancelamento de job
+            LogUtils.debug("ClienteRepository", "Operação de atualização de cliente cancelada")
+            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ClienteRepository", "Erro ao atualizar cliente", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -113,6 +130,10 @@ class ClienteRepository {
                 LogUtils.warning("ClienteRepository", "Falha ao excluir cliente: ${response.code()}")
                 Resource.Error("Erro ao excluir cliente: ${response.message()}")
             }
+        } catch (e: CancellationException) {
+            // Tratamento específico para cancelamento de job
+            LogUtils.debug("ClienteRepository", "Operação de exclusão de cliente cancelada")
+            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ClienteRepository", "Erro ao excluir cliente", e)
             Resource.Error("Erro de conexão: ${e.message}")

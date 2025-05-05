@@ -148,7 +148,7 @@ class CadastroClienteDialogFragment : DialogFragment() {
     
     private fun setupViewModel() {
         val factory = ClientesViewModelFactory()
-        viewModel = ViewModelProvider(requireActivity(), factory)[ClientesViewModel::class.java]
+        viewModel = ViewModelProvider(this, factory)[ClientesViewModel::class.java]
         
         // Observar estado da operação
         viewModel.operationState.observe(viewLifecycleOwner) { state ->

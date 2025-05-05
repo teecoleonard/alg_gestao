@@ -156,7 +156,11 @@ class ClientesFragment : Fragment() {
                 R.id.action_edit -> {
                     LogUtils.debug("ClientesFragment", "Editando cliente: ${cliente.contratante}")
                     val dialog = CadastroClienteDialogFragment.newInstance(cliente)
-                    dialog.show(parentFragmentManager, "EditClienteDialog")
+                    dialog.setOnClienteSavedListener { clienteAtualizado ->
+                        // Recarregar a lista quando o cliente for atualizado
+                        viewModel.loadClientes()
+                    }
+                    dialog.show(parentFragmentManager, "EditClienteDialog_${cliente.id}")
                     true
                 }
                 
