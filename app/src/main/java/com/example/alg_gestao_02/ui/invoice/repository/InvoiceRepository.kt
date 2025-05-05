@@ -1,6 +1,6 @@
 package com.example.alg_gestao_02.ui.invoice.repository
 
-import com.example.alg_gestao_02.dashboard.fragments.client.model.ProjectInvoiceItem
+import com.example.alg_gestao_02.data.models.FaturaProjeto
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -18,7 +18,7 @@ class InvoiceRepository {
     /**
      * Busca todas as faturas disponíveis
      */
-    suspend fun getInvoices(): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
+    suspend fun getInvoices(): List<FaturaProjeto> = withContext(Dispatchers.IO) {
         LogUtils.debug("UI InvoiceRepository", "Delegando busca de faturas para camada de dados")
         return@withContext dataRepository.getInvoices()
     }
@@ -26,7 +26,7 @@ class InvoiceRepository {
     /**
      * Busca as faturas de um projeto específico
      */
-    suspend fun getInvoicesByProject(projectId: String): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
+    suspend fun getInvoicesByProject(projectId: String): List<FaturaProjeto> = withContext(Dispatchers.IO) {
         LogUtils.debug("UI InvoiceRepository", "Delegando busca de faturas por projeto para camada de dados")
         return@withContext dataRepository.getInvoicesByProject(projectId)
     }
@@ -34,7 +34,7 @@ class InvoiceRepository {
     /**
      * Busca as faturas com um status específico
      */
-    suspend fun getInvoicesByStatus(status: String): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
+    suspend fun getInvoicesByStatus(status: String): List<FaturaProjeto> = withContext(Dispatchers.IO) {
         LogUtils.debug("UI InvoiceRepository", "Delegando busca de faturas por status para camada de dados")
         return@withContext dataRepository.getInvoicesByStatus(status)
     }
@@ -42,7 +42,7 @@ class InvoiceRepository {
     /**
      * Busca as faturas de um projeto com um status específico
      */
-    suspend fun getInvoicesByProjectAndStatus(projectId: String, status: String): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
+    suspend fun getInvoicesByProjectAndStatus(projectId: String, status: String): List<FaturaProjeto> = withContext(Dispatchers.IO) {
         LogUtils.debug("UI InvoiceRepository", "Delegando busca de faturas por projeto e status para camada de dados")
         return@withContext dataRepository.getInvoicesByProjectAndStatus(projectId, status)
     }
@@ -50,7 +50,7 @@ class InvoiceRepository {
     /**
      * Busca as faturas de um projeto em um mês específico
      */
-    suspend fun getInvoicesByProjectAndMonth(projectId: String, month: Int, year: Int): List<ProjectInvoiceItem> = 
+    suspend fun getInvoicesByProjectAndMonth(projectId: String, month: Int, year: Int): List<FaturaProjeto> = 
         withContext(Dispatchers.IO) {
             LogUtils.debug("UI InvoiceRepository", "Buscando faturas por projeto, mês e ano")
             
@@ -78,7 +78,7 @@ class InvoiceRepository {
      * Busca as faturas de um projeto em um mês específico com Calendar
      * Essa implementação filtra as faturas por mês, já que a implementação de dados não tem essa função
      */
-    suspend fun getInvoicesByProjectAndMonth(projectId: String, month: Calendar): List<ProjectInvoiceItem> = 
+    suspend fun getInvoicesByProjectAndMonth(projectId: String, month: Calendar): List<FaturaProjeto> = 
         withContext(Dispatchers.IO) {
             LogUtils.debug("UI InvoiceRepository", "Buscando faturas por projeto e mês (Calendar)")
             

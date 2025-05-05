@@ -3,7 +3,6 @@ package com.example.alg_gestao_02.ui.invoice.viewmodel
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import com.example.alg_gestao_02.ui.invoice.repository.InvoiceRepository
-import com.example.alg_gestao_02.ui.invoice.viewmodel.ProjectInvoicesViewModel
 
 /**
  * Factory para criação do ProjectInvoicesViewModel com injeção do repositório

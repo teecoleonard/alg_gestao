@@ -1,7 +1,7 @@
 package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.dashboard.fragments.contract.model.Contrato
-import com.example.alg_gestao_02.dashboard.fragments.client.model.ProjectContractItem
+import com.example.alg_gestao_02.data.models.ContratoProjeto
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
@@ -97,54 +97,50 @@ class ContractRepository {
     /**
      * Busca contratos por projeto
      */
-    suspend fun getContractsByProject(projectId: String): List<ProjectContractItem> = withContext(Dispatchers.IO) {
-        LogUtils.debug("ContractRepository", "Buscando contratos do projeto: $projectId")
+    suspend fun getContractsByProject(projectId: String): List<ContratoProjeto> = withContext(Dispatchers.IO) {
+        // Simula uma operação de rede
+        delay(800)
         
-        delay(300)
+        // Dados simulados para demonstração
+        val list = listOf(
+            // Converte para ContratoProjeto
+            ContratoProjeto(
+                id = "1",
+                projectId = projectId,
+                name = "Contrato de Fundação",
+                clientName = "Engenharia S/A",
+                value = "R$ 45.000,00",
+                date = "15/05/2024",
+                status = "active",
+                type = "payment"
+            ),
+            // Outros contratos simulados...
+        )
         
-        // Filtra os contratos pelo projeto
-        val contratos = getMockContratos().filter { it.projectId == projectId }
-        
-        // Converte para ProjectContractItem
-        return@withContext contratos.map {
-            ProjectContractItem(
-                id = it.id,
-                projectId = it.projectId,
-                name = it.title,
-                description = it.description ?: "",
-                value = it.value,
-                date = it.startDate,
-                status = it.status,
-                type = "contract"
-            )
-        }
+        return@withContext list
     }
     
     /**
      * Busca contratos por projeto e status
      */
-    suspend fun getContractsByProjectAndStatus(projectId: String, status: String): List<ProjectContractItem> = 
+    suspend fun getContractsByProjectAndStatus(projectId: String, status: String): List<ContratoProjeto> =
         withContext(Dispatchers.IO) {
-            LogUtils.debug("ContractRepository", "Buscando contratos do projeto $projectId com status $status")
+            // Simula uma operação de rede
+            delay(600)
             
-            delay(300)
+            // Converte para ContratoProjeto
+            val contract = ContratoProjeto(
+                id = "1",
+                projectId = projectId,
+                name = "Contrato de Fundação",
+                clientName = "Engenharia S/A",
+                value = "R$ 45.000,00",
+                date = "15/05/2024",
+                status = status,
+                type = "payment"
+            )
             
-            // Filtra os contratos pelo projeto e status
-            val contratos = getMockContratos().filter { it.projectId == projectId && it.status == status }
-            
-            // Converte para ProjectContractItem
-            return@withContext contratos.map {
-                ProjectContractItem(
-                    id = it.id,
-                    projectId = it.projectId,
-                    name = it.title,
-                    description = it.description ?: "",
-                    value = it.value,
-                    date = it.startDate,
-                    status = it.status,
-                    type = "contract"
-                )
-            }
+            return@withContext listOf(contract)
         }
     
     /**

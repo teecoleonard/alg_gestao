@@ -1,120 +1,128 @@
 package com.example.alg_gestao_02.data.repository
 
-import com.example.alg_gestao_02.dashboard.fragments.client.model.ProjectInvoiceItem
+import com.example.alg_gestao_02.data.models.FaturaProjeto
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.withContext
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 
 /**
- * Repositório responsável por gerenciar os dados de faturas.
- * Esta classe implementa o padrão Repository do MVVM e centraliza
- * todas as operações relacionadas a dados de faturas.
+ * Repositório para acesso a dados de faturas.
  */
 class InvoiceRepository {
     
     /**
-     * Busca todas as faturas disponíveis.
-     * Por enquanto usa dados mockados, mas no futuro chamará a API.
+     * Busca todas as faturas
      */
-    suspend fun getInvoices(): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
-        LogUtils.debug("InvoiceRepository", "Buscando todas as faturas")
-        
-        // Simula um delay de rede
+    suspend fun getInvoices(): List<FaturaProjeto> = withContext(Dispatchers.IO) {
+        // Simula uma operação de rede
         delay(500)
         
-        // TODO: No futuro, chamar a API real aqui
+        // Retorna dados mockados
         return@withContext getMockInvoices()
     }
     
     /**
-     * Busca as faturas de um projeto específico.
+     * Busca faturas por projeto
      */
-    suspend fun getInvoicesByProject(projectId: String): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
-        LogUtils.debug("InvoiceRepository", "Buscando faturas do projeto: $projectId")
+    suspend fun getInvoicesByProject(projectId: String): List<FaturaProjeto> = withContext(Dispatchers.IO) {
+        // Simula uma operação de rede
+        delay(500)
         
-        delay(300)
-        
-        // Filtra as faturas pelo ID do projeto
+        // Filtra as faturas pelo projeto
         return@withContext getMockInvoices().filter { it.projectId == projectId }
     }
     
     /**
-     * Busca as faturas com um status específico.
+     * Busca faturas por status
      */
-    suspend fun getInvoicesByStatus(status: String): List<ProjectInvoiceItem> = withContext(Dispatchers.IO) {
-        LogUtils.debug("InvoiceRepository", "Buscando faturas com status: $status")
-        
-        delay(300)
+    suspend fun getInvoicesByStatus(status: String): List<FaturaProjeto> = withContext(Dispatchers.IO) {
+        // Simula uma operação de rede
+        delay(500)
         
         // Filtra as faturas pelo status
         return@withContext getMockInvoices().filter { it.status == status }
     }
     
     /**
-     * Busca as faturas de um projeto com um status específico.
+     * Busca faturas por projeto e status
      */
-    suspend fun getInvoicesByProjectAndStatus(projectId: String, status: String): List<ProjectInvoiceItem> = 
+    suspend fun getInvoicesByProjectAndStatus(projectId: String, status: String): List<FaturaProjeto> =
         withContext(Dispatchers.IO) {
-            LogUtils.debug("InvoiceRepository", "Buscando faturas do projeto $projectId com status: $status")
+            // Simula uma operação de rede
+            delay(500)
             
-            delay(300)
-            
-            // Filtra as faturas pelo ID do projeto e status
-            return@withContext getMockInvoices().filter { 
-                it.projectId == projectId && it.status == status 
-            }
+            // Filtra as faturas pelo projeto e status
+            return@withContext getMockInvoices().filter { it.projectId == projectId && it.status == status }
         }
     
     /**
-     * Dados mockados para testes enquanto não integra com a API
+     * Lista mockada de faturas para fins de demonstração
      */
-    private fun getMockInvoices(): List<ProjectInvoiceItem> {
+    private fun getMockInvoices(): List<FaturaProjeto> {
         return listOf(
-            ProjectInvoiceItem(
-                id = "INV-001",
-                numero = "NF-2023001",
+            FaturaProjeto(
+                id = "1",
                 projectId = "1",
-                valor = 8500.0,
-                dataEmissao = "15/04/2023",
-                dataVencimento = "15/05/2023",
-                status = "paid"
+                title = "Janeiro 2024",
+                description = "Fatura mensal de janeiro",
+                value = "R$ 12.500,00",
+                date = "15/01/2024",
+                dueDate = "25/01/2024",
+                status = "paid",
+                month = 1,
+                year = 2024
             ),
-            ProjectInvoiceItem(
-                id = "INV-002",
-                numero = "NF-2023002",
+            FaturaProjeto(
+                id = "2",
                 projectId = "1",
-                valor = 12000.0,
-                dataEmissao = "20/05/2023",
-                dataVencimento = "20/06/2023",
-                status = "pending"
+                title = "Fevereiro 2024",
+                description = "Fatura mensal de fevereiro",
+                value = "R$ 12.500,00",
+                date = "15/02/2024",
+                dueDate = "25/02/2024",
+                status = "paid",
+                month = 2,
+                year = 2024
             ),
-            ProjectInvoiceItem(
-                id = "INV-003",
-                numero = "NF-2023003",
-                projectId = "2",
-                valor = 7800.0,
-                dataEmissao = "10/06/2023",
-                dataVencimento = "10/07/2023",
-                status = "overdue"
-            ),
-            ProjectInvoiceItem(
-                id = "INV-004",
-                numero = "NF-2023004",
-                projectId = "2",
-                valor = 15300.0,
-                dataEmissao = "25/06/2023",
-                dataVencimento = "25/07/2023",
-                status = "cancelled"
-            ),
-            ProjectInvoiceItem(
-                id = "INV-005",
-                numero = "NF-2023005",
+            FaturaProjeto(
+                id = "3",
                 projectId = "1",
-                valor = 9200.0,
-                dataEmissao = "05/07/2023",
-                dataVencimento = "05/08/2023",
-                status = "pending"
+                title = "Março 2024",
+                description = "Fatura mensal de março",
+                value = "R$ 12.500,00",
+                date = "15/03/2024",
+                dueDate = "25/03/2024",
+                status = "paid",
+                month = 3,
+                year = 2024
+            ),
+            FaturaProjeto(
+                id = "4",
+                projectId = "1",
+                title = "Abril 2024",
+                description = "Fatura mensal de abril",
+                value = "R$ 12.500,00",
+                date = "15/04/2024",
+                dueDate = "25/04/2024",
+                status = "pending",
+                month = 4,
+                year = 2024
+            ),
+            FaturaProjeto(
+                id = "5",
+                projectId = "1",
+                title = "Maio 2024",
+                description = "Fatura mensal de maio",
+                value = "R$ 12.500,00",
+                date = "15/05/2024",
+                dueDate = "25/05/2024",
+                status = "overdue",
+                month = 5,
+                year = 2024
             )
         )
     }

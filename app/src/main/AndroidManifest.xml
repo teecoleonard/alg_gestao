@@ -55,17 +55,6 @@
             android:name=".MainActivity"
             android:exported="false" />
 
-        <!-- ProjectDetailActivity: Detalhes do projeto -->
-        <activity
-            android:name=".dashboard.fragments.client.ProjectDetailActivity"
-            android:exported="false"
-            android:theme="@style/Theme.ALG_Gestao_02.NoActionBar"
-            android:parentActivityName=".dashboard.DashboardActivity">
-            <!-- Configuração de navegação para versões mais antigas -->
-            <meta-data
-                android:name="android.support.PARENT_ACTIVITY"
-                android:value=".dashboard.DashboardActivity" />
-        </activity>
     </application>
 
 </manifest>
