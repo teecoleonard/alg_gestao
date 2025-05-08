@@ -1,0 +1,149 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="4dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="2dp">
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:padding="12dp">
+
+        <!-- Nome do Equipamento -->
+        <TextView
+            android:id="@+id/tvNomeEquipamento"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:textAppearance="?attr/textAppearanceSubtitle1"
+            android:textColor="@color/primary"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toStartOf="@+id/btnEdit"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            tools:text="Betoneira 400L" />
+
+        <!-- Quantidade -->
+        <TextView
+            android:id="@+id/tvLabelQuantidade"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
+            android:text="Quantidade:"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvNomeEquipamento" />
+
+        <TextView
+            android:id="@+id/tvQuantidade"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            app:layout_constraintStart_toEndOf="@+id/tvLabelQuantidade"
+            app:layout_constraintTop_toTopOf="@+id/tvLabelQuantidade"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="2 unid." />
+
+        <!-- Valor Unitário -->
+        <TextView
+            android:id="@+id/tvLabelValorUnitario"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Valor Unitário:"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLabelQuantidade" />
+
+        <TextView
+            android:id="@+id/tvValorUnitario"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            app:layout_constraintStart_toEndOf="@+id/tvLabelValorUnitario"
+            app:layout_constraintTop_toTopOf="@+id/tvLabelValorUnitario"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="R$ 150,00" />
+
+        <!-- Valor Total -->
+        <TextView
+            android:id="@+id/tvLabelValorTotal"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Valor Total:"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLabelValorUnitario" />
+
+        <TextView
+            android:id="@+id/tvValorTotal"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            android:textStyle="bold"
+            app:layout_constraintStart_toEndOf="@+id/tvLabelValorTotal"
+            app:layout_constraintTop_toTopOf="@+id/tvLabelValorTotal"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="R$ 300,00" />
+
+        <!-- Valor Frete -->
+        <TextView
+            android:id="@+id/tvLabelValorFrete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:text="Frete:"
+            android:textAppearance="?attr/textAppearanceCaption"
+            android:textColor="@color/secondary"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/tvLabelValorTotal" />
+
+        <TextView
+            android:id="@+id/tvValorFrete"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="8dp"
+            android:textAppearance="?attr/textAppearanceBody2"
+            app:layout_constraintStart_toEndOf="@+id/tvLabelValorFrete"
+            app:layout_constraintTop_toTopOf="@+id/tvLabelValorFrete"
+            app:layout_constraintEnd_toEndOf="parent"
+            tools:text="R$ 50,00" />
+
+        <!-- Botões de Ação -->
+        <ImageButton
+            android:id="@+id/btnEdit"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Editar equipamento"
+            android:padding="8dp"
+            android:src="@drawable/ic_edit"
+            app:layout_constraintEnd_toStartOf="@+id/btnDelete"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@color/secondary" />
+
+        <ImageButton
+            android:id="@+id/btnDelete"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Remover equipamento"
+            android:padding="8dp"
+            android:src="@drawable/ic_delete"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:tint="@android:color/holo_red_dark" />
+
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</com.google.android.material.card.MaterialCardView> 

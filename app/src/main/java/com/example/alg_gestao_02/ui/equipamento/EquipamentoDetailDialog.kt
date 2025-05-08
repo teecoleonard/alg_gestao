@@ -129,7 +129,7 @@ class EquipamentoDetailDialog : DialogFragment() {
     private fun exibirDetalhesEquipamento(equipamento: Equipamento) {
         tvDetalhesNomeEquipamento.text = equipamento.nomeEquip
         tvDetalhesCodigoEquipamento.text = "Código: ${equipamento.codigoEquip}"
-        tvDetalhesQuantidadeEquipamento.text = "Quantidade disponível: ${equipamento.quantidadeEquip}"
+        tvDetalhesQuantidadeEquipamento.text = "Quantidade disponível: ${equipamento.quantidadeDisp}"
         
         tvDetalhesPrecoDiaria.text = currencyFormat.format(equipamento.precoDiaria)
         tvDetalhesPrecoSemanal.text = currencyFormat.format(equipamento.precoSemanal)

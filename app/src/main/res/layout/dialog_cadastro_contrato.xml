@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
@@ -33,15 +34,35 @@
 
             </androidx.appcompat.widget.Toolbar>
 
+            <!-- Pesquisa de Cliente -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilClienteSearch"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Pesquisar Cliente"
+                app:endIconMode="clear_text"
+                app:startIconDrawable="@drawable/ic_search"
+                app:layout_constraintTop_toBottomOf="@id/toolbar">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etClienteSearch"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Seleção de Cliente (apenas para novos contratos) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilCliente"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="16dp"
+                android:layout_marginTop="8dp"
                 android:hint="Cliente"
-                app:layout_constraintTop_toBottomOf="@id/toolbar">
+                app:layout_constraintTop_toBottomOf="@id/tilClienteSearch">
 
                 <AutoCompleteTextView
                     android:id="@+id/actvCliente"
@@ -111,26 +132,25 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Período do Contrato (Obrigatório) -->
+            <!-- Período do Contrato (Obrigatório) - Convertido para dropdown -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContratoPeriodo"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
                 android:hint="Período do Contrato"
-                app:endIconMode="clear_text"
                 app:layout_constraintTop_toBottomOf="@id/tilObraLocal">
 
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etContratoPeriodo"
+                <AutoCompleteTextView
+                    android:id="@+id/actvContratoPeriodo"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:inputType="text" />
+                    android:inputType="none" />
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Local de Entrega (Obrigatório) -->
+            <!-- Local de Entrega (Obrigatório) - Preenchido automaticamente com endereço do cliente -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEntregaLocal"
                 style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
@@ -139,6 +159,8 @@
                 android:layout_marginTop="8dp"
                 android:hint="Local de Entrega"
                 app:endIconMode="clear_text"
+                app:helperText="Preenchido com o endereço do cliente"
+                app:helperTextEnabled="true"
                 app:layout_constraintTop_toBottomOf="@id/tilContratoPeriodo">
 
                 <com.google.android.material.textfield.TextInputEditText
@@ -192,30 +214,88 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Seção de Equipamentos -->
+            <TextView
+                android:id="@+id/tvTituloEquipamentos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="24dp"
+                android:text="Equipamentos do Contrato"
+                android:textAppearance="?attr/textAppearanceSubtitle1"
+                android:textColor="@color/primary"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@id/tilContratoAss" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAddEquipamento"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:text="ADICIONAR EQUIPAMENTO"
+                android:textColor="@color/primary"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                app:icon="@drawable/ic_add"
+                app:iconTint="@color/primary"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toBottomOf="@+id/tvTituloEquipamentos" />
+
+            <androidx.recyclerview.widget.RecyclerView
+                android:id="@+id/rvEquipamentos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:background="@drawable/background_rounded_light"
+                android:clipToPadding="false"
+                android:minHeight="120dp"
+                android:nestedScrollingEnabled="false"
+                android:padding="8dp"
+                app:layout_constraintTop_toBottomOf="@+id/btnAddEquipamento"
+                tools:layout_editor_absoluteX="16dp" />
+
+            <TextView
+                android:id="@+id/tvEmptyEquipamentos"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:gravity="center"
+                android:padding="16dp"
+                android:text="Nenhum equipamento adicionado"
+                android:textAppearance="?attr/textAppearanceBody2"
+                android:textColor="@color/secondary"
+                android:textSize="16sp"
+                android:visibility="visible"
+                app:layout_constraintBottom_toBottomOf="@+id/rvEquipamentos"
+                app:layout_constraintTop_toTopOf="@+id/rvEquipamentos" />
+
             <!-- Botões de ação -->
             <LinearLayout
                 android:id="@+id/llButtons"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="24dp"
-                android:gravity="end"
+                android:gravity="center"
                 android:orientation="horizontal"
-                app:layout_constraintTop_toBottomOf="@id/tilContratoAss">
+                android:layout_marginBottom="16dp"
+                app:layout_constraintTop_toBottomOf="@id/rvEquipamentos">
 
                 <Button
                     android:id="@+id/btnCancel"
                     style="@style/Widget.MaterialComponents.Button.TextButton"
-                    android:layout_width="wrap_content"
+                    android:layout_width="120dp"
                     android:layout_height="wrap_content"
-                    android:text="Cancelar" />
+                    android:layout_marginEnd="16dp"
+                    android:text="CANCELAR"
+                    android:textSize="14sp" />
 
                 <Button
                     android:id="@+id/btnSave"
-                    android:layout_width="wrap_content"
+                    android:layout_width="120dp"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:backgroundTint="@color/primary"
-                    android:text="Salvar" />
+                    android:text="SALVAR"
+                    android:textSize="14sp"
+                    android:backgroundTint="@color/primary" />
 
             </LinearLayout>
 

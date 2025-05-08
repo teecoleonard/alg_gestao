@@ -184,7 +184,7 @@ class CadastroEquipamentoDialogFragment : DialogFragment() {
         etPrecoSemanal.setText(currencyFormat.format(equipamento.precoSemanal))
         etPrecoQuinzenal.setText(currencyFormat.format(equipamento.precoQuinzenal))
         etPrecoMensal.setText(currencyFormat.format(equipamento.precoMensal))
-        etQuantidade.setText(equipamento.quantidadeEquip.toString())
+        etQuantidade.setText(equipamento.quantidadeDisp.toString())
         etValorPatrimonio.setText(equipamento.valorPatrimonio?.let { currencyFormat.format(it) } ?: "")
     }
     
@@ -256,7 +256,7 @@ class CadastroEquipamentoDialogFragment : DialogFragment() {
                 precoSemanal = precoSemanal,
                 precoQuinzenal = precoQuinzenal,
                 precoMensal = precoMensal,
-                quantidadeEquip = quantidade,
+                quantidadeDisp = quantidade,
                 valorPatrimonio = valorPatrimonio
             )
             

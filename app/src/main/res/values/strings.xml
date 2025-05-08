@@ -111,4 +111,11 @@
     <string name="contrato_criado_sucesso">Contrato criado com sucesso</string>
     <string name="contrato_atualizado_sucesso">Contrato atualizado com sucesso</string>
     <string name="contrato_excluido_sucesso">Contrato excluído com sucesso</string>
+    <string name="pesquisar_cliente">Pesquisar Cliente</string>
+    <string name="periodo_diaria">DIARIA</string>
+    <string name="periodo_mensal">MENSAL</string>
+    <string name="periodo_quinzenal">QUINZENAL</string>
+    <string name="periodo_anual">ANUAL</string>
+    <string name="endereco_cliente">Endereço preenchido automaticamente</string>
+    <string name="formato_quantidade">%1$d unid.</string>
 </resources>

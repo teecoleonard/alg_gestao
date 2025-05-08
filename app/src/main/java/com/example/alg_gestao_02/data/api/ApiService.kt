@@ -4,6 +4,8 @@ import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.data.models.User
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
+import com.example.alg_gestao_02.data.models.EquipamentoContrato
+import com.example.alg_gestao_02.data.models.ContratoResponse
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -123,21 +125,28 @@ interface ApiService {
      */
     @GET("api/contratos/cliente/{clienteId}")
     suspend fun getContratosByCliente(@Path("clienteId") clienteId: Int): Response<List<Contrato>>
+
+    /**
+     * Obter equipamentos de um contrato específico
+     */
+    @GET("api/contratos/{contratoId}/equipamentos")
+    suspend fun getEquipamentosContrato(@Path("contratoId") contratoId: Int): Response<List<EquipamentoContrato>>
+
     
     /**
-     * Criar um novo contrato
+     * Criar um novo contrato com seus equipamentos
      */
     @POST("api/contratos")
-    suspend fun createContrato(@Body contrato: Contrato): Response<Contrato>
+    suspend fun createContrato(@Body contrato: Contrato): Response<ContratoResponse>
     
     /**
-     * Atualizar um contrato existente
+     * Atualizar um contrato existente com seus equipamentos
      */
     @PUT("api/contratos/{id}")
     suspend fun updateContrato(
         @Path("id") id: Int,
         @Body contrato: Contrato
-    ): Response<Contrato>
+    ): Response<ContratoResponse>
     
     /**
      * Excluir um contrato
@@ -170,4 +179,4 @@ interface ApiService {
         val token: String,
         val user: User
     )
-} 
+}

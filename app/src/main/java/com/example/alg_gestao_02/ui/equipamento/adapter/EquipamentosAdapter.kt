@@ -56,7 +56,7 @@ class EquipamentosAdapter(
         fun bind(equipamento: Equipamento) {
             tvNomeEquipamento.text = equipamento.nomeEquip
             tvCodigoEquipamento.text = "Código: ${equipamento.codigoEquip}"
-            tvQuantidadeEquipamento.text = "Quantidade: ${equipamento.quantidadeEquip}"
+            tvQuantidadeEquipamento.text = "Quantidade: ${equipamento.quantidadeDisp}"
             tvPrecoDiariaEquipamento.text = "Diária: ${currencyFormat.format(equipamento.precoDiaria)}"
 
             // Configura o clique no item

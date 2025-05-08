@@ -29,8 +29,8 @@ data class Equipamento(
     @SerializedName("codigoEquip")
     val codigoEquip: String,
     
-    @SerializedName("quantidadeEquip")
-    val quantidadeEquip: Int,
+    @SerializedName("quantidadeDisp")
+    val quantidadeDisp: Int,
     
     @SerializedName("valorPatrimonio")
     val valorPatrimonio: Double? = null
@@ -56,7 +56,7 @@ data class Equipamento(
         parcel.writeDouble(precoQuinzenal)
         parcel.writeDouble(precoMensal)
         parcel.writeString(codigoEquip)
-        parcel.writeInt(quantidadeEquip)
+        parcel.writeInt(quantidadeDisp)
         if (valorPatrimonio == null) {
             parcel.writeByte(0)
         } else {

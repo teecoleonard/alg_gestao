@@ -7,8 +7,10 @@ import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
+import com.example.alg_gestao_02.data.models.EquipamentoContrato
 import com.example.alg_gestao_02.data.repository.ClienteRepository
 import com.example.alg_gestao_02.data.repository.ContratoRepository
+import com.example.alg_gestao_02.data.repository.EquipamentoContratoRepository
 import com.example.alg_gestao_02.ui.common.ErrorViewModel
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
@@ -21,7 +23,8 @@ import kotlinx.coroutines.launch
  */
 class ContratosViewModel(
     private val repository: ContratoRepository,
-    private val clienteRepository: ClienteRepository
+    private val clienteRepository: ClienteRepository,
+    private val equipamentoContratoRepository: EquipamentoContratoRepository // Mantido apenas para leitura
 ) : ViewModel() {
 
     // Estado da UI para listagem de contratos
@@ -37,7 +40,7 @@ class ContratosViewModel(
     val clientesState: LiveData<UiState<List<Cliente>>> = _clientesState
     
     // ViewModel para tratamento de erros
-    val errorViewModel = ErrorViewModel()
+    val errorHandler = ErrorViewModel()
     
     // Cliente selecionado para novo contrato
     private val _selectedCliente = MutableLiveData<Cliente?>()
@@ -50,6 +53,10 @@ class ContratosViewModel(
     private val _searchTerm = MutableLiveData<String>("")
     val searchTerm: LiveData<String> = _searchTerm
     
+    // LiveData para equipamentos de contrato
+    private val _equipamentosContratoState = MutableLiveData<UiState<List<EquipamentoContrato>>>()
+    val equipamentosContratoState: LiveData<UiState<List<EquipamentoContrato>>> = _equipamentosContratoState
+    
     init {
         loadContratos()
         loadClientes()
@@ -59,7 +66,7 @@ class ContratosViewModel(
      * Carrega a lista de contratos
      */
     fun loadContratos() {
-        _uiState.value = UiState.Loading()
+        _uiState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ContratosViewModel", "Carregando contratos")
@@ -100,7 +107,7 @@ class ContratosViewModel(
      * Carrega a lista de clientes para seleção na criação de contrato
      */
     fun loadClientes() {
-        _clientesState.value = UiState.Loading()
+        _clientesState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ContratosViewModel", "Carregando clientes para seleção")
@@ -147,39 +154,49 @@ class ContratosViewModel(
     /**
      * Cria um novo contrato
      */
-    fun criarContrato(contrato: Contrato) {
-        _operationState.value = UiState.Loading()
+    fun criarContrato(contrato: Contrato, equipamentos: List<EquipamentoContrato> = emptyList()) {
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
-            LogUtils.debug("ContratosViewModel", "Criando contrato para cliente: ${contrato.clienteId}")
-            
-            when (val result = repository.createContrato(contrato)) {
-                is Resource.Success -> {
-                    LogUtils.info("ContratosViewModel", "Contrato criado com sucesso: ${result.data.contratoNum}")
-                    _operationState.value = UiState.Success(result.data)
-                    loadContratos() // Recarrega a lista
-                    // Resetar o estado após um breve delay para garantir que o observador já processou o resultado
-                    viewModelScope.launch {
-                        delay(500)
-                        _operationState.value = null
-                    }
+            try {
+                LogUtils.debug("ContratosViewModel", "Criando contrato: ${contrato.contratoNum}")
+                
+                // Gerar ID temporário se for um novo contrato (id == 0)
+                val contratoComId = if (contrato.id == 0) {
+                    val tempId = Contrato.generateTempId()
+                    LogUtils.debug("ContratosViewModel", "Gerado ID temporário: $tempId")
+                    contrato.copy(id = tempId)
+                } else {
+                    contrato
                 }
                 
-                is Resource.Error -> {
-                    if (result.message == "Operação cancelada") {
-                        // Não exibir erro para operações canceladas normalmente
-                        LogUtils.debug("ContratosViewModel", "Criação de contrato cancelada")
-                        _operationState.value = null
-                    } else {
-                        LogUtils.error("ContratosViewModel", "Erro ao criar contrato: ${result.message}")
-                        _operationState.value = UiState.Error(result.message)
+                // Vincular equipamentos ao contrato
+                val contratoComEquipamentos = if (equipamentos.isNotEmpty()) {
+                    LogUtils.debug("ContratosViewModel", "Com ${equipamentos.size} equipamentos")
+                    val equipamentosAtualizados = equipamentos.map { 
+                        it.copy(contratoId = contratoComId.id) 
                     }
+                    contratoComId.copy(equipamentos = equipamentosAtualizados)
+                } else {
+                    contratoComId
                 }
                 
-                else -> {
-                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao criar contrato")
-                    _operationState.value = UiState.Error("Estado desconhecido")
+                // Salvar contrato com equipamentos
+                val resultado = repository.createContrato(contratoComEquipamentos)
+                
+                if (resultado.isSuccess()) {
+                    val novoContrato = resultado.data!!
+                    LogUtils.debug("ContratosViewModel", "Contrato criado com ID: ${novoContrato.id}")
+                    
+                    _operationState.value = UiState.Success(novoContrato)
+                    loadContratos()
+                } else {
+                    LogUtils.error("ContratosViewModel", "Erro ao criar contrato: ${resultado.message}")
+                    _operationState.value = UiState.Error(resultado.message ?: "Erro desconhecido ao criar contrato")
                 }
+            } catch (e: Exception) {
+                LogUtils.error("ContratosViewModel", "Erro ao criar contrato", e)
+                _operationState.value = UiState.Error("Erro ao criar contrato: ${e.message}")
             }
         }
     }
@@ -187,39 +204,39 @@ class ContratosViewModel(
     /**
      * Atualiza um contrato existente
      */
-    fun atualizarContrato(id: Int, contrato: Contrato) {
-        _operationState.value = UiState.Loading()
+    fun atualizarContrato(id: Int, contrato: Contrato, equipamentos: List<EquipamentoContrato> = emptyList()) {
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
-            LogUtils.debug("ContratosViewModel", "Atualizando contrato: $id")
-            
-            when (val result = repository.updateContrato(id, contrato)) {
-                is Resource.Success -> {
-                    LogUtils.info("ContratosViewModel", "Contrato atualizado com sucesso: ${result.data.contratoNum}")
-                    _operationState.value = UiState.Success(result.data)
-                    loadContratos() // Recarrega a lista
-                    // Resetar o estado após um breve delay para garantir que o observador já processou o resultado
-                    viewModelScope.launch {
-                        delay(500)
-                        _operationState.value = null
+            try {
+                LogUtils.debug("ContratosViewModel", "Atualizando contrato: $id")
+                
+                // Vincular equipamentos ao contrato
+                val contratoComEquipamentos = if (equipamentos.isNotEmpty()) {
+                    LogUtils.debug("ContratosViewModel", "Com ${equipamentos.size} equipamentos")
+                    val equipamentosAtualizados = equipamentos.map { 
+                        it.copy(contratoId = id) 
                     }
+                    contrato.copy(equipamentos = equipamentosAtualizados)
+                } else {
+                    contrato
                 }
                 
-                is Resource.Error -> {
-                    if (result.message == "Operação cancelada") {
-                        // Não exibir erro para operações canceladas normalmente
-                        LogUtils.debug("ContratosViewModel", "Atualização de contrato cancelada")
-                        _operationState.value = null
-                    } else {
-                        LogUtils.error("ContratosViewModel", "Erro ao atualizar contrato: ${result.message}")
-                        _operationState.value = UiState.Error(result.message)
-                    }
-                }
+                val resultado = repository.updateContrato(id, contratoComEquipamentos)
                 
-                else -> {
-                    LogUtils.error("ContratosViewModel", "Estado desconhecido ao atualizar contrato")
-                    _operationState.value = UiState.Error("Estado desconhecido")
+                if (resultado.isSuccess()) {
+                    val contratoAtualizado = resultado.data!!
+                    LogUtils.debug("ContratosViewModel", "Contrato atualizado com ID: ${contratoAtualizado.id}")
+                    
+                    _operationState.value = UiState.Success(contratoAtualizado)
+                    loadContratos()
+                } else {
+                    LogUtils.error("ContratosViewModel", "Erro ao atualizar contrato: ${resultado.message}")
+                    _operationState.value = UiState.Error(resultado.message ?: "Erro desconhecido ao atualizar contrato")
                 }
+            } catch (e: Exception) {
+                LogUtils.error("ContratosViewModel", "Erro ao atualizar contrato", e)
+                _operationState.value = UiState.Error("Erro ao atualizar contrato: ${e.message}")
             }
         }
     }
@@ -228,7 +245,7 @@ class ContratosViewModel(
      * Exclui um contrato
      */
     fun excluirContrato(id: Int) {
-        _operationState.value = UiState.Loading()
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ContratosViewModel", "Excluindo contrato: $id")
@@ -325,6 +342,70 @@ class ContratosViewModel(
             _uiState.value = UiState.Success(filteredList)
         }
     }
+    
+    /**
+     * Gera a data atual formatada para o padrão ISO 8601
+     */
+    fun getDataHoraAtual(): String {
+        return repository.getDataHoraAtual()
+    }
+    
+    /**
+     * Gera a data de vencimento (atual + 30 dias) formatada
+     */
+    fun getDataVencimento(): String {
+        return repository.getDataVencimento()
+    }
+    
+    /**
+     * Carrega os equipamentos de um contrato específico
+     */
+    fun getEquipamentosContrato(contratoId: Int) {
+        _equipamentosContratoState.value = UiState.loading()
+        
+        viewModelScope.launch {
+            try {
+                val resultado = equipamentoContratoRepository.getEquipamentosContrato(contratoId)
+                
+                if (resultado.isSuccess()) {
+                    val equipamentos = resultado.data ?: emptyList()
+                    
+                    // Log para debug dos dados processados
+                    equipamentos.forEach { equip ->
+                        LogUtils.debug("ContratosViewModel", 
+                            "Processando equipamento:\n" +
+                            "ID: ${equip.id}\n" +
+                            "ContratoId: ${equip.contratoId}\n" +
+                            "EquipamentoId: ${equip.equipamentoId}\n" +
+                            "Nome: ${equip.equipamentoNome}\n" +
+                            "Quantidade: ${equip.quantidadeEquip}\n" +
+                            "Valor Unitário: ${equip.valorUnitario}\n" +
+                            "Valor Total: ${equip.valorTotal}\n" +
+                            "Valor Frete: ${equip.valorFrete}")
+                    }
+                    
+                    _equipamentosContratoState.value = UiState.Success(equipamentos)
+                    LogUtils.info("ContratosViewModel", "Equipamentos do contrato carregados: ${equipamentos.size}")
+                } else {
+                    _equipamentosContratoState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
+                    LogUtils.error("ContratosViewModel", "Erro ao carregar equipamentos do contrato: ${resultado.message}")
+                    errorHandler.handleException(Exception(resultado.message), "Erro ao carregar equipamentos")
+                }
+            } catch (e: Exception) {
+                _equipamentosContratoState.value = UiState.Error("Erro inesperado: ${e.message}")
+                LogUtils.error("ContratosViewModel", "Exceção ao carregar equipamentos do contrato", e)
+                errorHandler.handleException(e, "Erro ao carregar equipamentos")
+            }
+        }
+    }
+    
+    /**
+     * Reseta o estado de operação para null
+     * Útil para evitar problemas com diálogos sendo reutilizados
+     */
+    fun resetOperationState() {
+        _operationState.value = null
+    }
 }
 
 /**
@@ -334,11 +415,12 @@ class ContratosViewModelFactory : ViewModelProvider.Factory {
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(ContratosViewModel::class.java)) {
             @Suppress("UNCHECKED_CAST")
-            return ContratosViewModel(
-                repository = ContratoRepository(),
-                clienteRepository = ClienteRepository()
-            ) as T
+                return ContratosViewModel(
+                    repository = ContratoRepository(),
+                    clienteRepository = ClienteRepository(),
+                    equipamentoContratoRepository = EquipamentoContratoRepository() // Usado apenas para leitura de equipamentos
+                ) as T
         }
-        throw IllegalArgumentException("Unknown ViewModel class")
+        throw IllegalArgumentException("ViewModel desconhecido")
     }
-} 
+}

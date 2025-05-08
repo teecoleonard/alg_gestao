@@ -46,7 +46,7 @@ class ClientesViewModel(
      * Carrega a lista de clientes
      */
     fun loadClientes() {
-        _uiState.value = UiState.Loading()
+        _uiState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ClientesViewModel", "Carregando clientes")
@@ -121,7 +121,7 @@ class ClientesViewModel(
      * Cria um novo cliente
      */
     fun criarCliente(cliente: Cliente) {
-        _operationState.value = UiState.Loading()
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ClientesViewModel", "Criando cliente: ${cliente.contratante}")
@@ -161,7 +161,7 @@ class ClientesViewModel(
      * Atualiza um cliente existente
      */
     fun atualizarCliente(id: Int, cliente: Cliente) {
-        _operationState.value = UiState.Loading()
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ClientesViewModel", "Atualizando cliente: ${cliente.contratante}")
@@ -201,7 +201,7 @@ class ClientesViewModel(
      * Exclui um cliente
      */
     fun excluirCliente(id: Int) {
-        _operationState.value = UiState.Loading()
+        _operationState.value = UiState.loading()
         
         viewModelScope.launch {
             LogUtils.debug("ClientesViewModel", "Excluindo cliente: $id")

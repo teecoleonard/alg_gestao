@@ -1,7 +1,9 @@
 package com.example.alg_gestao_02.data.api
 
 import android.content.Context
+import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
+import okhttp3.Interceptor
 import okhttp3.OkHttpClient
 import okhttp3.logging.HttpLoggingInterceptor
 import retrofit2.Retrofit
@@ -22,6 +24,32 @@ object ApiClient {
         sessionManager = SessionManager(context)
     }
     
+    // Interceptador para verificar respostas específicas relacionadas a contratos
+    private val contractResponseInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val response = chain.proceed(request)
+        
+        // Apenas para chamadas relacionadas a contratos
+        if (request.url.toString().contains("/contratos") && 
+            (request.method == "POST" || request.method == "PUT")) {
+            
+            // Apenas verificar metadados sem consumir o corpo
+            LogUtils.debug("ApiClient", 
+                "Resposta para operação de contrato: ${response.code} - ${response.message}")
+            
+            // Verificar se tivemos sucesso na operação
+            if (response.isSuccessful) {
+                LogUtils.info("ApiClient", 
+                    "Operação de contrato bem-sucedida: ${request.method} ${request.url.encodedPath}")
+            } else {
+                LogUtils.warning("ApiClient", 
+                    "Falha na operação de contrato: ${response.code} - ${response.message}")
+            }
+        }
+        
+        response
+    }
+    
     /**
      * Cria um cliente OkHttp configurado com timeout, logger e interceptor de autenticação
      */
@@ -32,6 +60,7 @@ object ApiClient {
         
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
+            .addInterceptor(contractResponseInterceptor)
             .addInterceptor(AuthInterceptor(sessionManager))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)

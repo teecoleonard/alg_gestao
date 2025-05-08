@@ -22,7 +22,7 @@ class ProjectInvoicesViewModel(private val repository: InvoiceRepository) : View
      */
     fun loadInvoices(projectId: String) {
         currentProjectId = projectId
-        _uiState.value = UiState.Loading()
+        _uiState.value = UiState.loading()
         
         viewModelScope.launch {
             try {
@@ -59,7 +59,7 @@ class ProjectInvoicesViewModel(private val repository: InvoiceRepository) : View
      * Carrega as faturas para o mês atual do calendário
      */
     private fun loadInvoicesForCurrentMonth(projectId: String) {
-        _uiState.value = UiState.Loading()
+        _uiState.value = UiState.loading()
         
         viewModelScope.launch {
             try {

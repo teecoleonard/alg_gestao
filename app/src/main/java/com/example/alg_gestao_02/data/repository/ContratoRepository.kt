@@ -2,6 +2,10 @@ package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.data.api.ApiClient
 import com.example.alg_gestao_02.data.models.Contrato
+import com.example.alg_gestao_02.data.models.EquipamentoContrato
+import com.example.alg_gestao_02.data.models.EquipamentoJson
+import com.example.alg_gestao_02.data.models.EquipamentoContratoData
+import com.example.alg_gestao_02.data.models.ContratoResponse
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
 import kotlinx.coroutines.CancellationException
@@ -50,17 +54,43 @@ class ContratoRepository {
             val response = apiService.getContratoById(id)
             
             if (response.isSuccessful) {
-                response.body()?.let {
-                    Resource.Success(it)
+                response.body()?.let { contrato ->
+                    // Log do JSON recebido para debug
+                    LogUtils.debug("ContratoRepository", "JSON recebido: ${response.raw()}")
+                    
+                    // Processar os equipamentos do JSON
+                    val equipamentosJson = contrato.equipamentos.map { equip ->
+                        EquipamentoJson(
+                            id = equip.equipamentoId,
+                            nomeEquip = equip.equipamentoNome,
+                            precoDiaria = equip.valorUnitario.toString(),
+                            precoSemanal = (equip.valorUnitario * 7).toString(),
+                            precoQuinzenal = (equip.valorUnitario * 15).toString(),
+                            precoMensal = (equip.valorUnitario * 30).toString(),
+                            codigoEquip = equip.equipamentoNome?.take(4) ?: "",
+                            quantidadeDisp = equip.quantidadeEquip,
+                            valorPatrimonio = equip.valorTotal,
+                            equipamentoContrato = EquipamentoContratoData(
+                                id = equip.id,
+                                contratoId = equip.contratoId,
+                                equipamentoId = equip.equipamentoId,
+                                quantidadeEquip = equip.quantidadeEquip,
+                                valorUnitario = equip.valorUnitario.toString(),
+                                valorTotal = equip.valorTotal.toString(),
+                                valorFrete = equip.valorFrete.toString()
+                            )
+                        )
+                    }
+                    val equipamentosProcessados = contrato.processarEquipamentosJson(equipamentosJson)
+                    
+                    // Criar uma nova cópia do contrato com os equipamentos processados
+                    val contratoProcessado = contrato.copy(equipamentos = equipamentosProcessados)
+                    Resource.Success(contratoProcessado)
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao buscar contrato: ${response.code()}")
                 Resource.Error("Erro ao buscar contrato: ${response.message()}")
             }
-        } catch (e: CancellationException) {
-            // Tratamento específico para cancelamento de job
-            LogUtils.debug("ContratoRepository", "Operação de busca de contrato cancelada")
-            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ContratoRepository", "Erro ao buscar contrato", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -98,21 +128,58 @@ class ContratoRepository {
      */
     suspend fun createContrato(contrato: Contrato): Resource<Contrato> {
         return try {
-            LogUtils.debug("ContratoRepository", "Criando novo contrato para cliente: ${contrato.clienteId}")
-            val response = apiService.createContrato(contrato)
+            LogUtils.debug("ContratoRepository", "Criando contrato: ${contrato.contratoNum}")
+            
+            // Verificar se o cliente existe
+            if (contrato.clienteId <= 0) {
+                return Resource.Error("Cliente inválido")
+            }
+            
+            // Validar IDs dos equipamentos
+            val equipamentosValidos = contrato.equipamentos.mapNotNull { equipamento ->
+                if (equipamento.id <= 0) {
+                    LogUtils.warning("ContratoRepository", "Equipamento com ID inválido: ${equipamento.id}")
+                    null
+                } else {
+                    equipamento
+                }
+            }
+            
+            if (equipamentosValidos.size != contrato.equipamentos.size) {
+                LogUtils.error("ContratoRepository", 
+                    "Alguns equipamentos foram removidos devido a IDs inválidos")
+            }
+            
+            // Criar contrato com equipamentos validados
+            val contratoParaSalvar = contrato.copy(equipamentos = equipamentosValidos)
+            val response = apiService.createContrato(contratoParaSalvar)
             
             if (response.isSuccessful) {
-                response.body()?.let {
-                    Resource.Success(it)
+                response.body()?.let { responseBody ->
+                    // Log do JSON recebido para debug
+                    LogUtils.debug("ContratoRepository", "JSON recebido: ${response.raw()}")
+                    
+                    // Extrair contrato da resposta
+                    val contratoCriado = responseBody.contrato
+                    
+                    // Validar ID retornado
+                    if (contratoCriado.id <= 0) {
+                        LogUtils.error("ContratoRepository", "ID inválido retornado: ${contratoCriado.id}")
+                        return Resource.Error("ID de contrato inválido retornado do servidor")
+                    }
+                    
+                    LogUtils.debug("ContratoRepository", "Contrato criado com ID: ${contratoCriado.id}")
+                    Resource.Success(contratoCriado)
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao criar contrato: ${response.code()}")
-                Resource.Error("Erro ao criar contrato: ${response.message()}")
+                val errorMessage = if (response.errorBody() != null) {
+                    "Erro ao criar contrato: ${response.errorBody()?.string() ?: "Erro desconhecido"}"
+                } else {
+                    "Erro ao criar contrato: ${response.message()}"
+                }
+                Resource.Error(errorMessage)
             }
-        } catch (e: CancellationException) {
-            // Tratamento específico para cancelamento de job
-            LogUtils.debug("ContratoRepository", "Operação de criação de contrato cancelada")
-            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ContratoRepository", "Erro ao criar contrato", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -124,21 +191,63 @@ class ContratoRepository {
      */
     suspend fun updateContrato(id: Int, contrato: Contrato): Resource<Contrato> {
         return try {
-            LogUtils.debug("ContratoRepository", "Atualizando contrato com ID: $id")
-            val response = apiService.updateContrato(id, contrato)
+            LogUtils.debug("ContratoRepository", "Atualizando contrato: $id")
+            
+            // Verificar se o ID é válido
+            if (id <= 0) {
+                return Resource.Error("ID de contrato inválido")
+            }
+            
+            // Verificar se o cliente existe
+            if (contrato.clienteId <= 0) {
+                return Resource.Error("Cliente inválido")
+            }
+            
+            // Validar IDs dos equipamentos
+            val equipamentosValidos = contrato.equipamentos.mapNotNull { equipamento ->
+                if (equipamento.id <= 0) {
+                    LogUtils.warning("ContratoRepository", "Equipamento com ID inválido: ${equipamento.id}")
+                    null
+                } else if (equipamento.contratoId != id) {
+                    LogUtils.warning("ContratoRepository", 
+                        "Equipamento ${equipamento.id} com contratoId incorreto: ${equipamento.contratoId} (esperado: $id)")
+                    null
+                } else {
+                    equipamento
+                }
+            }
+            
+            if (equipamentosValidos.size != contrato.equipamentos.size) {
+                LogUtils.error("ContratoRepository", 
+                    "Alguns equipamentos foram removidos devido a IDs inválidos")
+            }
+            
+            // Atualizar contrato com equipamentos validados
+            val contratoParaAtualizar = contrato.copy(equipamentos = equipamentosValidos)
+            val response = apiService.updateContrato(id, contratoParaAtualizar)
             
             if (response.isSuccessful) {
-                response.body()?.let {
-                    Resource.Success(it)
+                response.body()?.let { responseBody ->
+                    // Log do JSON recebido para debug
+                    LogUtils.debug("ContratoRepository", "JSON recebido: ${response.raw()}")
+                    
+                    // Extrair contrato da resposta
+                    val contratoAtualizado = responseBody.contrato
+                    
+                    // Validar ID retornado
+                    if (contratoAtualizado.id != id) {
+                        LogUtils.error("ContratoRepository", 
+                            "ID inconsistente retornado: ${contratoAtualizado.id} (esperado: $id)")
+                        return Resource.Error("ID de contrato inconsistente retornado do servidor")
+                    }
+                    
+                    // Retornar contrato com equipamentos processados
+                    Resource.Success(contratoAtualizado)
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao atualizar contrato: ${response.code()}")
                 Resource.Error("Erro ao atualizar contrato: ${response.message()}")
             }
-        } catch (e: CancellationException) {
-            // Tratamento específico para cancelamento de job
-            LogUtils.debug("ContratoRepository", "Operação de atualização de contrato cancelada")
-            Resource.Error("Operação cancelada")
         } catch (e: Exception) {
             LogUtils.error("ContratoRepository", "Erro ao atualizar contrato", e)
             Resource.Error("Erro de conexão: ${e.message}")
@@ -180,7 +289,7 @@ class ContratoRepository {
         
         val contratoNums = contratos.map { 
             // Pega apenas os dígitos do número do contrato
-            val numerico = """\d+""".toRegex().find(it.contratoNum)?.value
+            val numerico = """\d+""".toRegex().find(it.contratoNum ?: "")?.value
             numerico?.toIntOrNull() ?: 0
         }
         
@@ -207,4 +316,4 @@ class ContratoRepository {
         calendar.add(java.util.Calendar.DAY_OF_MONTH, 30) // 30 dias a partir de hoje
         return formatoData.format(calendar.time)
     }
-} 
+}

@@ -44,7 +44,7 @@ class EquipamentosViewModel(
      * Carrega a lista de equipamentos
      */
     fun loadEquipamentos() {
-        _uiState.value = UiState.Loading()
+        _uiState.value = UiState.loading()
         
         viewModelScope.launch {
             val result = when (filtroTipo) {

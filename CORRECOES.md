@@ -774,7 +774,7 @@ O Dashboard possuía um card para acesso rápido ao módulo de Clientes, mas ao 
 - Implementamos o listener do card de Clientes para realizar a navegação:
   ```kotlin
   view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
-      LogUtils.debug("DashboardFragment", "Card de clientes clicado")
+      LogUtils.debug("DashboardFragment", "Card de clientes clicado") 
       
       // Navegar para a página de clientes
       val transaction = requireActivity().supportFragmentManager.beginTransaction()
