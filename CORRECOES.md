@@ -943,3 +943,24 @@ A API apresentava dois problemas principais:
 
 ### Data da Implementação
 15/05/2025
+
+## Atualizações em relação ao Contato
+
+### Implementação dos Detalhes do Contrato
+Visualização de todos os detalhes:
+1. Implementado os detalhes de acordo com o Cliente para melhor vizualação do contrato
+2. Ajuste nas cores dos containers dos detalhes
+
+### Detalhes da Implementação
+
+#### 1. Atualização da Função ContratoDetailsDialogFragment
+- Visualização do nome do cliente, endereço, local de obra, valor total do contrato, ID e registro
+- Alterado para o tema azul de acordo com o padrão
+- Ajuste na estrutura do dialog_contrato_details para comportar igual ao restante do projeto com as dimenções posicionados em 16 paddings
+
+#### 2. Strings e Icones
+- Novas Strings sobre os valores dentro do dialog_contrato_details, como titulos e estilização 
+- Adição dos icones ic_truck.xml, ic_calendar_month e ic_person
+
+### Data da Implementação
+16/05/2025
