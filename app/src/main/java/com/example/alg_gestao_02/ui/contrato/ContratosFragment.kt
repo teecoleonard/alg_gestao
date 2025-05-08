@@ -27,7 +27,7 @@ import com.google.android.material.textfield.TextInputEditText
 /**
  * Fragment para listagem e gestão de contratos
  */
-class ContratosFragment : Fragment() {
+class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRequestListener {
     
     private lateinit var viewModel: ContratosViewModel
     private lateinit var adapter: ContratosAdapter
@@ -185,18 +185,66 @@ class ContratosFragment : Fragment() {
                 }
             }
         }
+
+        // Observar o contratoDetalhado para exibir o diálogo de detalhes quando estiver pronto
+        viewModel.contratoDetalhado.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> {
+                    // Opcional: mostrar um indicador de carregamento enquanto carrega os detalhes
+                    LogUtils.debug("ContratosFragment", "Carregando detalhes do contrato...")
+                }
+                
+                is UiState.Success -> {
+                    if (state.data != null) {
+                        LogUtils.debug("ContratosFragment", "Detalhes do contrato carregados com sucesso. ID: ${state.data.id}, equipamentos: ${state.data.equipamentos?.size ?: 0}")
+                        showContratoDetailDialogWithDetails(state.data)
+                    } else {
+                        LogUtils.error("ContratosFragment", "Contrato carregado é nulo")
+                        Toast.makeText(context, "Erro ao carregar detalhes do contrato", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                
+                is UiState.Error -> {
+                    LogUtils.error("ContratosFragment", "Erro ao carregar detalhes do contrato: ${state.message}")
+                    Toast.makeText(context, "Erro: ${state.message}", Toast.LENGTH_SHORT).show()
+                }
+                
+                else -> {
+                    // Nada a fazer para outros estados
+                }
+            }
+        }
     }
     
     private fun showContratoDetailDialog(contrato: Contrato) {
-        // Aqui poderia ser implementado um diálogo de detalhes do contrato
-        // Por enquanto, vamos apenas abrir para edição
-        val dialog = CadastroContratoDialogFragment.newInstance(contrato)
-        dialog.show(parentFragmentManager, "ContratoDetailDialog")
+        LogUtils.debug("ContratosFragment", "Exibindo detalhes para o contrato: ${contrato.contratoNum}")
+        // Em vez de exibir o diálogo diretamente com o contrato da lista,
+        // carregamos os detalhes completos primeiro
+        viewModel.carregarContratoComDetalhes(contrato.id)
+        // O diálogo será exibido no observer de contratoDetalhado quando os dados estiverem prontos
     }
     
-    private fun showCadastroContratoDialog() {
-        val dialog = CadastroContratoDialogFragment.newInstance()
-        dialog.show(parentFragmentManager, "CadastroContratoDialog")
+    // Nova função para exibir o diálogo com o contrato que já tem os detalhes completos
+    private fun showContratoDetailDialogWithDetails(contratoCompleto: Contrato) {
+        LogUtils.debug("ContratosFragment", "Exibindo dialog com contrato completo: ${contratoCompleto.contratoNum}")
+        val dialog = ContratoDetailsDialogFragment.newInstance(contratoCompleto)
+        dialog.setOnEditRequestListener(this)
+        dialog.show(childFragmentManager, "ContratoDetailsDialog")
+    }
+    
+    override fun onEditRequested(contrato: Contrato) {
+        LogUtils.debug("ContratosFragment", "Pedido de edição recebido para o contrato: ${contrato.contratoNum}")
+        showCadastroContratoDialog(contrato)
+    }
+    
+    private fun showCadastroContratoDialog(contratoParaEditar: Contrato? = null) {
+        val dialog = CadastroContratoDialogFragment.newInstance(contratoParaEditar)
+        dialog.setOnContratoSavedListener {
+            LogUtils.debug("ContratosFragment", "Contrato salvo/atualizado, recarregando lista.")
+            viewModel.loadContratos()
+        }
+        val dialogTag = if (contratoParaEditar == null) "CadastroContratoDialog" else "EditContratoDialog_${contratoParaEditar.id}"
+        dialog.show(childFragmentManager, dialogTag)
     }
     
     private fun showPopupMenu(contrato: Contrato, view: View) {
@@ -206,13 +254,8 @@ class ContratosFragment : Fragment() {
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
                 R.id.action_edit -> {
-                    LogUtils.debug("ContratosFragment", "Editando contrato: ${contrato.contratoNum}")
-                    val dialog = CadastroContratoDialogFragment.newInstance(contrato)
-                    dialog.setOnContratoSavedListener { contratoAtualizado ->
-                        // Recarregar a lista quando o contrato for atualizado
-                        viewModel.loadContratos()
-                    }
-                    dialog.show(parentFragmentManager, "EditContratoDialog_${contrato.id}")
+                    LogUtils.debug("ContratosFragment", "Menu Editar clicado para contrato: ${contrato.contratoNum}")
+                    showCadastroContratoDialog(contrato)
                     true
                 }
                 

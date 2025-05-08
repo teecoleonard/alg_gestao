@@ -37,7 +37,7 @@
     <string name="add">Adicionar</string>
     <string name="add_cliente">Adicionar Cliente</string>
     <string name="add_empresa">Adicionar Empresa</string>
-    <string name="edit">Editar cliente</string>
+    <string name="edit">Editar</string>
     <string name="delete">Excluir cliente</string>
     <string name="save">Salvar</string>
     <string name="cancel">Cancelar</string>

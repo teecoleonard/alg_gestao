@@ -45,6 +45,8 @@
             android:layout_height="match_parent">
 
             <!-- Estado 0: Loading -->
+
+            <!-- Estado 1: Empty -->
             <FrameLayout
                 android:id="@+id/viewLoading"
                 android:layout_width="match_parent"
@@ -57,7 +59,6 @@
 
             </FrameLayout>
 
-            <!-- Estado 1: Empty -->
             <LinearLayout
                 android:id="@+id/viewEmpty"
                 android:layout_width="match_parent"
@@ -159,6 +160,8 @@
         android:layout_margin="16dp"
         android:contentDescription="Adicionar contrato"
         android:src="@android:drawable/ic_input_add"
+        app:backgroundTint="@color/primary"
+        app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent" />
 

@@ -58,30 +58,42 @@ class ContratoRepository {
                     // Log do JSON recebido para debug
                     LogUtils.debug("ContratoRepository", "JSON recebido: ${response.raw()}")
                     
-                    // Processar os equipamentos do JSON
-                    val equipamentosJson = contrato.equipamentos.map { equip ->
-                        EquipamentoJson(
-                            id = equip.equipamentoId,
-                            nomeEquip = equip.equipamentoNome,
-                            precoDiaria = equip.valorUnitario.toString(),
-                            precoSemanal = (equip.valorUnitario * 7).toString(),
-                            precoQuinzenal = (equip.valorUnitario * 15).toString(),
-                            precoMensal = (equip.valorUnitario * 30).toString(),
-                            codigoEquip = equip.equipamentoNome?.take(4) ?: "",
-                            quantidadeDisp = equip.quantidadeEquip,
-                            valorPatrimonio = equip.valorTotal,
-                            equipamentoContrato = EquipamentoContratoData(
-                                id = equip.id,
-                                contratoId = equip.contratoId,
-                                equipamentoId = equip.equipamentoId,
-                                quantidadeEquip = equip.quantidadeEquip,
-                                valorUnitario = equip.valorUnitario.toString(),
-                                valorTotal = equip.valorTotal.toString(),
-                                valorFrete = equip.valorFrete.toString()
-                            )
-                        )
+                    // Verificar se há equipamentos para processar
+                    val equipamentosProcessados = if (contrato.equipamentos != null && contrato.equipamentos.isNotEmpty()) {
+                        // Processar os equipamentos do JSON
+                        try {
+                            val equipamentosJson = contrato.equipamentos.map { equip ->
+                                EquipamentoJson(
+                                    id = equip.equipamentoId,
+                                    nomeEquip = equip.equipamentoNome,
+                                    precoDiaria = equip.valorUnitario.toString(),
+                                    precoSemanal = (equip.valorUnitario * 7).toString(),
+                                    precoQuinzenal = (equip.valorUnitario * 15).toString(),
+                                    precoMensal = (equip.valorUnitario * 30).toString(),
+                                    codigoEquip = equip.equipamentoNome?.take(4) ?: "",
+                                    quantidadeDisp = equip.quantidadeEquip,
+                                    valorPatrimonio = equip.valorTotal,
+                                    equipamentoContrato = EquipamentoContratoData(
+                                        id = equip.id,
+                                        contratoId = equip.contratoId,
+                                        equipamentoId = equip.equipamentoId,
+                                        quantidadeEquip = equip.quantidadeEquip,
+                                        valorUnitario = equip.valorUnitario.toString(),
+                                        valorTotal = equip.valorTotal.toString(),
+                                        valorFrete = equip.valorFrete.toString()
+                                    )
+                                )
+                            }
+                            contrato.processarEquipamentosJson(equipamentosJson)
+                        } catch (e: Exception) {
+                            LogUtils.error("ContratoRepository", "Erro ao processar equipamentos", e)
+                            emptyList() // Se houver qualquer erro ao processar, retorna lista vazia
+                        }
+                    } else {
+                        // Se não houver equipamentos, retorna lista vazia
+                        LogUtils.debug("ContratoRepository", "Contrato sem equipamentos ou equipamentos nulos")
+                        emptyList()
                     }
-                    val equipamentosProcessados = contrato.processarEquipamentosJson(equipamentosJson)
                     
                     // Criar uma nova cópia do contrato com os equipamentos processados
                     val contratoProcessado = contrato.copy(equipamentos = equipamentosProcessados)

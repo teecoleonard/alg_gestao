@@ -7,6 +7,7 @@ import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
+import com.example.alg_gestao_02.utils.LogUtils
 
 /**
  * Representa um contrato no sistema
@@ -81,18 +82,28 @@ data class Contrato(
      * Converte os dados do JSON para o modelo EquipamentoContrato
      */
     fun processarEquipamentosJson(jsonEquipamentos: List<EquipamentoJson>?): List<EquipamentoContrato> {
-        return jsonEquipamentos?.map { json ->
-            EquipamentoContrato(
-                id = json.equipamentoContrato?.id ?: -1,
-                contratoId = json.equipamentoContrato?.contratoId ?: 0,
-                equipamentoId = json.id,
-                quantidadeEquip = json.equipamentoContrato?.quantidadeEquip ?: 0,
-                valorUnitario = json.equipamentoContrato?.valorUnitario?.toDoubleOrNull() ?: 0.0,
-                valorTotal = json.equipamentoContrato?.valorTotal?.toDoubleOrNull() ?: 0.0,
-                valorFrete = json.equipamentoContrato?.valorFrete?.toDoubleOrNull() ?: 0.0,
-                equipamentoNome = json.nomeEquip
-            )
-        } ?: emptyList()
+        return if (jsonEquipamentos.isNullOrEmpty()) {
+            LogUtils.debug("Contrato", "Lista de equipamentos JSON nula ou vazia")
+            emptyList()
+        } else {
+            jsonEquipamentos.mapNotNull { json ->
+                try {
+                    EquipamentoContrato(
+                        id = json.equipamentoContrato?.id ?: -1,
+                        contratoId = json.equipamentoContrato?.contratoId ?: 0,
+                        equipamentoId = json.id,
+                        quantidadeEquip = json.equipamentoContrato?.quantidadeEquip ?: 0,
+                        valorUnitario = json.equipamentoContrato?.valorUnitario?.toDoubleOrNull() ?: 0.0,
+                        valorTotal = json.equipamentoContrato?.valorTotal?.toDoubleOrNull() ?: 0.0,
+                        valorFrete = json.equipamentoContrato?.valorFrete?.toDoubleOrNull() ?: 0.0,
+                        equipamentoNome = json.nomeEquip
+                    )
+                } catch (e: Exception) {
+                    LogUtils.error("Contrato", "Erro ao processar equipamento JSON: ${e.message}")
+                    null // Ignora este equipamento se houver erro
+                }
+            }
+        }
     }
     
     /**

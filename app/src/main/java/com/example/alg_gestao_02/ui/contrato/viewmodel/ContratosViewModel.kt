@@ -57,6 +57,10 @@ class ContratosViewModel(
     private val _equipamentosContratoState = MutableLiveData<UiState<List<EquipamentoContrato>>>()
     val equipamentosContratoState: LiveData<UiState<List<EquipamentoContrato>>> = _equipamentosContratoState
     
+    // LiveData para o contrato selecionado com todos os detalhes (incluindo equipamentos)
+    private val _contratoDetalhado = MutableLiveData<UiState<Contrato?>>()
+    val contratoDetalhado: LiveData<UiState<Contrato?>> = _contratoDetalhado
+    
     init {
         loadContratos()
         loadClientes()
@@ -405,6 +409,72 @@ class ContratosViewModel(
      */
     fun resetOperationState() {
         _operationState.value = null
+    }
+    
+    /**
+     * Carrega os detalhes completos de um contrato, incluindo seus equipamentos.
+     */
+    fun carregarContratoComDetalhes(contratoId: Int) {
+        _contratoDetalhado.value = UiState.loading()
+        viewModelScope.launch {
+            try {
+                LogUtils.debug("ContratosViewModel", "Carregando detalhes completos para o contrato ID: $contratoId")
+                // Supondo que repository.getContratoById(contratoId) retorna Resource<Contrato?>
+                val contratoResource = repository.getContratoById(contratoId) 
+
+                if (contratoResource is Resource.Success && contratoResource.data != null) {
+                    val contratoBase = contratoResource.data
+                    LogUtils.debug("ContratosViewModel", "Contrato base carregado: ${contratoBase.contratoNum}")
+
+                    // Carregar os equipamentos para este contrato
+                    val equipamentosResource = equipamentoContratoRepository.getEquipamentosContrato(contratoId)
+                    if (equipamentosResource is Resource.Success) {
+                        val listaEquipamentos = equipamentosResource.data ?: emptyList()
+                        LogUtils.debug("ContratosViewModel", "Equipamentos para o contrato ${contratoBase.contratoNum} carregados: ${listaEquipamentos.size}")
+                        
+                        // Log detalhado dos equipamentos carregados
+                        listaEquipamentos.forEach { equip ->
+                            LogUtils.debug("ContratosViewModel", 
+                                "Equipamento carregado para contrato $contratoId:\n" +
+                                "ID: ${equip.id}\n" +
+                                "Nome: ${equip.equipamentoNome}\n" +
+                                "Quantidade: ${equip.quantidadeEquip}\n" +
+                                "Valor Unitário: ${equip.valorUnitario}\n" +
+                                "Valor Total: ${equip.valorTotal}")
+                        }
+                        
+                        // Calcular o valor total do contrato a partir dos equipamentos
+                        val valorTotalCalculado = listaEquipamentos.sumOf { it.valorTotal ?: 0.0 }
+                        LogUtils.debug("ContratosViewModel", "Valor total calculado: $valorTotalCalculado")
+                        
+                        // Associar a lista de equipamentos ao contrato base e atualizar o valor total
+                        val contratoCompleto = contratoBase.copy(
+                            equipamentos = listaEquipamentos,
+                            contratoValor = valorTotalCalculado
+                        )
+                        
+                        _contratoDetalhado.postValue(UiState.Success(contratoCompleto))
+                    } else {
+                        LogUtils.error("ContratosViewModel", "Erro ao carregar equipamentos para o contrato ID $contratoId: ${equipamentosResource.message}")
+                        // Postar o contrato base mesmo se os equipamentos falharem ao carregar
+                        // A UI pode então decidir como lidar com a ausência de equipamentos
+                        val contratoIncompleto = contratoBase.copy(equipamentos = emptyList()) // Garante que a lista não seja nula
+                        _contratoDetalhado.postValue(UiState.Success(contratoIncompleto))
+                    }
+                } else {
+                    LogUtils.error("ContratosViewModel", "Erro ao carregar contrato ID $contratoId: ${contratoResource.message}")
+                    _contratoDetalhado.postValue(UiState.Error(contratoResource.message ?: "Contrato ID: $contratoId não encontrado"))
+                }
+            } catch (e: NullPointerException) {
+                // Captura específica para o erro que está ocorrendo no ContratoRepository
+                LogUtils.error("ContratosViewModel", "Erro de NullPointerException ao carregar contrato ID $contratoId", e)
+                _contratoDetalhado.postValue(UiState.Error("Ocorreu um erro ao processar a resposta da API. Tente novamente."))
+            } catch (e: Exception) {
+                // Captura genérica para qualquer outro erro
+                LogUtils.error("ContratosViewModel", "Exceção ao carregar contrato ID $contratoId", e)
+                _contratoDetalhado.postValue(UiState.Error("Erro: ${e.message}"))
+            }
+        }
     }
 }
 

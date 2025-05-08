@@ -117,7 +117,7 @@
         android:layout_height="wrap_content"
         android:layout_margin="16dp"
         android:contentDescription="Adicionar equipamento"
-        android:src="@drawable/ic_add"
+        android:src="@android:drawable/ic_input_add"
         app:backgroundTint="@color/primary"
         app:tint="@android:color/white"
         app:layout_constraintBottom_toBottomOf="parent"

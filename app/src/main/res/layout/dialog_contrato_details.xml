@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:padding="20dp">
+
+        <!-- Nome do Cliente -->
+        <TextView
+            android:id="@+id/tvDetalhesContratoClienteNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="Nome Completo do Cliente Ltda" />
+
+        <!-- Número do Contrato -->
+        <TextView
+            android:id="@+id/tvDetalhesContratoNumero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.ALG.Subtitle"
+            android:textColor="@color/text_secondary"
+            tools:text="Contrato #123456" />
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/divider" />
+
+        <!-- Datas -->
+         <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Emissão:"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesContratoDataEmissao"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="01/01/2023 10:30:00" />
+         </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textStyle="bold"
+                android:textSize="16sp"
+                android:text="Vencimento:"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesContratoDataVenc"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="2"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="01/03/2023" />
+        </LinearLayout>
+
+        <!-- Detalhes do Contrato -->
+        <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="Detalhes do Contrato"
+             android:textAppearance="@style/TextAppearance.ALG.Title"
+             android:textSize="16sp"
+             android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoLocalObra"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_location"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Obra: Rua Exemplo, 123, Bairro, Cidade - UF" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoPeriodo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_calendar_month"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Período: MENSAL" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoLocalEntrega"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_truck"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Entrega: Av. Principal, 456, Centro, Cidade - UF" />
+        
+        <TextView
+            android:id="@+id/tvDetalhesContratoResponsavel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:drawableStart="@drawable/ic_person"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Responsável: Nome do Responsável" />
+
+         <!-- Assinatura -->
+        <TextView
+             android:id="@+id/labelDetalhesContratoAssinatura"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="Assinatura Digital"
+             android:textAppearance="@style/TextAppearance.ALG.Title"
+             android:textSize="16sp"
+             android:layout_marginBottom="4dp"/>
+        
+        <TextView
+             android:id="@+id/tvDetalhesContratoAssinatura"
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
+             android:textStyle="italic"
+             android:textColor="@color/text_secondary"
+             android:layout_marginBottom="16dp"
+             tools:text="Assinado digitalmente por..." />
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="8dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/divider" />
+
+        <!-- Resumo Financeiro -->
+         <TextView
+             android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:text="Resumo Equipamento"
+             android:textAppearance="@style/TextAppearance.ALG.Title"
+             android:textSize="16sp"
+             android:textStyle="bold"
+             android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:id="@+id/tvDetalhesContratoNumEquipamentos"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="16sp"
+                tools:text="5" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Valor Total:"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="16sp"/>
+
+            <TextView
+                android:id="@+id/tvDetalhesContratoValorTotal"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textColor="@color/price_text"
+                android:textSize="16sp"
+                tools:text="R$ 15.500,00" />
+        </LinearLayout>
+
+        <!-- Botões -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="24dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnFecharDetalhesContrato"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Fechar" />
+
+            <Button
+                android:id="@+id/btnEditarContrato"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="@string/edit" />
+        </LinearLayout>
+    </LinearLayout>
+</ScrollView> 

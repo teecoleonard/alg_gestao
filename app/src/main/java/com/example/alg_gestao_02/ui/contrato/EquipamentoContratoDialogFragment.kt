@@ -49,7 +49,6 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
 
     private var equipamentoContratoParaEdicao: EquipamentoContrato? = null
     private var contratoId: Int = 0
-    private var contratoValor: Double = 0.0
     private var equipamentoSelecionado: Equipamento? = null
     private var equipamentos: List<Equipamento> = emptyList()
     private var onEquipamentoSalvoListener: ((EquipamentoContrato) -> Unit)? = null
@@ -57,7 +56,6 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
     companion object {
         private const val ARG_EQUIPAMENTO_CONTRATO = "arg_equipamento_contrato"
         private const val ARG_CONTRATO_ID = "arg_contrato_id"
-        private const val ARG_CONTRATO_VALOR = "arg_contrato_valor"
         
         // Gera ID temporário único baseado em timestamp
         private fun generateTempId(): Int {
@@ -68,13 +66,11 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
 
         fun newInstance(
             contratoId: Int,
-            contratoValor: Double,
             equipamentoContrato: EquipamentoContrato? = null
         ): EquipamentoContratoDialogFragment {
             val fragment = EquipamentoContratoDialogFragment()
             val args = Bundle().apply {
                 putInt(ARG_CONTRATO_ID, contratoId)
-                putDouble(ARG_CONTRATO_VALOR, contratoValor)
                 equipamentoContrato?.let { putParcelable(ARG_EQUIPAMENTO_CONTRATO, it) }
             }
             fragment.arguments = args
@@ -88,7 +84,6 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
 
         // Recupera dados dos argumentos
         contratoId = arguments?.getInt(ARG_CONTRATO_ID) ?: 0
-        contratoValor = arguments?.getDouble(ARG_CONTRATO_VALOR) ?: 0.0
         equipamentoContratoParaEdicao = arguments?.getParcelable(ARG_EQUIPAMENTO_CONTRATO)
         
         LogUtils.debug("EquipamentoContratoDialog", 

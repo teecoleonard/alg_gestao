@@ -51,8 +51,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
     private lateinit var actvCliente: AutoCompleteTextView
     private lateinit var tilContratoNum: TextInputLayout
     private lateinit var etContratoNum: TextInputEditText
-    private lateinit var tilContratoValor: TextInputLayout
-    private lateinit var etContratoValor: TextInputEditText
     private lateinit var tilObraLocal: TextInputLayout
     private lateinit var etObraLocal: TextInputEditText
     private lateinit var tilContratoPeriodo: TextInputLayout
@@ -70,6 +68,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
     private lateinit var btnAddEquipamento: MaterialButton
     private lateinit var rvEquipamentos: RecyclerView
     private lateinit var tvEmptyEquipamentos: TextView
+    private lateinit var tvValorTotalContratoCalculado: TextView
     
     private var contratoParaEdicao: Contrato? = null
     private var clienteSelecionado: Cliente? = null
@@ -141,8 +140,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
         actvCliente = view.findViewById(R.id.actvCliente)
         tilContratoNum = view.findViewById(R.id.tilContratoNum)
         etContratoNum = view.findViewById(R.id.etContratoNum)
-        tilContratoValor = view.findViewById(R.id.tilContratoValor)
-        etContratoValor = view.findViewById(R.id.etContratoValor)
         tilObraLocal = view.findViewById(R.id.tilObraLocal)
         etObraLocal = view.findViewById(R.id.etObraLocal)
         tilContratoPeriodo = view.findViewById(R.id.tilContratoPeriodo)
@@ -160,6 +157,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
         btnAddEquipamento = view.findViewById(R.id.btnAddEquipamento)
         rvEquipamentos = view.findViewById(R.id.rvEquipamentos)
         tvEmptyEquipamentos = view.findViewById(R.id.tvEmptyEquipamentos)
+        tvValorTotalContratoCalculado = view.findViewById(R.id.tvValorTotalContratoCalculado)
     }
     
     private fun setupViewModel() {
@@ -230,19 +228,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
             tilContratoPeriodo.error = null
         }
         
-        // Validação do valor do contrato
-        etContratoValor.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            
-            override fun afterTextChanged(s: Editable?) {
-                tilContratoValor.error = if (s.isNullOrBlank()) {
-                    getString(R.string.campo_obrigatorio)
-                } else null
-            }
-        })
-        
         // Validação do local da obra
         etObraLocal.addTextChangedListener(object : TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
@@ -283,17 +268,12 @@ class CadastroContratoDialogFragment : DialogFragment() {
         
         // Botão Adicionar Equipamento
         btnAddEquipamento.setOnClickListener {
-            // Garantir que temos um ID válido de contrato para edição ou cliente selecionado para criação
             if (contratoParaEdicao == null && clienteSelecionado == null) {
                 Toast.makeText(context, "Selecione um cliente antes de adicionar equipamentos", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
-            
-            val contratoId = contratoParaEdicao?.id ?: 0
-            val contratoValor = etContratoValor.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-            
-            // Abrir diálogo para adicionar equipamento
-            abrirDialogoEquipamento(contratoId, contratoValor)
+            val contratoId = contratoParaEdicao?.id ?: -1
+            abrirDialogoEquipamento(contratoId = contratoId, equipamentoContrato = null)
         }
     }
     
@@ -410,6 +390,41 @@ class CadastroContratoDialogFragment : DialogFragment() {
                 }
             }
         }
+        
+        // Adicionado para observar mudanças nos equipamentos e atualizar o valor total
+        viewModel.equipamentosContratoState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Success -> {
+                    equipamentosContrato.clear()
+                    equipamentosContrato.addAll(state.data)
+                    equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+                    atualizarDisplayValorTotalContrato()
+                    if (equipamentosContrato.isEmpty()) {
+                        tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
+                        tvEmptyEquipamentos.visibility = View.VISIBLE
+                    } else {
+                        tvEmptyEquipamentos.visibility = View.GONE
+                    }
+                }
+                is UiState.Error -> {
+                    atualizarDisplayValorTotalContrato()
+                    Toast.makeText(
+                        context,
+                        "Erro ao carregar equipamentos: ${state.message}",
+                        Toast.LENGTH_SHORT
+                    ).show()
+                }
+                is UiState.Loading -> {
+                    tvEmptyEquipamentos.text = "Carregando equipamentos..."
+                    tvEmptyEquipamentos.visibility = View.VISIBLE
+                }
+                else -> {
+                    atualizarDisplayValorTotalContrato()
+                    tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
+                    tvEmptyEquipamentos.visibility = View.VISIBLE
+                }
+            }
+        }
     }
     
     private fun preencherFormulario() {
@@ -418,10 +433,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
             
             // Número do contrato
             etContratoNum.setText(contrato.contratoNum)
-            
-            // Valor do contrato
-            val formato = DecimalFormat("0.00", DecimalFormatSymbols(Locale("pt", "BR")))
-            etContratoValor.setText(formato.format(contrato.contratoValor))
             
             // Local da obra
             etObraLocal.setText(contrato.obraLocal)
@@ -444,6 +455,15 @@ class CadastroContratoDialogFragment : DialogFragment() {
             // Os campos de data são preenchidos na API
             // O número do contrato é preenchido quando o cliente é selecionado
         }
+        atualizarDisplayValorTotalContrato()
+    }
+    
+    private fun atualizarDisplayValorTotalContrato() {
+        val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
+        if (::tvValorTotalContratoCalculado.isInitialized) {
+            tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
+        }
     }
     
     private fun validarFormulario(): Boolean {
@@ -455,21 +475,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
             valid = false
         } else {
             tilCliente.error = null
-        }
-        
-        // Validar valor do contrato
-        val valorTexto = etContratoValor.text.toString()
-        if (valorTexto.isBlank()) {
-            tilContratoValor.error = getString(R.string.campo_obrigatorio)
-            valid = false
-        } else {
-            try {
-                valorTexto.replace(",", ".").toDouble()
-                tilContratoValor.error = null
-            } catch (e: NumberFormatException) {
-                tilContratoValor.error = getString(R.string.valor_invalido)
-                valid = false
-            }
         }
         
         // Validar local da obra
@@ -530,6 +535,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
                 tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
                 equipamentosContrato.clear()
                 equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+                atualizarDisplayValorTotalContrato()
             }
     }
 
@@ -550,6 +556,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
                     equipamentosContrato.clear()
                     equipamentosContrato.addAll(state.data)
                     equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+                    atualizarDisplayValorTotalContrato()
                     
                     // Atualizar visibilidade e texto
                     if (equipamentosContrato.isEmpty()) {
@@ -568,6 +575,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
                     // Mostrar erro e botão de adicionar
                     tvEmptyEquipamentos.text = "Erro ao carregar equipamentos: ${state.message}"
                     tvEmptyEquipamentos.visibility = View.VISIBLE
+                    atualizarDisplayValorTotalContrato()
                     
                     tvTituloEquipamentos.visibility = View.VISIBLE
                     btnAddEquipamento.visibility = View.VISIBLE
@@ -590,20 +598,17 @@ class CadastroContratoDialogFragment : DialogFragment() {
         }
     }
 
-    private fun abrirDialogoEquipamento(contratoId: Int, contratoValor: Double, equipamentoContrato: EquipamentoContrato? = null) {
-        // Para contratos em criação (ID = 0 ou negativo), usamos o ID temporário do contrato se já existir
-        // Ou -1 como ID temporário se ainda não tiver ID
+    private fun abrirDialogoEquipamento(contratoId: Int, equipamentoContrato: EquipamentoContrato? = null) {
         val idUsado = if (contratoId <= 0) {
             contratoParaEdicao?.id ?: -1
         } else {
             contratoId
         }
         
-            // Se for um equipamento existente, verificar e corrigir o contratoId se necessário
-            val equipamentoCorrigido = equipamentoContrato?.let {
-                if (it.contratoId != idUsado && 
-                    (it.contratoId <= 0 || idUsado > 0) && // Evitar sobrepor IDs temporários com outros temporários
-                    !(it.contratoId > 0 && idUsado <= 0)) { // Não sobrescrever ID real com temporário
+        val equipamentoCorrigido = equipamentoContrato?.let {
+            if (it.contratoId != idUsado && 
+                (it.contratoId <= 0 || idUsado > 0) &&
+                !(it.contratoId > 0 && idUsado <= 0)) {
                 LogUtils.debug("CadastroContratoDialog", 
                     "Corrigindo contratoId do equipamento ${it.id} de ${it.contratoId} para $contratoId")
                 it.copy(contratoId = contratoId)
@@ -613,18 +618,15 @@ class CadastroContratoDialogFragment : DialogFragment() {
         }
         
         LogUtils.debug("CadastroContratoDialog", 
-            "Abrindo diálogo de equipamento - contratoId: $contratoId, equipamentoId: ${equipamentoCorrigido?.id ?: "novo"}")
+            "Abrindo diálogo de equipamento - contratoId usado: $idUsado, equipamentoId: ${equipamentoCorrigido?.id ?: "novo"}")
         
         val dialog = EquipamentoContratoDialogFragment.newInstance(
             idUsado,
-            contratoValor,
             equipamentoCorrigido
         )
         
         dialog.setOnEquipamentoSalvoListener { novoEquipamento ->
-            // Garantir que o ID do contrato esteja correto
             val equipamentoComIdCorreto = if (contratoParaEdicao != null) {
-                // Se estamos editando um contrato existente, usar o ID real
                 val idReal = contratoParaEdicao!!.id
                 if (novoEquipamento.contratoId != idReal && idReal > 0) {
                     LogUtils.debug("CadastroContratoDialog", 
@@ -634,29 +636,23 @@ class CadastroContratoDialogFragment : DialogFragment() {
                     novoEquipamento
                 }
             } else {
-                // Para novos contratos, o ID será temporário até que o contrato seja salvo
-                if (novoEquipamento.contratoId != idUsado) {
-                    LogUtils.debug("CadastroContratoDialog", 
-                        "Definindo contratoId temporário do equipamento para $idUsado")
+                if (novoEquipamento.contratoId != idUsado && idUsado != 0) {
                     novoEquipamento.copy(contratoId = idUsado)
                 } else {
                     novoEquipamento
                 }
             }
             
-            // Atualizar a lista de equipamentos
             val index = equipamentosContrato.indexOfFirst { it.id == equipamentoComIdCorreto.id }
             if (index >= 0) {
-                // Atualizar item existente
                 equipamentosContrato[index] = equipamentoComIdCorreto
             } else {
-                // Adicionar novo item
                 equipamentosContrato.add(equipamentoComIdCorreto)
             }
             
             equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+            atualizarDisplayValorTotalContrato()
             
-            // Atualizar visibilidade dos elementos
             if (equipamentosContrato.isEmpty()) {
                 tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
                 tvEmptyEquipamentos.visibility = View.VISIBLE
@@ -664,7 +660,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
                 tvEmptyEquipamentos.visibility = View.GONE
             }
             
-            // Mostrar a seção de equipamentos se estava oculta
             if (tvTituloEquipamentos.visibility != View.VISIBLE) {
                 tvTituloEquipamentos.visibility = View.VISIBLE
                 btnAddEquipamento.visibility = View.VISIBLE
@@ -683,9 +678,8 @@ class CadastroContratoDialogFragment : DialogFragment() {
     }
 
     private fun editarEquipamento(equipamentoContrato: EquipamentoContrato) {
-        val contratoId = contratoParaEdicao?.id ?: 0
-        val contratoValor = etContratoValor.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
-        abrirDialogoEquipamento(contratoId, contratoValor, equipamentoContrato)
+        val contratoId = equipamentoContrato.contratoId
+        abrirDialogoEquipamento(contratoId = contratoId, equipamentoContrato = equipamentoContrato)
     }
 
     private fun removerEquipamento(equipamentoContrato: EquipamentoContrato) {
@@ -694,11 +688,10 @@ class CadastroContratoDialogFragment : DialogFragment() {
         builder.setTitle("Remover Equipamento")
             .setMessage("Deseja realmente remover este equipamento do contrato?")
             .setPositiveButton("Remover") { _, _ ->
-                // Remover da lista local
                 equipamentosContrato.remove(equipamentoContrato)
                 equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+                atualizarDisplayValorTotalContrato()
                 
-                // Atualizar visibilidade
                 if (equipamentosContrato.isEmpty()) {
                     tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
                     tvEmptyEquipamentos.visibility = View.VISIBLE
@@ -716,10 +709,9 @@ class CadastroContratoDialogFragment : DialogFragment() {
     }
     
     private fun salvarContrato() {
-        // Obter dados do formulário
         val clienteId = clienteSelecionado?.id ?: contratoParaEdicao?.clienteId ?: 0
         val contratoNum = etContratoNum.text.toString()
-        val contratoValor = etContratoValor.text.toString().replace(",", ".").toDoubleOrNull() ?: 0.0
+        val contratoValorCalculado = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
         val obraLocal = etObraLocal.text.toString()
         val contratoPeriodo = actvContratoPeriodo.text.toString()
         val entregaLocal = etEntregaLocal.text.toString()
@@ -733,16 +725,16 @@ class CadastroContratoDialogFragment : DialogFragment() {
             "clienteId=$clienteId, " +
             "equipamentos=${equipamentosContrato.size}")
         
-            // Log detalhado dos IDs dos equipamentos
-            LogUtils.debug("CadastroContratoDialog", "Verificando equipamentos para salvar:")
-            equipamentosContrato.forEachIndexed { index, equipamento ->
-                LogUtils.debug("CadastroContratoDialog", 
-                    "Equipamento $index - ID: ${equipamento.id}, " +
-                    "ContratoID: ${equipamento.contratoId}, " +
-                    "EquipID: ${equipamento.equipamentoId}, " +
-                    "Nome: ${equipamento.equipamentoNome}, " +
-                    "Quantidade: ${equipamento.quantidadeEquip}")
-            }
+        // Log detalhado dos IDs dos equipamentos
+        LogUtils.debug("CadastroContratoDialog", "Verificando equipamentos para salvar:")
+        equipamentosContrato.forEachIndexed { index, equipamento ->
+            LogUtils.debug("CadastroContratoDialog", 
+                "Equipamento $index - ID: ${equipamento.id}, " +
+                "ContratoID: ${equipamento.contratoId}, " +
+                "EquipID: ${equipamento.equipamentoId}, " +
+                "Nome: ${equipamento.equipamentoNome}, " +
+                "Quantidade: ${equipamento.quantidadeEquip}")
+        }
         
         // Criar cópias dos equipamentos com os IDs corretos
         val equipamentosAtualizados = equipamentosContrato.map { equipamento ->
@@ -803,7 +795,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
             contratoNum = contratoNum,
             dataHoraEmissao = contratoParaEdicao?.dataHoraEmissao ?: viewModel.getDataHoraAtual(),
             dataVenc = contratoParaEdicao?.dataVenc ?: viewModel.getDataVencimento(),
-            contratoValor = contratoValor,
+            contratoValor = contratoValorCalculado,
             obraLocal = obraLocal,
             contratoPeriodo = contratoPeriodo,
             entregaLocal = entregaLocal,
