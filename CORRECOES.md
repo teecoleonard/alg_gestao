@@ -907,3 +907,39 @@ Para garantir que o projeto continuasse compilando após a remoção do módulo 
    - Adaptamos o `ProjectInvoicesViewModelFactory` para compatibilidade com as novas implementações
 
 Essas adaptações foram necessárias para manter a compatibilidade com componentes de banco de dados e outras partes do sistema que dependiam de funcionalidades que foram removidas, enquanto seguimos com nosso objetivo de simplificar a aplicação.
+
+## Correções na API de Integração Contratos-Equipamentos
+
+### Problema Detectado
+A API apresentava dois problemas principais:
+1. Falha no processamento de dados de equipamentos durante a criação de contratos
+2. Ausência de endpoint específico para buscar equipamentos associados a um contrato (erro 404)
+
+### Detalhes da Implementação
+
+#### 1. Atualização da Função createContrato
+- Corrigimos o processamento e salvamento dos dados de equipamentos durante a criação de novos contratos
+- Implementamos validações adequadas para os dados recebidos
+- Garantimos a persistência correta na base de dados
+
+#### 2. Novo Endpoint de Equipamentos
+- Adicionamos nova função `getEquipamentosByContratoId` no controlador
+- Implementamos nova rota `GET /api/contratos/:id/equipamentos`
+- Resolvemos o erro 404 que ocorria ao tentar buscar equipamentos de um contrato
+
+### Cenários de Teste Implementados
+1. Criação de novo contrato com equipamentos
+2. Atualização de contrato existente:
+   - Adição de novos equipamentos
+   - Remoção de equipamentos
+   - Modificação de equipamentos existentes
+3. Visualização dos detalhes do contrato com equipamentos associados
+
+### Benefícios da Implementação
+1. Processo de criação de contratos mais robusto e confiável
+2. Melhor integração entre os módulos de contratos e equipamentos
+3. API mais completa e consistente
+4. Eliminação de erros 404 na busca de equipamentos
+
+### Data da Implementação
+15/05/2025
