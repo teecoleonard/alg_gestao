@@ -942,7 +942,7 @@ A API apresentava dois problemas principais:
 4. Eliminação de erros 404 na busca de equipamentos
 
 ### Data da Implementação
-15/05/2025
+08/05/2025
 
 ## Atualizações em relação ao Contato
 
@@ -963,4 +963,4 @@ Visualização de todos os detalhes:
 - Adição dos icones ic_truck.xml, ic_calendar_month e ic_person
 
 ### Data da Implementação
-16/05/2025
+08/05/2025
