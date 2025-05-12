@@ -1114,19 +1114,231 @@ fun limparContratoDetalhado() {
 #### 5. Implementação da interação com os cards de status de devolução
 - Tornamos os cards de status (Pendentes, Devolvidos e Problemas) clicáveis
 - Adicionamos IDs únicos a cada card no layout e atributos de acessibilidade
-- Implementamos o método getDevolucoesByStatus() no ViewModel para filtrar devoluções por status
-- Criamos a função showDevolucoesByStatus() para exibir uma lista de devoluções do status selecionado
+- Implementamos o método `getDevolucoesByStatus()` no ViewModel para filtrar devoluções por status
+- Criamos a função `showDevolucoesByStatus()` para exibir uma lista de devoluções do status selecionado
 - Implementamos lógica para mostrar diretamente os detalhes quando há apenas uma devolução
 - Adicionamos um diálogo de seleção quando há múltiplas devoluções
 - Implementamos mensagens informativas quando não existem devoluções de um determinado status
 
 ### Benefícios das Implementações
-- Navegação mais confiável e consistente usando o Navigation Component
-- Interface mais limpa sem informações redundantes
-- Fluxo completo de visualização e edição de contratos
-- Menu contextual mais apropriado para operações com contratos
-- Melhor usabilidade permitindo filtrar e visualizar devoluções por status
-- Experiência do usuário aprimorada com diálogos informativos e feedback visual
+- Melhor experiência do usuário com navegação mais intuitiva
+- Acesso rápido às devoluções filtradas por status diretamente da tela de detalhes do cliente
+- Feedback visual claro para o usuário sobre quais elementos são interativos
+- Implementação de fluxos adaptados para diferentes situações (nenhuma devolução, uma devolução ou múltiplas devoluções)
+- Melhor organização das informações, evitando sobrecarga visual ao mostrar todas as devoluções de uma vez
 
 ### Data das Implementações
 12/05/2025
+
+## Correção do SwipeRefreshLayout no Dashboard Principal
+
+### Problema Detectado
+O aplicativo apresentava um problema onde o SwipeRefreshLayout no dashboard principal ficava carregando eternamente quando puxado para baixo (pull-to-refresh), voltando ao normal apenas quando o usuário navegava para outra página e depois retornava.
+
+### Análise da Causa
+Após análise do código, identificamos que:
+1. O DashboardFragment tinha um SwipeRefreshLayout no layout XML, mas não implementava o listener `setOnRefreshListener`
+2. Não havia um ViewModel associado ao DashboardFragment para gerenciar o estado da UI e controlar o indicador de carregamento
+3. Quando o usuário realizava ação de pull-to-refresh, o indicador de carregamento era mostrado, mas nunca recebia o comando para ser desativado
+
+### Detalhes da Correção
+
+#### 1. Criação do DashboardViewModel
+- Implementamos o `DashboardViewModel` para gerenciar o estado da UI do dashboard
+- Adicionamos um método `refreshDashboard()` para atualizar os dados
+- Utilizamos LiveData com a classe `UiState` para comunicar diferentes estados ao Fragment
+- Implementamos uma simulação de carregamento (2 segundos) com tratamento adequado após conclusão
+
+```kotlin
+fun refreshDashboard() {
+    LogUtils.debug("DashboardViewModel", "Atualizando dados do dashboard")
+    
+    // Emitir estado de carregamento
+    _uiState.value = UiState.Loading()
+    
+    // Usando coroutines para operação assíncrona
+    CoroutineScope(Dispatchers.IO).launch {
+        try {
+            // Simular tempo de carregamento (2 segundos)
+            delay(2000)
+            
+            // Simulação de sucesso após 2 segundos
+            _uiState.postValue(UiState.Success(true))
+            
+            LogUtils.debug("DashboardViewModel", "Dashboard atualizado com sucesso")
+        } catch (e: Exception) {
+            LogUtils.error("DashboardViewModel", "Erro ao atualizar dashboard: ${e.message}")
+            _uiState.postValue(UiState.Error("Erro ao atualizar o dashboard: ${e.message}"))
+        }
+    }
+}
+```
+
+#### 2. Atualização do DashboardFragment
+- Adicionamos a inicialização do SwipeRefreshLayout no método `onViewCreated`
+- Implementamos o ViewModel usando o padrão de ViewModelFactory
+- Configuramos o listener para o SwipeRefreshLayout:
+```kotlin
+swipeRefresh.setOnRefreshListener {
+    LogUtils.debug("DashboardFragment", "Atualizando dashboard via swipe refresh")
+    viewModel.refreshDashboard()
+}
+```
+- Adicionamos observadores para os estados do ViewModel, garantindo que o indicador de carregamento seja desativado em cada estado:
+```kotlin
+viewModel.uiState.observe(viewLifecycleOwner) { state ->
+    when (state) {
+        is UiState.Loading -> {
+            // Mantém o indicador de carregamento visível
+            LogUtils.debug("DashboardFragment", "Carregando dados do dashboard...")
+        }
+        
+        is UiState.Success -> {
+            // Esconde o indicador de carregamento
+            swipeRefresh.isRefreshing = false
+            LogUtils.debug("DashboardFragment", "Dados do dashboard atualizados com sucesso")
+        }
+        
+        is UiState.Error -> {
+            // Esconde o indicador de carregamento e mostra erro
+            swipeRefresh.isRefreshing = false
+            LogUtils.error("DashboardFragment", "Erro ao atualizar dashboard: ${state.message}")
+            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
+        }
+        
+        else -> {
+            // Para outros estados, esconde o indicador
+            swipeRefresh.isRefreshing = false
+        }
+    }
+}
+```
+
+### Benefícios da Correção
+- O SwipeRefreshLayout agora funciona corretamente, mostrando o indicador apenas durante o carregamento
+- O usuário recebe feedback visual adequado durante a atualização do dashboard
+- A arquitetura do app está mais consistente, com o Dashboard também seguindo o padrão MVVM
+- A implementação está preparada para integração futura com dados reais
+
+### Data da Correção
+15/05/2025
+
+## Implementação de interação com os cards de status de devolução
+
+### Problema Detectado
+No módulo de detalhes do cliente, os cards de status de devolução (Pendentes, Devolvidos e Problemas) eram apenas elementos visuais informativos, não permitindo ao usuário interagir para visualizar as devoluções específicas de cada status.
+
+### Detalhes da Implementação
+
+#### 1. Atualização do layout
+- Adicionamos atributos `android:clickable="true"` e `android:focusable="true"` aos cards de status
+- Implementamos feedback visual com efeito de ripple ao clicar nos cards
+- Adicionamos IDs únicos para cada card de status para facilitar a implementação do listener:
+  - `cardDevolucoesPendentes`
+  - `cardDevolucoesDevolvidas`
+  - `cardDevolucoesProblem`
+
+#### 2. Implementação de método para filtrar devoluções por status
+- Criamos o método `getDevolucoesByStatus()` no ViewModel para filtrar as devoluções:
+```kotlin
+fun getDevolucoesByStatus(status: String): List<Devolucao> {
+    // Obtém todas as devoluções do cliente atual
+    val devolucoesDoCliente = devolucoes.value
+    
+    // Filtra por status
+    return devolucoesDoCliente?.filter { devolucao ->
+        devolucao.status.equals(status, ignoreCase = true)
+    } ?: emptyList()
+}
+```
+
+#### 3. Implementação dos listeners para os cards
+- Adicionamos listeners para cada card no método `setupListeners()`:
+```kotlin
+// Card de devoluções pendentes
+binding.cardDevolucoesPendentes.setOnClickListener {
+    LogUtils.debug("ClientDetailsFragment", "Card de devoluções pendentes clicado")
+    showDevolucoesByStatus("PENDENTE")
+}
+
+// Card de devoluções devolvidas
+binding.cardDevolucoesDevolvidas.setOnClickListener {
+    LogUtils.debug("ClientDetailsFragment", "Card de devoluções devolvidas clicado")
+    showDevolucoesByStatus("DEVOLVIDO")
+}
+
+// Card de devoluções com problemas
+binding.cardDevolucoesProblem.setOnClickListener {
+    LogUtils.debug("ClientDetailsFragment", "Card de devoluções com problemas clicado")
+    showDevolucoesByStatus("PROBLEMA")
+}
+```
+
+#### 4. Criação do método para exibir devoluções por status
+- Implementamos o método `showDevolucoesByStatus()` para exibir as devoluções filtradas:
+```kotlin
+private fun showDevolucoesByStatus(status: String) {
+    // Obter devoluções do status selecionado
+    val devolucoesDoStatus = viewModel.getDevolucoesByStatus(status)
+    
+    when {
+        // Caso 1: Nenhuma devolução encontrada
+        devolucoesDoStatus.isEmpty() -> {
+            Toast.makeText(
+                context,
+                "Nenhuma devolução com status '$status' encontrada",
+                Toast.LENGTH_SHORT
+            ).show()
+        }
+        
+        // Caso 2: Apenas uma devolução - mostrar diretamente os detalhes
+        devolucoesDoStatus.size == 1 -> {
+            showDevolucaoDetailDialog(devolucoesDoStatus.first())
+        }
+        
+        // Caso 3: Múltiplas devoluções - mostrar diálogo para escolha
+        else -> {
+            showDevolucoesSelectionDialog(devolucoesDoStatus, status)
+        }
+    }
+}
+```
+
+#### 5. Implementação do diálogo para seleção de devolução
+- Criamos um diálogo personalizado para quando houver múltiplas devoluções:
+```kotlin
+private fun showDevolucoesSelectionDialog(devolucoesDoStatus: List<Devolucao>, status: String) {
+    // Criar e configurar o AlertDialog
+    val builder = AlertDialog.Builder(requireContext())
+    builder.setTitle("Devoluções com status: $status")
+    
+    // Criar array de strings com informações das devoluções
+    val devolucoesTitles = devolucoesDoStatus.map { 
+        "Devolução #${it.devNum} - ${it.equipamento.nome}"
+    }.toTypedArray()
+    
+    // Configurar listener para item clicado
+    builder.setItems(devolucoesTitles) { _, which ->
+        val devolucaoSelecionada = devolucoesDoStatus[which]
+        showDevolucaoDetailDialog(devolucaoSelecionada)
+    }
+    
+    // Adicionar botão para cancelar
+    builder.setNegativeButton("Cancelar") { dialog, _ ->
+        dialog.dismiss()
+    }
+    
+    // Mostrar o diálogo
+    builder.show()
+}
+```
+
+### Benefícios da Implementação
+- Melhor experiência do usuário com navegação mais intuitiva
+- Acesso rápido às devoluções filtradas por status diretamente da tela de detalhes do cliente
+- Feedback visual claro para o usuário sobre quais elementos são interativos
+- Implementação de fluxos adaptados para diferentes situações (nenhuma devolução, uma devolução ou múltiplas devoluções)
+- Melhor organização das informações, evitando sobrecarga visual ao mostrar todas as devoluções de uma vez
+
+### Data da Implementação
+15/05/2025
