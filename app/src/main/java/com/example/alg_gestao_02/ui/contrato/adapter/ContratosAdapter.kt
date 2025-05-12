@@ -9,6 +9,8 @@ import androidx.recyclerview.widget.RecyclerView
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.utils.LogUtils
+import java.text.NumberFormat
+import java.util.*
 
 /**
  * Adapter para a lista de contratos
@@ -43,8 +45,10 @@ class ContratosAdapter(
             // Define o número do contrato
             tvContratoNumero.text = "Contrato #${contrato.contratoNum}"
             
-            // Define o valor do contrato
-            tvValorContrato.text = contrato.getValorFormatado()
+            // Define o valor do contrato usando a função getValorEfetivo() que considera todas as opções
+            val valorExibido = contrato.getValorEfetivo()
+            LogUtils.debug("ContratosAdapter", "Contrato #${contrato.contratoNum}: Valor efetivo: $valorExibido")
+            tvValorContrato.text = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(valorExibido)
             
             // Define a data de emissão
             tvDataEmissao.text = "Emissão: ${contrato.getDataEmissaoFormatada()}"

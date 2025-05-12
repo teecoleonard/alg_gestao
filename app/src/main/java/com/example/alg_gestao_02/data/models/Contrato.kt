@@ -168,4 +168,21 @@ data class Contrato(
     fun getContratoNumOuVazio(): String {
         return contratoNum ?: ""
     }
+    
+    /**
+     * Retorna o valor efetivo do contrato para exibição.
+     * Calculado exclusivamente a partir dos equipamentos quando disponíveis.
+     * Se não houver equipamentos, usa o contratoValor fornecido pela API.
+     */
+    fun getValorEfetivo(): Double {
+        // Se houver equipamentos, soma seus valores totais
+        return if (!equipamentos.isNullOrEmpty()) {
+            LogUtils.debug("Contrato", "Calculando valor efetivo a partir de ${equipamentos.size} equipamentos")
+            equipamentos.sumOf { it.valorTotal }
+        } else {
+            // Usar o contratoValor fornecido pela API (que já está calculado no servidor)
+            LogUtils.debug("Contrato", "Usando contratoValor da API: $contratoValor")
+            contratoValor
+        }
+    }
 }

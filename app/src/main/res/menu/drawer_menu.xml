@@ -20,6 +20,10 @@
             android:id="@+id/nav_equipamentos"
             android:icon="@drawable/ic_tools"
             android:title="@string/equipments" />
+        <item
+            android:id="@+id/nav_devolucoes"
+            android:icon="@drawable/ic_devolucoes"
+            android:title="@string/returns" />
     </group>
 
     <item android:title="@string/account">

@@ -964,3 +964,115 @@ Visualização de todos os detalhes:
 
 ### Data da Implementação
 08/05/2025
+
+---
+
+## Correção de exibição de valores em Contratos
+
+### Problema Detectado
+O aplicativo apresentava um problema onde os valores dos contratos apareciam incorretamente como R$0,00 na listagem principal, mas eram exibidos corretamente na tela de detalhes do contrato.
+
+Identificamos que:
+1. O valor real do contrato não estava armazenado na propriedade `contratoValor` da entidade `Contrato`, mas sim calculado a partir de seus `EquipamentoContrato` associados
+2. Na listagem principal, os contratos eram carregados sem incluir os equipamentos associados, resultando em valor zero
+3. Na tela de detalhes, os equipamentos eram carregados, permitindo o cálculo correto do valor total
+
+### Detalhes da Implementação
+
+#### 1. Modificação no banco de dados
+- Adicionamos uma coluna `valor_total` na tabela `Contrato` para armazenar o valor calculado dos equipamentos
+- Criamos um script SQL para ser executado no phpMyAdmin:
+```sql
+ALTER TABLE Contrato ADD COLUMN valor_total DECIMAL(10,2) DEFAULT 0.00;
+```
+
+#### 2. Atualização do modelo Contrato.js
+- Adicionamos o campo `valor_total` ao modelo Sequelize para permitir persistência do valor calculado:
+```javascript
+valor_total: {
+  type: DataTypes.DECIMAL(10, 2),
+  allowNull: false,
+  defaultValue: 0.00
+}
+```
+
+#### 3. Modificação nos endpoints da API
+- Simplificamos os endpoints da API para usar o novo campo `valor_total`:
+  - Em `getAllContratos`, `getContratosByCliente`, `getContratoById`, `createContrato` e `updateContrato`
+  - Mapeando o valor para `contratoValor` para manter compatibilidade com o app:
+```javascript
+const contratoFormatado = {
+  ...plainContrato,
+  contratoValor: plainContrato.valor_total || 0
+};
+```
+
+#### 4. Gatilho para atualização automática do valor total
+- Adicionamos um trigger no lado do banco para atualizar `valor_total` automaticamente sempre que um equipamento é adicionado, removido ou modificado
+- Implementamos um controle de transação para garantir consistência nos dados
+
+#### 5. Otimização no modelo Contrato.kt do Android
+- Melhoramos o método `getValorEfetivo()` para usar o `contratoValor` fornecido pela API quando não há equipamentos carregados:
+```kotlin
+fun getValorEfetivo(): Double {
+    return if (!equipamentos.isNullOrEmpty()) {
+        equipamentos.sumOf { it.valorTotal }
+    } else {
+        contratoValor
+    }
+}
+```
+
+#### 6. Correção no fragmento ContratosFragment
+- Implementamos uma solução para o problema do diálogo de detalhes do contrato que continuava persistindo entre navegações
+- Adicionamos um método `limparContratoDetalhado()` no ViewModel para limpar o estado do contrato detalhado
+- Chamamos esse método nos eventos de ciclo de vida `onPause()` e `onViewCreated()` para garantir que o diálogo não reaparece automaticamente
+
+### Benefícios da Implementação
+- Exibição consistente de valores de contratos em todas as telas do aplicativo
+- Melhor desempenho ao não precisar carregar os equipamentos de cada contrato na listagem principal
+- Experiência de navegação mais intuitiva sem persistência indesejada de diálogos
+- Menor carga na rede e no banco de dados, pois o valor já está pré-calculado
+
+### Data da Implementação
+10/05/2025
+
+---
+
+## Correção de erro de compilação com LiveData não-nulável
+
+### Problema Detectado
+O aplicativo apresentava um erro de compilação relacionado ao Lint:
+
+```
+Error: Cannot set non-nullable LiveData value to null [NullSafeMutableLiveData from androidx.lifecycle]
+_contratoDetalhado.value = null
+```
+
+O problema ocorria porque o LiveData `_contratoDetalhado` foi declarado como não anulável (non-nullable), mas tentávamos atribuir `null` a ele no método `limparContratoDetalhado()`, causando falha na compilação.
+
+### Detalhes da Correção
+
+#### 1. Modificação no método limparContratoDetalhado()
+- Alteramos o método para definir um valor válido não-nulo em vez de `null`:
+```kotlin
+fun limparContratoDetalhado() {
+    // Não podemos definir como null pois o LiveData é não-anulável
+    // Em vez disso, usamos um estado vazio/inicial
+    _contratoDetalhado.value = UiState.Empty()
+    LogUtils.debug("ContratosViewModel", "Estado de contrato detalhado limpo")
+}
+```
+
+#### 2. Análise de outras possíveis ocorrências
+- Verificamos o código em busca de outros locais onde LiveData não-nulável poderia estar recebendo valores nulos
+- Garantimos que todas as atribuições a LiveData respeitam a tipagem de nullabilidade declarada
+
+### Benefícios da Implementação
+- Aplicativo compila e executa sem erros de Lint
+- Melhor type safety através do sistema de tipos do Kotlin
+- Código mais robusto com garantias de não-nulidade
+- Prevenção de possíveis NullPointerExceptions em tempo de execução
+
+### Data da Implementação
+10/05/2025

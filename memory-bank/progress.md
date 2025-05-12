@@ -1,44 +1,45 @@
 # Project Progress: Alg Gestão
 
 ## Implementation Status
-- **Documentation**: Initial memory bank setup complete
-- **Core Architecture**: MVVM structure established
-- **UI Components**: Basic screens implemented (from layout files)
-- **Database**: Schema exists (from schemas folder)
+- **Documentation**: Memory bank updated with returns functionality
+- **Core Architecture**: MVVM with returns processing logic
+- **UI Components**: Screens for returns management
+- **Database**: Schema updated for returns tracking
 
-## Completed Features
-1. Authentication
-   - Login screen
-   - Registration flow
+## Key Features
+1. **Returns Processing**
+   - Automatic return item generation for contracts
+   - Status tracking (Pending, Returned, Damaged, Missing)
+   - Batch processing by return number (dev_num)
+   - Contract-based returns lookup
 
-2. Dashboard
-   - Summary cards
-   - Navigation structure
+2. **Technical Implementation**
+   - Dedicated returns model with relationships to:
+     - Contracts
+     - Equipment
+     - Clients
+   - Validation rules:
+     - Quantity validation
+     - Status transitions
+     - Date validation
 
-3. Contract Management
-   - Basic CRUD operations
-   - Status tracking
-
-4. Equipment Tracking
-   - Inventory list
-   - Assignment functionality
-
-## Known Issues
-1. Codebase
-   - Missing ViewModel implementation despite MVVM architecture
-   - Equipment IDs still being assigned as -1 in UI layer
-   - Contract ID mismatch in API responses
-   - Test coverage to be assessed
+3. **API Endpoints**
+   - POST /api/returns - Create return
+   - GET /api/returns - List returns
+   - GET /api/returns/{id} - Get return details
+   - PUT /api/returns/{id} - Update return
+   - GET /api/returns/contract/{contractId} - Get returns by contract
+   - GET /api/returns/number/{dev_num} - Get returns by return number
 
 ## Pending Tasks
-1. Documentation
-   - Add detailed API documentation
+1. **Documentation**
+   - Finalize API documentation
    - Document testing strategy
    - Review business requirements
 
-2. Development
-   - Implement proper ViewModels
-   - Fix equipment ID assignment in UI
-   - Resolve contract ID mismatch
-   - Improve test coverage
+2. **Development**
+   - Implement returns UI components
+   - Complete test coverage
    - Optimize performance
+   - Add batch processing for returns
+   - Implement return status transitions

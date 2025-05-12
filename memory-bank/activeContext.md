@@ -1,19 +1,18 @@
 # Active Context: Alg Gestão
 
 ## Current Focus
-- Reviewing and validating memory bank documentation
-- Documenting API contracts
-- Addressing known issues in codebase
+- Implementing returns UI components in Android app
+- Integrating with returns API endpoints
+- Maintaining consistent UI/UX with existing contract flows
 
 ## Recent Changes
-- Completed memory bank initialization including API documentation
-- Reviewed and updated all core documentation files:
-  - projectbrief.md
-  - productContext.md
-  - systemPatterns.md
-  - techContext.md
-  - activeContext.md
-  - progress.md
+- Added returns endpoints to API:
+  - POST /api/devolucoes
+  - GET /api/devolucoes
+  - PUT /api/devolucoes/{id}
+  - DELETE /api/devolucoes/{id}
+- Implemented returns model with validations
+- Updated system patterns and tech context documentation
 
 ## Key Decisions
 1. Documentation Structure

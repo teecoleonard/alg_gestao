@@ -1,0 +1,277 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="@color/white">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:background="@color/white"
+        android:padding="20dp">
+
+        <!-- Nome do Cliente -->
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoClienteNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            tools:text="Nome Completo do Cliente Ltda" />
+
+        <!-- Número da Devolução -->
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoNumero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:textAppearance="@style/TextAppearance.ALG.Subtitle"
+            android:textColor="@color/text_secondary"
+            tools:text="Devolução #123456" />
+
+        <!-- Separador -->
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginBottom="16dp"
+            android:background="@color/divider" />
+
+        <!-- Informações do Equipamento -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Equipamento"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoEquipamentoNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            android:textStyle="bold"
+            android:layout_marginBottom="4dp"
+            tools:text="Plataforma Elevatória Articulada" />
+
+        <!-- Quantidades -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantidade Contratada:"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoQuantidadeContratada"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="5 unidades" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantidade Devolvida:"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoQuantidadeDevolvida"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="3 unidades" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Quantidade Pendente:"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoQuantidadePendente"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textColor="@color/warning"
+                tools:text="2 unidades" />
+        </LinearLayout>
+
+        <!-- Datas -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Datas"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Previsão de Devolução:"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoDataPrevista"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="01/02/2023" />
+        </LinearLayout>
+
+        <LinearLayout
+            android:id="@+id/layoutDataEfetiva"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_marginBottom="16dp"
+            android:visibility="visible">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Data Efetiva de Devolução:"
+                android:textStyle="bold"
+                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoDataEfetiva"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:gravity="end"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                tools:text="01/02/2023 14:30" />
+        </LinearLayout>
+
+        <!-- Status -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoStatus"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:drawablePadding="8dp"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Pendente" />
+
+        <!-- Observações -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Observações"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoObservacao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Equipamento com avarias no painel de controle. Necessário aguardar reparo." />
+
+        <!-- Contrato Relacionado -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Contrato Relacionado"
+            android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textSize="16sp"
+            android:layout_marginBottom="8dp"/>
+
+        <TextView
+            android:id="@+id/tvDetalhesDevolucaoContratoInfo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Contrato #12345 - Emissão: 01/01/2023" />
+
+        <!-- Botões de ação -->
+        <LinearLayout
+            android:id="@+id/layoutAcoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <Button
+                android:id="@+id/btnFecharDetalhesDevolucao"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="Fechar" />
+
+            <Button
+                android:id="@+id/btnProcessarDevolucao"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="Processar Devolução" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView>

@@ -45,7 +45,7 @@
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="8dp"
+                    android:layout_marginTop="16dp"
                     android:gravity="center"
                     android:text="Não há projetos para mostrar no momento."
                     android:textAppearance="@style/TextAppearance.ALG.Body"
@@ -121,67 +121,18 @@
                     android:id="@+id/llInsightsCards"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
+                    android:layout_marginTop="32dp"
                     android:orientation="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle">
+                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle"
+                    tools:layout_editor_absoluteX="16dp">
 
                     <!-- Primeira linha: Equipamentos -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:layout_marginBottom="8dp">
-
-                        <!-- Card Equipamentos -->
-                        <androidx.cardview.widget.CardView
-                            android:id="@+id/cardEquipamentos"
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            app:cardBackgroundColor="@color/white"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp">
-
-                            <LinearLayout
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:gravity="center"
-                                android:orientation="vertical"
-                                android:padding="16dp">
-
-                                <TextView
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:text="Equipamentos"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
-
-                                <TextView
-                                    android:id="@+id/tvEquipamentosCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="45"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/primary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
-                            </LinearLayout>
-                        </androidx.cardview.widget.CardView>
-                    </LinearLayout>
-
-                    <!-- Segunda linha: Contratos e Clientes -->
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
+                        android:layout_marginBottom="16dp"
                         android:orientation="horizontal">
+
 
                         <!-- Card Contratos -->
                         <androidx.cardview.widget.CardView
@@ -190,7 +141,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/white"
+                            app:cardBackgroundColor="@color/gray_200"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp">
 
@@ -236,7 +187,7 @@
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/white"
+                            app:cardBackgroundColor="@color/gray_200"
                             app:cardCornerRadius="12dp"
                             app:cardElevation="0dp">
 
@@ -274,6 +225,118 @@
                                     app:tint="@color/text_secondary" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
+                    </LinearLayout>
+
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <!-- Card Equipamentos -->
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardEquipamentos"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginEnd="8dp"
+                            android:layout_weight="1"
+                            app:cardBackgroundColor="@color/gray_200"
+                            android:outlineSpotShadowColor="@color/primary"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="16dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="Equipamentos"
+                                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                                    android:textColor="@color/text_secondary" />
+
+                                <TextView
+                                    android:id="@+id/tvEquipamentosCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="45"
+                                    android:textAppearance="@style/TextAppearance.ALG.Title"
+                                    android:textColor="@color/primary"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="end"
+                                    android:layout_marginTop="8dp"
+                                    android:src="@drawable/ic_arrow_right"
+                                    app:tint="@color/text_secondary" />
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+
+                        <androidx.cardview.widget.CardView
+                            android:id="@+id/cardDevolucoes"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="8dp"
+                            android:layout_weight="1"
+                            app:cardBackgroundColor="@color/gray_200"
+                            app:cardCornerRadius="12dp"
+                            app:cardElevation="0dp"
+                            android:outlineSpotShadowColor="@color/primary">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="16dp">
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:text="@string/returns"
+                                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                                    android:textColor="@color/text_secondary" />
+
+                                <TextView
+                                    android:id="@+id/tvDevolucoesCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="8dp"
+                                    android:text="25"
+                                    android:textAppearance="@style/TextAppearance.ALG.Title"
+                                    android:textColor="@color/primary"
+                                    android:textSize="24sp"
+                                    android:textStyle="bold" />
+
+                                <ImageView
+                                    android:layout_width="24dp"
+                                    android:layout_height="24dp"
+                                    android:layout_gravity="end"
+                                    android:layout_marginTop="8dp"
+                                    android:src="@drawable/ic_arrow_right"
+                                    app:tint="@color/text_secondary" />
+                            </LinearLayout>
+                        </androidx.cardview.widget.CardView>
+                    </LinearLayout>
+
+                    <!-- Segunda linha: Contratos e Clientes -->
+
+                    <!-- Terceira linha: Devoluções -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal">
+
+                        <!-- Card Devoluções -->
                     </LinearLayout>
                 </LinearLayout>
 

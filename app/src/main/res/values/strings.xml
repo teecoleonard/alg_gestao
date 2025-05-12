@@ -118,4 +118,22 @@
     <string name="periodo_anual">ANUAL</string>
     <string name="endereco_cliente">Endereço preenchido automaticamente</string>
     <string name="formato_quantidade">%1$d unid.</string>
+
+    <string name="title_devolucoes">Devoluções</string>
+    <string name="filter">Filtrar</string>
+    <string name="status_pendente">Pendente</string>
+    <string name="status_devolvido">Devolvido</string>
+    <string name="status_avariado">Avariado</string>
+    <string name="status_faltante">Faltante</string>
+    <string name="label_dev_num">Nº Devolução</string>
+    <string name="label_cliente">Cliente</string>
+    <string name="label_contrato">Contrato</string>
+    <string name="label_data_prevista">Data Prevista</string>
+    <string name="label_data_efetiva">Data Efetiva</string>
+    <string name="label_quantidade">Quantidade</string>
+    <string name="label_observacoes">Observações</string>
+    <string name="hint_pesquisa">Pesquisar devoluções...</string>
+    <string name="btn_registrar_devolucao">Registrar Devolução</string>
+    <string name="msg_sucesso_devolucao">Devolução registrada com sucesso!</string>
+    <string name="msg_erro_devolucao">Erro ao registrar devolução</string>
 </resources>

@@ -12,6 +12,7 @@ import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.ui.cliente.ClientesFragment
 import com.example.alg_gestao_02.ui.contrato.ContratosFragment
 import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
+import com.example.alg_gestao_02.ui.devolucao.DevolucoesFragment
 
 class DashboardFragment : Fragment() {
     
@@ -94,6 +95,25 @@ class DashboardFragment : Fragment() {
             try {
                 requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
                     .setCheckedItem(R.id.nav_clientes)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+        // Card de Devoluções
+        view.findViewById<View>(R.id.cardDevolucoes)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card de devoluções clicado")
+            
+            // Navegar para a página de devoluções
+            val transaction = requireActivity().supportFragmentManager.beginTransaction()
+            transaction.replace(R.id.fragmentContainer, DevolucoesFragment())
+            transaction.addToBackStack(null)
+            transaction.commit()
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_devolucoes)
             } catch (e: Exception) {
                 LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
             }

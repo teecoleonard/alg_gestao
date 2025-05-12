@@ -6,6 +6,8 @@ import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
 import com.example.alg_gestao_02.data.models.ContratoResponse
+import com.example.alg_gestao_02.data.models.Devolucao
+import retrofit2.http.Query
 import retrofit2.Response
 import retrofit2.http.Body
 import retrofit2.http.DELETE
@@ -13,6 +15,7 @@ import retrofit2.http.GET
 import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
+import com.google.gson.annotations.SerializedName
 
 interface ApiService {
     
@@ -153,7 +156,51 @@ interface ApiService {
      */
     @DELETE("api/contratos/{id}")
     suspend fun deleteContrato(@Path("id") id: Int): Response<Void>
-    
+
+    /**
+     * ENDPOINTS DE DEVOLUÇÕES
+     */
+
+    /**
+     * Obter todas as devoluções com filtros opcionais
+     */
+    @GET("api/devolucoes")
+    suspend fun getDevolucoes(
+        @Query("status") status: String? = null,
+        @Query("clienteId") clienteId: Int? = null,
+        @Query("contratoId") contratoId: Int? = null,
+        @Query("devNum") devNum: String? = null,
+        @Query("dataPrevistaInicio") dataPrevistaInicio: String? = null,
+        @Query("dataPrevistaFim") dataPrevistaFim: String? = null
+    ): Response<List<Devolucao>>
+
+    /**
+     * Obter uma devolução específica por ID
+     */
+    @GET("api/devolucoes/{id}")
+    suspend fun getDevolucaoById(@Path("id") id: Int): Response<Devolucao>
+
+    /**
+     * Obter devoluções por número de devolução (dev_num)
+     */
+    @GET("api/devolucoes/dev-num/{devNum}")
+    suspend fun getDevolucoesByDevNum(@Path("devNum") devNum: String): Response<List<Devolucao>>
+
+    /**
+     * Obter devoluções de um contrato específico
+     */
+    @GET("api/devolucoes/contrato/{contratoId}")
+    suspend fun getDevolucoesByContratoId(@Path("contratoId") contratoId: Int): Response<List<Devolucao>>
+
+    /**
+     * Atualizar/processar um item de devolução
+     */
+    @PUT("api/devolucoes/{id}")
+    suspend fun updateDevolucao(
+        @Path("id") id: Int,
+        @Body requestData: DevolucaoUpdateRequest
+    ): Response<DevolucaoUpdateResponse>
+
     /**
      * Classe para requisição de login
      */
@@ -178,5 +225,30 @@ interface ApiService {
     data class LoginResponse(
         val token: String,
         val user: User
+    )
+
+    /**
+     * Classe para resposta de atualização de devolução
+     */
+    data class DevolucaoUpdateResponse(
+        val message: String,
+        val devolucao: Devolucao
+    )
+
+    /**
+     * Classe para request de atualização de devolução
+     */
+    data class DevolucaoUpdateRequest(
+        @SerializedName("quantidade_devolvida")
+        val quantidadeDevolvida: Int? = null,
+        
+        @SerializedName("status_item_devolucao")
+        val statusItemDevolucao: String? = null,
+        
+        @SerializedName("data_devolucao_efetiva")
+        val dataDevolucaoEfetiva: String? = null,
+        
+        @SerializedName("observacao_item_devolucao")
+        val observacaoItemDevolucao: String? = null
     )
 }

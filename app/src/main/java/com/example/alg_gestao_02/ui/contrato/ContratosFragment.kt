@@ -57,6 +57,10 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         setupViewModel()
         setupRecyclerView()
         setupListeners()
+        
+        // Garantir que o estado do contrato detalhado está limpo ao inicializar a tela
+        viewModel.limparContratoDetalhado()
+        
         observeViewModel()
         
         // Carregar contratos imediatamente
@@ -69,6 +73,21 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         LogUtils.debug("ContratosFragment", "onResume - Ciclo de vida")
         // Não precisamos recarregar os contratos aqui, pois já fazemos isso em onViewCreated
         // e também quando ocorrem operações de CRUD
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        LogUtils.debug("ContratosFragment", "onPause - Ciclo de vida")
+        // Limpar o estado do contrato detalhado para evitar que o diálogo reaparece
+        // quando voltar para a tela de contratos
+        viewModel.limparContratoDetalhado()
+        
+        // Fechar qualquer diálogo que possa estar aberto
+        val dialog = childFragmentManager.findFragmentByTag("ContratoDetailsDialog")
+        if (dialog != null && dialog is ContratoDetailsDialogFragment) {
+            LogUtils.debug("ContratosFragment", "Fechando diálogo de detalhes de contrato aberto")
+            dialog.dismiss()
+        }
     }
     
     private fun initViews(view: View) {

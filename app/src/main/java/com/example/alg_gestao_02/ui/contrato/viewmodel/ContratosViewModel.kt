@@ -412,6 +412,16 @@ class ContratosViewModel(
     }
     
     /**
+     * Limpa o estado de contrato detalhado
+     * Usado quando o usuário navega entre telas para evitar que o diálogo de detalhes
+     * reaparece automaticamente quando voltar para a tela de contratos
+     */
+    fun limparContratoDetalhado() {
+        _contratoDetalhado.value = UiState.Empty()
+        LogUtils.debug("ContratosViewModel", "Estado de contrato detalhado limpo")
+    }
+    
+    /**
      * Carrega os detalhes completos de um contrato, incluindo seus equipamentos.
      */
     fun carregarContratoComDetalhes(contratoId: Int) {

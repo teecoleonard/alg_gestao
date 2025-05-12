@@ -1,50 +1,54 @@
 # Technical Context: Alg Gestão
 
 ## Core Technologies
-- **Language**: Kotlin
-- **Platform**: Android
-- **Minimum SDK**: API 24
-- **Architecture**: MVVM
+- **Android SDK**: 34 (Android 14)
+- **Kotlin**: 1.9.0
+- **Jetpack Components**:
+  - ViewModel
+  - LiveData
+  - Navigation Component
+  - Room (for local storage)
+- **Dependency Injection**: Hilt
+- **Networking**: Retrofit + OkHttp
+- **Database**: SQLite via Room
 
-## Jetpack Components
-- ViewModel
-- LiveData
-- Room Database
-- Navigation Component
-- Data Binding
-
-## Development Setup
-1. **IDE**: Android Studio
-2. **Build System**: Gradle (Kotlin DSL)
-3. **Version Control**: Git
-4. **Dependency Management**: Gradle with version catalogs
-
-## Key Dependencies
-- AndroidX libraries
-- Material Components
-- Room Persistence Library
-- Retrofit (likely for API calls)
-- Hilt (likely for DI)
-
-## Backend API
-- **Technology**: Node.js with Express
-- **Database**: MySQL with Sequelize ORM
+## API Integration
+- **Base URL**: https://api.alg.com.br
 - **Authentication**: JWT
-- **Documentation**: Swagger UI
-- **Key Dependencies**:
-  - express
-  - sequelize
-  - mysql2
-  - jsonwebtoken
-  - swagger-ui-express
+- **Key Endpoints**:
+  - `/api/contratos` (contracts)
+  - `/api/equipamentos` (equipment)
+  - `/api/devolucoes` (returns)
+  - `/api/clientes` (clients)
 
-## Build Configuration
-- Multi-module structure
-- Shared version catalog (libs.versions.toml)
-- Separate build files per module
-- Proguard rules for release builds
+## Architecture
+- **MVVM Pattern** with Clean Architecture principles
+- **Repository Pattern** for data access
+- **Modular Structure**:
+  - `:app` (main module)
+  - `:core` (shared components)
+  - `:feature:contracts`
+  - `:feature:equipment`
+  - `:feature:returns`
 
-## Testing
-- JUnit for unit tests
-- AndroidJUnitRunner for instrumentation tests
-- Espresso for UI tests
+## Key Components
+1. **Data Layer**:
+   - API service interfaces
+   - Database entities
+   - Repositories
+
+2. **Domain Layer**:
+   - Business logic
+   - Use cases
+   - Domain models
+
+3. **Presentation Layer**:
+   - ViewModels
+   - UI components (Activities/Fragments)
+   - Navigation
+
+## Development Tools
+- **Android Studio** (latest stable)
+- **Gradle** (KTS scripts)
+- **Git** (version control)
+- **Firebase** (analytics/crash reporting)

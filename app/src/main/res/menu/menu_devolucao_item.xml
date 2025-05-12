@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_detail"
+        android:title="Ver Detalhes" />
+    <item
+        android:id="@+id/menu_filter_by_contract"
+        android:title="Filtrar por Contrato" />
+    <item
+        android:id="@+id/menu_filter_by_client"
+        android:title="Filtrar por Cliente" />
+</menu> 

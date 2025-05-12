@@ -47,8 +47,18 @@ Android application following MVVM pattern with:
   - /api/contratos  
   - /api/equipamentos
   - /api/usuarios
+  - /api/devolucoes (new returns management endpoints)
 - Uses Retrofit in Android client
 - Swagger documentation available at /api-docs
+
+### Returns API Endpoints
+1. POST /api/devolucoes - Create new return item
+2. GET /api/devolucoes - List all return items
+3. GET /api/devolucoes/{id} - Get return by ID
+4. GET /api/devolucoes/contrato/{contratoId} - Get returns by contract
+5. GET /api/devolucoes/dev-num/{devNum} - Get returns by return number
+6. PUT /api/devolucoes/{id} - Process/update return
+7. DELETE /api/devolucoes/{id} - Delete return
 
 ## Navigation
 - Single Activity with Fragments
