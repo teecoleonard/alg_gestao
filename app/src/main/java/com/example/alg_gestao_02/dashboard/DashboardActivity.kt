@@ -8,15 +8,15 @@ import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.view.GravityCompat
-import androidx.fragment.app.Fragment
+import androidx.navigation.NavController
+import androidx.navigation.fragment.NavHostFragment
+import androidx.navigation.ui.AppBarConfiguration
+import androidx.navigation.ui.navigateUp
+import androidx.navigation.ui.setupActionBarWithNavController
+import androidx.navigation.ui.setupWithNavController
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.auth.LoginActivity
-import com.example.alg_gestao_02.dashboard.fragments.DashboardFragment
 import com.example.alg_gestao_02.databinding.ActivityDashboardBinding
-import com.example.alg_gestao_02.ui.cliente.ClientesFragment
-import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
-import com.example.alg_gestao_02.ui.contrato.ContratosFragment
-import com.example.alg_gestao_02.ui.devolucao.DevolucoesFragment
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.navigation.NavigationView
@@ -25,6 +25,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     private lateinit var binding: ActivityDashboardBinding
     private lateinit var sessionManager: SessionManager
     private lateinit var toggle: ActionBarDrawerToggle
+    private lateinit var navController: NavController
+    private lateinit var appBarConfiguration: AppBarConfiguration
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -35,17 +37,12 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         
         sessionManager = SessionManager(this)
         setupToolbar()
-        setupNavigationDrawer()
+        setupNavigation()
         setupUserInfo()
         setupBackPressHandler()
         
-        // Exibe o Fragment do Dashboard por padrão
-        if (savedInstanceState == null) {
-            supportFragmentManager.beginTransaction()
-                .replace(R.id.fragmentContainer, DashboardFragment())
-                .commit()
-            binding.navView.setCheckedItem(R.id.nav_dashboard)
-        }
+        // Garantir que a fonte seja aplicada corretamente em toda a aplicação
+        enforceFontConsistency()
     }
     
     private fun setupUserInfo() {
@@ -66,7 +63,31 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         supportActionBar?.setDisplayShowTitleEnabled(false)
     }
     
-    private fun setupNavigationDrawer() {
+    private fun setupNavigation() {
+        // Configurar NavController
+        val navHostFragment = supportFragmentManager
+            .findFragmentById(R.id.nav_host_fragment) as NavHostFragment
+        navController = navHostFragment.navController
+        
+        // Configurar AppBarConfiguration com os destinos de nível superior
+        appBarConfiguration = AppBarConfiguration(
+            setOf(
+                R.id.dashboardFragment,
+                R.id.clientesFragment, 
+                R.id.contratosFragment,
+                R.id.equipamentosFragment,
+                R.id.devolucoesFragment
+            ),
+            binding.drawerLayout
+        )
+        
+        // Configurar ActionBar com NavController
+        setupActionBarWithNavController(navController, appBarConfiguration)
+        
+        // Configurar NavigationView com NavController
+        binding.navView.setupWithNavController(navController)
+        
+        // Configurar drawer toggle
         toggle = ActionBarDrawerToggle(
             this,
             binding.drawerLayout,
@@ -77,7 +98,13 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         binding.drawerLayout.addDrawerListener(toggle)
         toggle.syncState()
         
+        // Manter o listener para o logout e outras ações personalizadas
         binding.navView.setNavigationItemSelectedListener(this)
+        
+        // Aplicar fonte aos itens do menu imediatamente
+        binding.navView.post {
+            applyFontToMenuItems()
+        }
         
         // Atualiza os dados do cabeçalho do menu
         val headerView = binding.navView.getHeaderView(0)
@@ -104,22 +131,26 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         })
     }
     
+    override fun onSupportNavigateUp(): Boolean {
+        return navController.navigateUp(appBarConfiguration) || super.onSupportNavigateUp()
+    }
+    
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        val fragment: Fragment = when (item.itemId) {
+        when (item.itemId) {
             R.id.nav_dashboard -> {
-                DashboardFragment()
+                navController.navigate(R.id.dashboardFragment)
             }
             R.id.nav_clientes -> {
-                ClientesFragment()
+                navController.navigate(R.id.clientesFragment)
             }
             R.id.nav_contratos -> {
-                ContratosFragment()
+                navController.navigate(R.id.contratosFragment)
             }
             R.id.nav_equipamentos -> {
-                EquipamentosFragment()
+                navController.navigate(R.id.equipamentosFragment)
             }
             R.id.nav_devolucoes -> {
-                DevolucoesFragment()
+                navController.navigate(R.id.devolucoesFragment)
             }
             R.id.nav_logout -> {
                 LogUtils.info("DashboardActivity", "Usuário solicitou logout")
@@ -130,16 +161,47 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 finish()
                 return true
             }
-            else -> DashboardFragment()
         }
-        
-        // Substitui o fragment atual pelo selecionado
-        supportFragmentManager.beginTransaction()
-            .replace(R.id.fragmentContainer, fragment)
-            .commit()
         
         // Fecha o drawer após a seleção
         binding.drawerLayout.closeDrawer(GravityCompat.START)
         return true
+    }
+    
+    // Método para garantir consistência na fonte após navegações
+    private fun enforceFontConsistency() {
+        // Observar mudanças na navegação para garantir consistência nas fontes
+        navController.addOnDestinationChangedListener { _, destination, _ ->
+            LogUtils.debug("DashboardActivity", "Navegando para ${destination.label}")
+            
+            // Aplicar a fonte ao menu após a navegação
+            binding.navView.post {
+                applyFontToMenuItems()
+            }
+            
+            // Fechar o drawer após a navegação
+            binding.drawerLayout.closeDrawer(GravityCompat.START)
+        }
+    }
+    
+    /**
+     * Aplica a fonte Poppins a todos os itens do menu de navegação
+     * Nota: Esta é uma solução parcial, pois o Android não fornece uma API direta 
+     * para alterar a fonte dos itens de menu após eles serem criados
+     */
+    private fun applyFontToMenuItems() {
+        try {
+            // A solução mais robusta é usar o estilo XML no layout do NavigationView
+            // Aqui apenas garantimos que o menu seja recarregado para aplicar o estilo
+            binding.navView.menu.clear()
+            binding.navView.inflateMenu(R.menu.drawer_menu)
+            
+            // Forçar a invalidação do layout para aplicar os estilos
+            binding.navView.invalidate()
+            
+            LogUtils.debug("DashboardActivity", "Menu recriado para aplicar estilo")
+        } catch (e: Exception) {
+            LogUtils.error("DashboardActivity", "Erro ao recriar menu: ${e.message}")
+        }
     }
 } 

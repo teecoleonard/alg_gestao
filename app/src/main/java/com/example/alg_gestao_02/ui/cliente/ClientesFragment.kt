@@ -10,6 +10,7 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
@@ -162,10 +163,14 @@ class ClientesFragment : Fragment() {
     }
     
     private fun showClienteDetailDialog(cliente: Cliente) {
-        // Aqui poderia ser implementado um diálogo de detalhes do cliente
-        // Por enquanto, vamos apenas abrir para edição
-        val dialog = CadastroClienteDialogFragment.newInstance(cliente)
-        dialog.show(parentFragmentManager, "ClienteDetailDialog")
+        // Navegar para a tela de detalhes do cliente
+        LogUtils.debug("ClientesFragment", "Abrindo detalhes do cliente: ${cliente.id}")
+        
+        // Navegar para o ClientDetailsFragment com o argumento do ID
+        val bundle = Bundle().apply {
+            putInt("cliente_id", cliente.id)
+        }
+        findNavController().navigate(R.id.clientDetailsFragment, bundle)
     }
     
     private fun showCadastroClienteDialog() {

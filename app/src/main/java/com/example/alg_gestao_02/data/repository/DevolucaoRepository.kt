@@ -2,6 +2,7 @@ package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.data.models.Devolucao
 import com.example.alg_gestao_02.data.api.ApiService
+import com.example.alg_gestao_02.data.api.ApiClient
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
 import kotlinx.coroutines.Dispatchers
@@ -10,7 +11,7 @@ import kotlinx.coroutines.withContext
 /**
  * Repository para gerenciar as operações de API relacionadas a devoluções.
  */
-class DevolucaoRepository(private val apiService: ApiService) {
+class DevolucaoRepository(private val apiService: ApiService = ApiClient.apiService) {
 
     /**
      * Obtém a lista de devoluções com base nos filtros fornecidos
@@ -181,6 +182,26 @@ class DevolucaoRepository(private val apiService: ApiService) {
             val errorMessage = "Erro ao processar devolução: ${e.message}"
             LogUtils.error("DevolucaoRepository", errorMessage, e)
             Resource.Error(errorMessage)
+        }
+    }
+
+    /**
+     * Busca devoluções para um contrato específico (retorna lista diretamente)
+     */
+    suspend fun getDevolucoesByContratoIdList(contratoId: Int): List<Devolucao> {
+        return try {
+            LogUtils.debug("DevolucaoRepository", "Buscando devoluções para contrato ID: $contratoId")
+            val response = apiService.getDevolucoesByContratoId(contratoId)
+            
+            if (response.isSuccessful) {
+                response.body() ?: emptyList()
+            } else {
+                LogUtils.warning("DevolucaoRepository", "Falha ao buscar devoluções: ${response.code()}")
+                emptyList()
+            }
+        } catch (e: Exception) {
+            LogUtils.error("DevolucaoRepository", "Erro ao buscar devoluções", e)
+            emptyList()
         }
     }
 }

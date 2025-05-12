@@ -104,4 +104,11 @@ class ContratosAdapter(
         this.contratos = newContratos
         notifyDataSetChanged()
     }
+    
+    /**
+     * Alias para updateContratos para compatibilidade com ClientDetailsFragment
+     */
+    fun updateData(newContratos: List<Contrato>) {
+        updateContratos(newContratos)
+    }
 } 

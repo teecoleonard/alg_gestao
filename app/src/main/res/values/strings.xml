@@ -6,6 +6,7 @@
     <string name="dashboard">Dashboard</string>
     <string name="login">Login</string>
     <string name="clients">Clientes</string>
+    <string name="cliente_detalhes">Detalhes do Cliente</string>
     <string name="contracts">Contratos</string>
     
     <!-- Menu de navegação -->
@@ -47,6 +48,7 @@
     <!-- Estados da UI -->
     <string name="loading">Carregando…</string>
     <string name="empty_list">Nenhum item encontrado</string>
+    <string name="nenhum_contrato_encontrado">Nenhum contrato encontrado</string>
     <string name="error_message">Ocorreu um erro. Tente novamente.</string>
     <string name="network_error">Erro de conexão. Verifique sua internet.</string>
     
@@ -136,4 +138,15 @@
     <string name="btn_registrar_devolucao">Registrar Devolução</string>
     <string name="msg_sucesso_devolucao">Devolução registrada com sucesso!</string>
     <string name="msg_erro_devolucao">Erro ao registrar devolução</string>
+    
+    <!-- Detalhes do Cliente -->
+    <string name="client_summary">Resumo do Cliente</string>
+    <string name="phone_not_registered">Telefone não cadastrado</string>
+    <string name="call_client">Ligar</string>
+    <string name="contracts_summary">Resumo de Contratos</string>
+    <string name="returns_status">Status das Devoluções</string>
+    <string name="pending_returns">Pendentes</string>
+    <string name="completed_returns">Devolvidos</string>
+    <string name="returns_with_issues">Problemas</string>
+    <string name="retry">Tentar novamente</string>
 </resources>

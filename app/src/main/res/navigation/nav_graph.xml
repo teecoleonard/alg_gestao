@@ -1,0 +1,66 @@
+<?xml version="1.0" encoding="utf-8"?>
+<navigation xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:id="@+id/nav_graph"
+    app:startDestination="@id/dashboardFragment">
+
+    <fragment
+        android:id="@+id/dashboardFragment"
+        android:name="com.example.alg_gestao_02.dashboard.fragments.DashboardFragment"
+        android:label="Dashboard"
+        tools:layout="@layout/fragment_dashboard">
+        <action
+            android:id="@+id/action_dashboardFragment_to_clientesFragment"
+            app:destination="@id/clientesFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_contratosFragment"
+            app:destination="@id/contratosFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_devolucoesFragment"
+            app:destination="@id/devolucoesFragment" />
+        <action
+            android:id="@+id/action_dashboardFragment_to_equipamentosFragment"
+            app:destination="@id/equipamentosFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/clientesFragment"
+        android:name="com.example.alg_gestao_02.ui.cliente.ClientesFragment"
+        android:label="Clientes"
+        tools:layout="@layout/fragment_clientes">
+        <action
+            android:id="@+id/action_clientesFragment_to_clientDetailsFragment"
+            app:destination="@id/clientDetailsFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/clientDetailsFragment"
+        android:name="com.example.alg_gestao_02.ui.client.ClientDetailsFragment"
+        android:label="Detalhes do Cliente"
+        tools:layout="@layout/fragment_client_details">
+        <argument
+            android:name="cliente_id"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/contratosFragment"
+        android:name="com.example.alg_gestao_02.ui.contrato.ContratosFragment"
+        android:label="Contratos"
+        tools:layout="@layout/fragment_contratos" />
+
+    <fragment
+        android:id="@+id/devolucoesFragment"
+        android:name="com.example.alg_gestao_02.ui.devolucao.DevolucoesFragment"
+        android:label="Devoluções"
+        tools:layout="@layout/fragment_devolucoes" />
+
+    <fragment
+        android:id="@+id/equipamentosFragment"
+        android:name="com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment"
+        android:label="Equipamentos"
+        tools:layout="@layout/fragment_equipamentos" />
+
+</navigation>

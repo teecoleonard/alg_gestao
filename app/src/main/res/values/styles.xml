@@ -67,4 +67,28 @@
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:windowContentOverlay">@null</item>
     </style>
+    
+    <!-- Estilo personalizado para NavigationView -->
+    <style name="Widget.ALG.NavigationView" parent="Widget.MaterialComponents.NavigationView">
+        <item name="itemTextAppearance">@style/TextAppearance.ALG.NavigationItem</item>
+        <item name="itemIconPadding">16dp</item>
+        <item name="itemHorizontalPadding">24dp</item>
+        <item name="subheaderTextAppearance">@style/TextAppearance.ALG.NavigationItem</item>
+        <item name="android:textAppearance">@style/TextAppearance.ALG.NavigationItem</item>
+        <item name="itemShapeAppearance">@style/ShapeAppearance.ALG.Navigation</item>
+    </style>
+    
+    <!-- Estilo para os itens do menu de navegação -->
+    <style name="TextAppearance.ALG.NavigationItem" parent="TextAppearance.MaterialComponents.Body2">
+        <item name="android:fontFamily">@font/poppins</item>
+        <item name="fontFamily">@font/poppins</item>
+        <item name="android:textSize">14sp</item>
+        <item name="android:textColor">@color/text_primary</item>
+    </style>
+    
+    <!-- Estilo para a forma dos itens de navegação -->
+    <style name="ShapeAppearance.ALG.Navigation" parent="ShapeAppearance.MaterialComponents.SmallComponent">
+        <item name="cornerFamily">rounded</item>
+        <item name="cornerSize">8dp</item>
+    </style>
 </resources> 

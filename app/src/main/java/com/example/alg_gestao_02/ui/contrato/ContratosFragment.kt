@@ -268,17 +268,17 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     
     private fun showPopupMenu(contrato: Contrato, view: View) {
         val popup = PopupMenu(requireContext(), view)
-        popup.menuInflater.inflate(R.menu.menu_item_options, popup.menu)
+        popup.menuInflater.inflate(R.menu.menu_contract_options, popup.menu)
         
         popup.setOnMenuItemClickListener { menuItem ->
             when (menuItem.itemId) {
-                R.id.action_edit -> {
+                R.id.menu_edit -> {
                     LogUtils.debug("ContratosFragment", "Menu Editar clicado para contrato: ${contrato.contratoNum}")
                     showCadastroContratoDialog(contrato)
                     true
                 }
                 
-                R.id.action_delete -> {
+                R.id.menu_delete -> {
                     LogUtils.debug("ContratosFragment", "Excluindo contrato: ${contrato.contratoNum}")
                     confirmarExclusao(contrato)
                     true

@@ -39,9 +39,27 @@ class ClienteRepository {
     }
     
     /**
-     * Busca um cliente pelo ID
+     * Busca um cliente pelo ID e retorna diretamente o objeto
      */
-    suspend fun getClienteById(id: Int): Resource<Cliente> {
+    suspend fun getClienteById(id: Int): Cliente {
+        return when (val result = getClienteByIdResource(id)) {
+            is Resource.Success -> result.data
+            is Resource.Error -> {
+                LogUtils.error("ClienteRepository", "Erro ao buscar cliente: ${result.message}")
+                throw Exception("Erro ao buscar cliente: ${result.message}")
+            }
+            is Resource.Loading -> {
+                LogUtils.debug("ClienteRepository", "Carregando cliente...")
+                throw Exception("Carregando dados do cliente")
+            }
+            else -> throw Exception("Estado desconhecido ao buscar cliente")
+        }
+    }
+    
+    /**
+     * Busca um cliente pelo ID (implementação original que retorna Resource)
+     */
+    suspend fun getClienteByIdResource(id: Int): Resource<Cliente> {
         return try {
             LogUtils.debug("ClienteRepository", "Buscando cliente com ID: $id")
             val response = apiService.getClienteById(id)

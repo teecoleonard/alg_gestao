@@ -4,15 +4,11 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.fragment.app.Fragment
+import androidx.navigation.fragment.findNavController
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.utils.LogUtils
-import com.example.alg_gestao_02.ui.cliente.ClientesFragment
-import com.example.alg_gestao_02.ui.contrato.ContratosFragment
-import com.example.alg_gestao_02.ui.equipamento.EquipamentosFragment
-import com.example.alg_gestao_02.ui.devolucao.DevolucoesFragment
 
 class DashboardFragment : Fragment() {
     
@@ -47,11 +43,8 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardEquipamentos)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de equipamentos clicado")
             
-            // Navegar para a página de equipamentos
-            val transaction = requireActivity().supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, EquipamentosFragment())
-            transaction.addToBackStack(null)
-            transaction.commit()
+            // Navegar para a página de equipamentos usando o NavController
+            findNavController().navigate(R.id.equipamentosFragment)
             
             // Atualizar item selecionado no menu de navegação
             try {
@@ -66,11 +59,8 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardWorkers)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de contratos clicado")
             
-            // Navegar para a página de contratos
-            val transaction = requireActivity().supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, ContratosFragment())
-            transaction.addToBackStack(null)
-            transaction.commit()
+            // Navegar para a página de contratos usando o NavController
+            findNavController().navigate(R.id.contratosFragment)
             
             // Atualizar item selecionado no menu de navegação
             try {
@@ -85,11 +75,8 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de clientes clicado")
             
-            // Navegar para a página de clientes
-            val transaction = requireActivity().supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, ClientesFragment())
-            transaction.addToBackStack(null)
-            transaction.commit()
+            // Navegar para a página de clientes usando o NavController
+            findNavController().navigate(R.id.clientesFragment)
             
             // Atualizar item selecionado no menu de navegação
             try {
@@ -104,11 +91,8 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardDevolucoes)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card de devoluções clicado")
             
-            // Navegar para a página de devoluções
-            val transaction = requireActivity().supportFragmentManager.beginTransaction()
-            transaction.replace(R.id.fragmentContainer, DevolucoesFragment())
-            transaction.addToBackStack(null)
-            transaction.commit()
+            // Navegar para a página de devoluções usando o NavController
+            findNavController().navigate(R.id.devolucoesFragment)
             
             // Atualizar item selecionado no menu de navegação
             try {

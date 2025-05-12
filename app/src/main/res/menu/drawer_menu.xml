@@ -1,45 +1,56 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
     tools:showIn="navigation_view">
 
-    <group android:checkableBehavior="single">
+    <group 
+        android:id="@+id/main_group"
+        android:checkableBehavior="single">
         <item
             android:id="@+id/nav_dashboard"
             android:icon="@drawable/ic_dashboard"
-            android:title="@string/dashboard" />
+            android:title="@string/dashboard"
+            android:fontFamily="@font/poppins" />
         <item
             android:id="@+id/nav_clientes"
             android:icon="@drawable/ic_person"
-            android:title="@string/clients" />
+            android:title="@string/clients"
+            android:fontFamily="@font/poppins" />
         <item
             android:id="@+id/nav_contratos"
             android:icon="@drawable/ic_contract"
-            android:title="@string/contracts" />
+            android:title="@string/contracts"
+            android:fontFamily="@font/poppins" />
         <item
             android:id="@+id/nav_equipamentos"
             android:icon="@drawable/ic_tools"
-            android:title="@string/equipments" />
+            android:title="@string/equipments"
+            android:fontFamily="@font/poppins" />
         <item
             android:id="@+id/nav_devolucoes"
             android:icon="@drawable/ic_devolucoes"
-            android:title="@string/returns" />
+            android:title="@string/returns"
+            android:fontFamily="@font/poppins" />
     </group>
 
-    <item android:title="@string/account">
+    <item android:title="@string/account" android:fontFamily="@font/poppins">
         <menu>
             <item
                 android:id="@+id/nav_profile"
                 android:icon="@drawable/ic_person"
-                android:title="@string/profile" />
+                android:title="@string/profile"
+                android:fontFamily="@font/poppins" />
             <item
                 android:id="@+id/nav_settings"
                 android:icon="@drawable/ic_settings"
-                android:title="@string/settings" />
+                android:title="@string/settings"
+                android:fontFamily="@font/poppins" />
             <item
                 android:id="@+id/nav_logout"
                 android:icon="@drawable/ic_logout"
-                android:title="@string/logout" />
+                android:title="@string/logout"
+                android:fontFamily="@font/poppins" />
         </menu>
     </item>
 </menu> 

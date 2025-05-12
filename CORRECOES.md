@@ -1076,3 +1076,57 @@ fun limparContratoDetalhado() {
 
 ### Data da Implementação
 10/05/2025
+
+---
+
+## Melhorias na tela de detalhes do cliente (ClientDetailsFragment)
+
+### Problemas Detectados
+1. O aplicativo apresentava erro "View does not have a NavController set" ao tentar navegar para a tela de detalhes do cliente.
+2. O nome do cliente estava duplicado, aparecendo tanto no título da toolbar quanto no card de informações.
+3. O botão "Editar" no diálogo de detalhes do contrato fechava sem abrir a tela de edição.
+4. O menu de opções dos contratos utilizava o menu genérico (menu_item_options.xml) em vez do específico para contratos.
+5. Os cards de status de devolução (Pendentes, Devolvidos e Problemas) não eram clicáveis, impossibilitando a visualização das devoluções por status.
+
+### Detalhes das Correções e Melhorias
+
+#### 1. Correção do problema de navegação
+- Implementamos o Navigation Component do Android para gerenciar a navegação
+- Modificamos o layout da activity principal para usar NavHostFragment
+- Atualizamos a DashboardActivity para usar NavController
+- Configuramos o DashboardFragment para usar navegação via NavController
+- Ajustamos o ClientesFragment para navegar corretamente para o ClientDetailsFragment
+
+#### 2. Remoção da duplicação do nome do cliente
+- Modificamos o título na toolbar para exibir apenas "Detalhes do Cliente"
+- Mantivemos o nome completo apenas no card de informações do cliente
+
+#### 3. Correção do botão Editar no diálogo de detalhes do contrato
+- Implementamos a interface OnEditRequestListener no ClientDetailsFragment
+- Criamos a lógica necessária para abrir o diálogo de edição de contrato quando o botão é pressionado
+- Configuramos a atualização dos dados após a edição ser concluída
+
+#### 4. Atualização do menu de opções dos contratos
+- Substituímos o menu_item_options.xml pelo menu_contract_options.xml já existente no projeto
+- Implementamos as ações específicas para este menu (editar e excluir contrato)
+- Melhoramos a experiência do usuário com opções mais relevantes para o contexto de contratos
+
+#### 5. Implementação da interação com os cards de status de devolução
+- Tornamos os cards de status (Pendentes, Devolvidos e Problemas) clicáveis
+- Adicionamos IDs únicos a cada card no layout e atributos de acessibilidade
+- Implementamos o método getDevolucoesByStatus() no ViewModel para filtrar devoluções por status
+- Criamos a função showDevolucoesByStatus() para exibir uma lista de devoluções do status selecionado
+- Implementamos lógica para mostrar diretamente os detalhes quando há apenas uma devolução
+- Adicionamos um diálogo de seleção quando há múltiplas devoluções
+- Implementamos mensagens informativas quando não existem devoluções de um determinado status
+
+### Benefícios das Implementações
+- Navegação mais confiável e consistente usando o Navigation Component
+- Interface mais limpa sem informações redundantes
+- Fluxo completo de visualização e edição de contratos
+- Menu contextual mais apropriado para operações com contratos
+- Melhor usabilidade permitindo filtrar e visualizar devoluções por status
+- Experiência do usuário aprimorada com diálogos informativos e feedback visual
+
+### Data das Implementações
+12/05/2025

@@ -136,6 +136,24 @@ class ContratoRepository {
     }
     
     /**
+     * Busca contratos por cliente
+     */
+    suspend fun getContratosByClienteId(clienteId: Int): List<Contrato> {
+        return when (val result = getContratosByCliente(clienteId)) {
+            is Resource.Success -> result.data
+            is Resource.Error -> {
+                LogUtils.error("ContratoRepository", "Erro ao buscar contratos do cliente: ${result.message}")
+                emptyList()
+            }
+            is Resource.Loading -> {
+                LogUtils.debug("ContratoRepository", "Carregando contratos do cliente...")
+                emptyList()
+            }
+            else -> emptyList()
+        }
+    }
+    
+    /**
      * Cria um novo contrato
      */
     suspend fun createContrato(contrato: Contrato): Resource<Contrato> {
