@@ -3,7 +3,7 @@
 Um aplicativo Android moderno para gestão de contratos, clientes e equipamentos, desenvolvido com Kotlin seguindo o padrão de arquitetura MVVM (Model-View-ViewModel).
 
 <p align="center">
-    <img src="https://github.com/user-attachments/assets/515cc939-ff3a-48df-bd70-40b6f95ef59a" width="150" alt="Logo ALG Gestão">
+    <img src="https://github.com/user-attachments/assets/515cc939-ff3a-48df-bd70-40b6f95ef59a" width="400" alt="Logo ALG Gestão">
 </p>
 
 ## Sobre
