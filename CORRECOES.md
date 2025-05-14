@@ -1342,3 +1342,70 @@ private fun showDevolucoesSelectionDialog(devolucoesDoStatus: List<Devolucao>, s
 
 ### Data da Implementação
 15/05/2025
+
+## Correção de problemas com TextInputLayout nos diálogos de cadastro
+
+### Problema Detectado
+O aplicativo apresentava dois problemas relacionados à aparência dos campos de texto (TextInputLayout) nos diálogos de cadastro:
+
+1. Os campos de texto ficavam quase transparentes quando clicados, dificultando a visualização do conteúdo
+2. O cursor de texto ficava branco e difícil de ser visualizado, prejudicando a experiência do usuário ao digitar
+
+### Detalhes da Implementação
+
+#### 1. Criação de estilos personalizados
+- Implementamos dois estilos personalizados no arquivo `styles.xml`:
+  - `Widget.ALG.TextInputLayout.Dialog` para campos de texto regulares em diálogos
+  - `Widget.ALG.TextInputLayout.ExposedDropdown` para campos de menu suspenso (dropdown)
+
+#### 2. Configuração de propriedades visuais
+- Definimos um fundo branco sólido para melhorar a visualização:
+  ```xml
+  <item name="boxBackgroundColor">@color/white</item>
+  ```
+- Configuramos a cor da dica (hint) quando em foco para usar a cor primária:
+  ```xml
+  <item name="hintTextColor">@color/primary</item>
+  ```
+- Corrigimos a cor do cursor definindo:
+  ```xml
+  <item name="colorControlActivated">@color/primary</item>
+  <item name="android:textCursorDrawable">@null</item>
+  ```
+- Definimos larguras consistentes para os traços da caixa:
+  ```xml
+  <item name="boxStrokeWidth">1dp</item>
+  <item name="boxStrokeWidthFocused">2dp</item>
+  ```
+
+#### 3. Tema de sobreposição
+- Criamos um tema de sobreposição (`ThemeOverlay.ALG.TextInputLayout`) para definir configurações globais:
+  ```xml
+  <style name="ThemeOverlay.ALG.TextInputLayout" parent="">
+      <item name="colorPrimary">@color/primary</item>
+      <item name="colorError">@color/error</item>
+      <item name="colorOnSurface">@color/text_primary</item>
+      <item name="textAppearanceCaption">@style/TextAppearance.ALG.Caption</item>
+  </style>
+  ```
+
+#### 4. Correção de erros nos seletores de cores
+- Removemos o arquivo `mtrl_text_input_stroke_color.xml` que continha atributos inexistentes:
+  - Uso incorreto de `android:state_error` (atributo inexistente)
+  - Uso incorreto de `errorStrokeWidth` (propriedade inexistente)
+
+#### 5. Aplicação dos estilos
+- Aplicamos os novos estilos aos TextInputLayout nos seguintes diálogos de cadastro:
+  - `dialog_cadastro_contrato.xml`
+  - `dialog_cadastro_cliente.xml`
+  - `dialog_cadastro_equipamento.xml`
+
+### Benefícios da Implementação
+- Melhor visibilidade dos campos de texto, mesmo quando selecionados
+- Cursor visível e destacado com a cor primária do aplicativo
+- Consistência visual em todos os estados do campo (normal, foco, erro)
+- Experiência de usuário aprimorada ao preencher formulários
+- Remoção de código com erros e atributos inexistentes
+
+### Data da Implementação
+16/05/2025
