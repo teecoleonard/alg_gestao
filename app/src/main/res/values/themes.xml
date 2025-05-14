@@ -19,6 +19,23 @@
         <item name="android:windowLightStatusBar">true</item>
         <item name="fontFamily">@font/poppins</item>
         <item name="android:fontFamily">@font/poppins</item>
+        
+        <!-- Cores para TextInputLayout -->
+        <item name="textInputStyle">@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox</item>
+        <item name="editTextStyle">@style/Widget.MaterialComponents.TextInputEditText.OutlinedBox</item>
+        <item name="materialButtonStyle">@style/Widget.ALG.Button.Primary</item>
+        
+        <!-- Outros atributos globais -->
+        <item name="android:textViewStyle">@style/Widget.MaterialComponents.TextView</item>
+        <item name="toolbarStyle">@style/Widget.MaterialComponents.Toolbar.Primary</item>
+        <item name="android:textColorPrimary">@color/text_primary</item>
+        <item name="android:textColorSecondary">@color/text_secondary</item>
+        <item name="android:textColorHint">@color/text_hint</item>
+        
+        <!-- Sobrescrever cores de erro para TextInputLayout -->
+        <item name="textAppearanceCaption">@style/TextAppearance.ALG.Caption</item>
+        <item name="colorErrorContainer">@color/error</item>
+        <item name="materialThemeOverlay">@style/ThemeOverlay.ALG.TextInputLayout</item>
     </style>
 
     <style name="Theme.ALG_Gestao_02" parent="Base.Theme.ALG_Gestao_02" />

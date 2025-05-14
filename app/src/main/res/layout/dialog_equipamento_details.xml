@@ -198,15 +198,18 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
+            android:padding="1dp"
             android:orientation="horizontal">
 
             <Button
                 android:id="@+id/btnFecharDetalhes"
-                style="@style/Widget.MaterialComponents.Button.TextButton"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Fechar" />
+                android:text="Fechar"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"/>
 
             <Button
                 android:id="@+id/btnEditarEquipamento"

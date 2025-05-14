@@ -37,7 +37,7 @@
             <!-- Pesquisa de Cliente -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilClienteSearch"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="16dp"
@@ -57,7 +57,7 @@
             <!-- Seleção de Cliente (apenas para novos contratos) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilCliente"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/Widget.ALG.TextInputLayout.ExposedDropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -75,7 +75,7 @@
             <!-- Número do Contrato (Autopopulado) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContratoNum"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -97,7 +97,7 @@
             <!-- Local da Obra (Obrigatório) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilObraLocal"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -116,7 +116,7 @@
             <!-- Período do Contrato (Obrigatório) - Convertido para dropdown -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContratoPeriodo"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                style="@style/Widget.ALG.TextInputLayout.ExposedDropdown"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -134,7 +134,7 @@
             <!-- Local de Entrega (Obrigatório) - Preenchido automaticamente com endereço do cliente -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilEntregaLocal"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -155,7 +155,7 @@
             <!-- Responsável pelo Pedido (Opcional) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilRespPedido"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -176,7 +176,7 @@
             <!-- Assinatura do Contrato (Opcional) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilContratoAss"
-                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginTop="8dp"
@@ -259,7 +259,7 @@
                 android:gravity="end"
                 android:text="Valor Total: R$ 0,00"
                 android:textAppearance="?attr/textAppearanceHeadline6"
-                android:textColor="?attr/colorPrimary"
+                android:textColor="@color/primary"
                 android:textStyle="bold"
                 app:layout_constraintEnd_toEndOf="parent"
                 app:layout_constraintStart_toStartOf="parent"
@@ -278,20 +278,26 @@
 
                 <Button
                     android:id="@+id/btnCancel"
-                    style="@style/Widget.MaterialComponents.Button.TextButton"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:layout_marginEnd="16dp"
+                    android:textColor="@color/primary"
                     android:text="CANCELAR"
-                    android:textSize="14sp" />
+                    android:textSize="14sp"
+                    app:strokeColor="@color/primary"
+                    app:strokeWidth="1dp" />
 
                 <Button
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:id="@+id/btnSave"
                     android:layout_width="120dp"
                     android:layout_height="wrap_content"
                     android:backgroundTint="@color/primary"
                     android:text="SALVAR"
-                    android:textSize="14sp" />
+                    android:textColor="@color/white"
+                    android:textSize="14sp"
+                    app:strokeWidth="1dp" />
 
             </LinearLayout>
 

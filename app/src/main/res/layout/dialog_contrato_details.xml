@@ -33,6 +33,31 @@
             android:textColor="@color/text_secondary"
             tools:text="Contrato #123456" />
 
+        <!-- CPF/CNPJ e Inscrição Estadual -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="4dp">
+            
+            <TextView
+                android:id="@+id/tvDetalhesContratoCpfCnpj"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Caption"
+                android:textColor="@color/text_secondary"
+                tools:text="CNPJ: 12.345.678/0001-90" />
+                
+            <TextView
+                android:id="@+id/tvDetalhesContratoInscricaoEstadual"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:textAppearance="@style/TextAppearance.ALG.Caption"
+                android:textColor="@color/text_secondary"
+                tools:text="Inscrição Estadual: 123456789" />
+        </LinearLayout>
+
         <!-- Separador -->
         <View
             android:layout_width="match_parent"
@@ -173,16 +198,31 @@
             android:layout_marginBottom="16dp"
             android:background="@color/divider" />
 
-        <!-- Resumo Financeiro -->
-         <TextView
-             android:layout_width="match_parent"
-             android:layout_height="wrap_content"
-             android:text="Resumo Equipamento"
-             android:textAppearance="@style/TextAppearance.ALG.Title"
-             android:textSize="16sp"
-             android:textStyle="bold"
-             android:layout_marginBottom="8dp"/>
+            <!-- Resumo Financeiro -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="8dp"
+                android:text="Resumo Equipamento"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:layout_marginBottom="8dp">
 
+        <TextView
+            android:id="@+id/tvNomeEquipamento"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            android:textSize="14sp"
+            tools:text="GUINCHO DE COLUNA 200KG" />
+
+    </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -225,10 +265,29 @@
         </LinearLayout>
 
         <!-- Botões -->
+
+        <LinearLayout
+            android:layout_width="150dp"
+            android:layout_height="wrap_content"
+            android:layout_gravity="end"
+            android:layout_marginTop="8dp">
+        <Button
+            android:id="@+id/btnGerarPdf"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:layout_width="0dp"
+            android:layout_height="match_parent"
+            android:layout_marginStart="4dp"
+            android:layout_marginEnd="4dp"
+            android:layout_weight="1"
+            android:text="Gerar PDF"
+            android:textColor="@color/red_500"
+            app:strokeColor="@color/red_500"
+            app:strokeWidth="1dp" />
+    </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginTop="24dp"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <Button
@@ -238,7 +297,9 @@
                 android:layout_height="wrap_content"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Fechar" />
+                android:text="Fechar"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"/>
 
             <Button
                 android:id="@+id/btnEditarContrato"
@@ -248,6 +309,7 @@
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="@string/edit" />
+
         </LinearLayout>
     </LinearLayout>
 </ScrollView> 

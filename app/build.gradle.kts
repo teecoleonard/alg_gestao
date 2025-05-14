@@ -46,6 +46,13 @@ android {
     }
 }
 
+// Adicionar repositório JitPack para outras bibliotecas
+repositories {
+    google()
+    mavenCentral()
+    maven { url = uri("https://jitpack.io") }
+}
+
 dependencies {
     // Core Android
     implementation(libs.androidx.core.ktx)
@@ -59,6 +66,9 @@ dependencies {
     
     // GridLayout (adicionado para resolver erro)
     implementation("androidx.gridlayout:gridlayout:1.0.0")
+    
+    // WebView (específico para Android)
+    implementation("androidx.webkit:webkit:1.8.0")
     
     // ViewModel e LiveData
     implementation("androidx.lifecycle:lifecycle-viewmodel-ktx:2.6.2")

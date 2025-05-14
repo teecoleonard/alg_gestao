@@ -18,6 +18,34 @@
         <item name="chipEndPadding">8dp</item>
     </style>
     
+    <!-- Estilo para TextInputLayout dos diálogos de cadastro -->
+    <style name="Widget.ALG.TextInputLayout.Dialog" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox">
+        <item name="boxBackgroundColor">@color/white</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="colorControlActivated">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="android:textCursorDrawable">@null</item>
+        <item name="errorTextColor">@color/error</item>
+        <item name="errorIconTint">@color/error</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+    </style>
+    
+    <!-- Estilo para TextInputLayout de dropdown (ExposedDropdownMenu) -->
+    <style name="Widget.ALG.TextInputLayout.ExposedDropdown" parent="Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+        <item name="boxBackgroundColor">@color/white</item>
+        <item name="hintTextColor">@color/primary</item>
+        <item name="android:textColorHint">@color/text_secondary</item>
+        <item name="colorControlActivated">@color/primary</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="endIconTint">@color/primary</item>
+        <item name="errorTextColor">@color/error</item>
+        <item name="errorIconTint">@color/error</item>
+        <item name="boxStrokeWidth">1dp</item>
+        <item name="boxStrokeWidthFocused">2dp</item>
+    </style>
+    
     <!-- Estilo para títulos de diálogos do Material -->
     <style name="MaterialAlertDialog.Title" parent="MaterialAlertDialog.MaterialComponents.Title.Text">
         <item name="android:textSize">20sp</item>
@@ -44,13 +72,14 @@
     </style>
     
     <!-- Estilo para dialogos em tela cheia -->
-    <style name="FullScreenDialogStyle" parent="Theme.MaterialComponents.Light.Dialog">
+    <style name="FullScreenDialogStyle" parent="Theme.AppCompat.Light.Dialog">
         <item name="android:windowNoTitle">true</item>
         <item name="android:windowFullscreen">false</item>
         <item name="android:windowIsFloating">false</item>
         <item name="android:windowBackground">@android:color/white</item>
         <item name="android:windowEnterAnimation">@android:anim/fade_in</item>
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
+        <item name="android:windowSoftInputMode">adjustResize</item>
     </style>
     
     <!-- Estilo personalizado para o diálogo de equipamentos -->
@@ -66,6 +95,8 @@
         <item name="android:windowExitAnimation">@android:anim/fade_out</item>
         <item name="android:colorBackgroundCacheHint">@null</item>
         <item name="android:windowContentOverlay">@null</item>
+        <item name="colorAccent">@color/primary</item>
+        <item name="colorControlActivated">@color/primary</item>
     </style>
     
     <!-- Estilo personalizado para NavigationView -->
@@ -90,5 +121,13 @@
     <style name="ShapeAppearance.ALG.Navigation" parent="ShapeAppearance.MaterialComponents.SmallComponent">
         <item name="cornerFamily">rounded</item>
         <item name="cornerSize">8dp</item>
+    </style>
+    
+    <!-- Tema de sobreposição para TextInputLayout -->
+    <style name="ThemeOverlay.ALG.TextInputLayout" parent="">
+        <item name="colorPrimary">@color/primary</item>
+        <item name="colorError">@color/error</item>
+        <item name="colorOnSurface">@color/text_primary</item>
+        <item name="textAppearanceCaption">@style/TextAppearance.ALG.Caption</item>
     </style>
 </resources> 
