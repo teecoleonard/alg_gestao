@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="utf-8"?>
+<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:padding="16dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical">
+
+        <!-- Cabeçalho com título -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Detalhes do Contrato"
+            android:textSize="22sp"
+            android:textStyle="bold"
+            android:gravity="center"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Cliente -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Cliente:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoClienteNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="Nome do Cliente" />
+
+        <!-- Número do Contrato -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Número do Contrato:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoNumero"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="001/2023" />
+
+        <!-- Data de Emissão -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Data de Emissão:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoDataEmissao"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="01/01/2023" />
+
+        <!-- Data de Vencimento -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Data de Vencimento:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoDataVenc"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="01/02/2023" />
+
+        <!-- Local da Obra -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Local da Obra:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoLocalObra"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="Rua Exemplo, 123" />
+
+        <!-- Período do Contrato -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Período do Contrato:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoPeriodo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="30 dias" />
+
+        <!-- Local de Entrega -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Local de Entrega:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoLocalEntrega"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="Rua Exemplo, 123" />
+
+        <!-- Responsável pelo Pedido -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Responsável pelo Pedido:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoResponsavel"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="João da Silva" />
+
+        <!-- Assinatura -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Status da Assinatura:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoAssinatura"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="Assinado" />
+
+        <!-- Número de Equipamentos -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Número de Equipamentos:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoNumEquipamentos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="5 equipamentos" />
+
+        <!-- Valor Total -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Valor Total do Contrato:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoValorTotal"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:textSize="18sp"
+            android:textStyle="bold"
+            tools:text="R$ 10.000,00" />
+
+        <!-- Botões de ação -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="end"
+            android:layout_marginTop="16dp">
+
+            <Button
+                android:id="@+id/btnGerarPdf"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Gerar PDF"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+            <Button
+                android:id="@+id/btnEditarContrato"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Editar"
+                android:layout_marginEnd="8dp"
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
+
+            <Button
+                android:id="@+id/btnFecharDetalhesContrato"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Fechar"
+                style="@style/Widget.MaterialComponents.Button.TextButton" />
+        </LinearLayout>
+
+    </LinearLayout>
+</ScrollView> 
