@@ -944,468 +944,162 @@ A API apresentava dois problemas principais:
 ### Data da Implementação
 08/05/2025
 
-## Atualizações em relação ao Contato
+## Atualizações Recentes do Projeto (Maio 2025)
 
-### Implementação dos Detalhes do Contrato
-Visualização de todos os detalhes:
-1. Implementado os detalhes de acordo com o Cliente para melhor vizualação do contrato
-2. Ajuste nas cores dos containers dos detalhes
+### Implementação do Visualizador de PDF
 
-### Detalhes da Implementação
+#### 1. Criação do PdfViewerFragment
+- Implementado novo fragment para visualização de PDFs gerados
+- Adicionado suporte para visualização via WebView com HTML incorporado
+- Implementado botões para compartilhar e salvar PDF
+- Adicionado tratamento de permissões para salvar arquivos
+- Implementado feedback visual durante carregamento
 
-#### 1. Atualização da Função ContratoDetailsDialogFragment
-- Visualização do nome do cliente, endereço, local de obra, valor total do contrato, ID e registro
-- Alterado para o tema azul de acordo com o padrão
-- Ajuste na estrutura do dialog_contrato_details para comportar igual ao restante do projeto com as dimenções posicionados em 16 paddings
+#### 2. Melhorias no PdfService
+- Atualizado o serviço para suportar geração de PDF em diferentes formatos
+- Implementado mapeamento completo de dados do contrato para o formato PDF
+- Adicionado suporte para inclusão de logo e formatação personalizada
+- Melhorado tratamento de erros e logging
+- Implementado timeout adequado para requisições
 
-#### 2. Strings e Icones
-- Novas Strings sobre os valores dentro do dialog_contrato_details, como titulos e estilização 
-- Adição dos icones ic_truck.xml, ic_calendar_month e ic_person
+#### 3. Atualização do ContratoDetailsDialogFragment
+- Adicionado botão para gerar PDF do contrato
+- Implementado diálogo de progresso durante geração
+- Melhorada exibição de detalhes do contrato
+- Adicionado suporte para edição de contratos
+- Implementada interface para comunicação com fragment pai
 
-### Data da Implementação
-08/05/2025
+### Melhorias de Estilo e Layout
 
----
+#### 1. Atualização do Sistema de Temas
+- Implementado novo tema base com cores personalizadas
+- Adicionado suporte para modo claro/escuro
+- Melhorada consistência visual em todo o aplicativo
+- Implementados estilos para diferentes tipos de texto
+- Adicionado suporte para fontes personalizadas (Poppins)
 
-## Correção de exibição de valores em Contratos
+#### 2. Melhorias nos Componentes de UI
+- Atualizado estilo dos botões com cantos arredondados (12dp)
+- Implementado novo estilo para campos de entrada
+- Melhorado feedback visual em estados de erro
+- Adicionado suporte para ícones em campos de texto
+- Implementado estilo consistente para diálogos
 
-### Problema Detectado
-O aplicativo apresentava um problema onde os valores dos contratos apareciam incorretamente como R$0,00 na listagem principal, mas eram exibidos corretamente na tela de detalhes do contrato.
+#### 3. Layouts e Espaçamentos
+- Padronizado padding de 16dp em containers principais
+- Implementado sistema de margens consistente
+- Melhorada hierarquia visual com espaçamentos adequados
+- Adicionado suporte para diferentes densidades de tela
+- Implementado layout responsivo para diferentes tamanhos
 
-Identificamos que:
-1. O valor real do contrato não estava armazenado na propriedade `contratoValor` da entidade `Contrato`, mas sim calculado a partir de seus `EquipamentoContrato` associados
-2. Na listagem principal, os contratos eram carregados sem incluir os equipamentos associados, resultando em valor zero
-3. Na tela de detalhes, os equipamentos eram carregados, permitindo o cálculo correto do valor total
+#### 4. Cores e Estados Visuais
+- Implementada nova paleta de cores semânticas
+- Adicionados estados visuais para diferentes status
+- Melhorado contraste para melhor legibilidade
+- Implementado sistema de cores para feedback
+- Adicionado suporte para gradientes em elementos específicos
 
-### Detalhes da Implementação
+#### 5. Melhorias de Acessibilidade
+- Implementado suporte para texto dinâmico
+- Melhorado contraste de cores
+- Adicionadas descrições de conteúdo
+- Implementado suporte para navegação por teclado
+- Melhorada legibilidade de textos
 
-#### 1. Modificação no banco de dados
-- Adicionamos uma coluna `valor_total` na tabela `Contrato` para armazenar o valor calculado dos equipamentos
-- Criamos um script SQL para ser executado no phpMyAdmin:
-```sql
-ALTER TABLE Contrato ADD COLUMN valor_total DECIMAL(10,2) DEFAULT 0.00;
-```
-
-#### 2. Atualização do modelo Contrato.js
-- Adicionamos o campo `valor_total` ao modelo Sequelize para permitir persistência do valor calculado:
-```javascript
-valor_total: {
-  type: DataTypes.DECIMAL(10, 2),
-  allowNull: false,
-  defaultValue: 0.00
-}
-```
-
-#### 3. Modificação nos endpoints da API
-- Simplificamos os endpoints da API para usar o novo campo `valor_total`:
-  - Em `getAllContratos`, `getContratosByCliente`, `getContratoById`, `createContrato` e `updateContrato`
-  - Mapeando o valor para `contratoValor` para manter compatibilidade com o app:
-```javascript
-const contratoFormatado = {
-  ...plainContrato,
-  contratoValor: plainContrato.valor_total || 0
-};
-```
-
-#### 4. Gatilho para atualização automática do valor total
-- Adicionamos um trigger no lado do banco para atualizar `valor_total` automaticamente sempre que um equipamento é adicionado, removido ou modificado
-- Implementamos um controle de transação para garantir consistência nos dados
-
-#### 5. Otimização no modelo Contrato.kt do Android
-- Melhoramos o método `getValorEfetivo()` para usar o `contratoValor` fornecido pela API quando não há equipamentos carregados:
-```kotlin
-fun getValorEfetivo(): Double {
-    return if (!equipamentos.isNullOrEmpty()) {
-        equipamentos.sumOf { it.valorTotal }
-    } else {
-        contratoValor
-    }
-}
-```
-
-#### 6. Correção no fragmento ContratosFragment
-- Implementamos uma solução para o problema do diálogo de detalhes do contrato que continuava persistindo entre navegações
-- Adicionamos um método `limparContratoDetalhado()` no ViewModel para limpar o estado do contrato detalhado
-- Chamamos esse método nos eventos de ciclo de vida `onPause()` e `onViewCreated()` para garantir que o diálogo não reaparece automaticamente
-
-### Benefícios da Implementação
-- Exibição consistente de valores de contratos em todas as telas do aplicativo
-- Melhor desempenho ao não precisar carregar os equipamentos de cada contrato na listagem principal
-- Experiência de navegação mais intuitiva sem persistência indesejada de diálogos
-- Menor carga na rede e no banco de dados, pois o valor já está pré-calculado
-
-### Data da Implementação
-10/05/2025
-
----
-
-## Correção de erro de compilação com LiveData não-nulável
-
-### Problema Detectado
-O aplicativo apresentava um erro de compilação relacionado ao Lint:
-
-```
-Error: Cannot set non-nullable LiveData value to null [NullSafeMutableLiveData from androidx.lifecycle]
-_contratoDetalhado.value = null
-```
-
-O problema ocorria porque o LiveData `_contratoDetalhado` foi declarado como não anulável (non-nullable), mas tentávamos atribuir `null` a ele no método `limparContratoDetalhado()`, causando falha na compilação.
-
-### Detalhes da Correção
-
-#### 1. Modificação no método limparContratoDetalhado()
-- Alteramos o método para definir um valor válido não-nulo em vez de `null`:
-```kotlin
-fun limparContratoDetalhado() {
-    // Não podemos definir como null pois o LiveData é não-anulável
-    // Em vez disso, usamos um estado vazio/inicial
-    _contratoDetalhado.value = UiState.Empty()
-    LogUtils.debug("ContratosViewModel", "Estado de contrato detalhado limpo")
-}
-```
-
-#### 2. Análise de outras possíveis ocorrências
-- Verificamos o código em busca de outros locais onde LiveData não-nulável poderia estar recebendo valores nulos
-- Garantimos que todas as atribuições a LiveData respeitam a tipagem de nullabilidade declarada
-
-### Benefícios da Implementação
-- Aplicativo compila e executa sem erros de Lint
-- Melhor type safety através do sistema de tipos do Kotlin
-- Código mais robusto com garantias de não-nulidade
-- Prevenção de possíveis NullPointerExceptions em tempo de execução
-
-### Data da Implementação
-10/05/2025
-
----
-
-## Melhorias na tela de detalhes do cliente (ClientDetailsFragment)
-
-### Problemas Detectados
-1. O aplicativo apresentava erro "View does not have a NavController set" ao tentar navegar para a tela de detalhes do cliente.
-2. O nome do cliente estava duplicado, aparecendo tanto no título da toolbar quanto no card de informações.
-3. O botão "Editar" no diálogo de detalhes do contrato fechava sem abrir a tela de edição.
-4. O menu de opções dos contratos utilizava o menu genérico (menu_item_options.xml) em vez do específico para contratos.
-5. Os cards de status de devolução (Pendentes, Devolvidos e Problemas) não eram clicáveis, impossibilitando a visualização das devoluções por status.
-
-### Detalhes das Correções e Melhorias
-
-#### 1. Correção do problema de navegação
-- Implementamos o Navigation Component do Android para gerenciar a navegação
-- Modificamos o layout da activity principal para usar NavHostFragment
-- Atualizamos a DashboardActivity para usar NavController
-- Configuramos o DashboardFragment para usar navegação via NavController
-- Ajustamos o ClientesFragment para navegar corretamente para o ClientDetailsFragment
-
-#### 2. Remoção da duplicação do nome do cliente
-- Modificamos o título na toolbar para exibir apenas "Detalhes do Cliente"
-- Mantivemos o nome completo apenas no card de informações do cliente
-
-#### 3. Correção do botão Editar no diálogo de detalhes do contrato
-- Implementamos a interface OnEditRequestListener no ClientDetailsFragment
-- Criamos a lógica necessária para abrir o diálogo de edição de contrato quando o botão é pressionado
-- Configuramos a atualização dos dados após a edição ser concluída
-
-#### 4. Atualização do menu de opções dos contratos
-- Substituímos o menu_item_options.xml pelo menu_contract_options.xml já existente no projeto
-- Implementamos as ações específicas para este menu (editar e excluir contrato)
-- Melhoramos a experiência do usuário com opções mais relevantes para o contexto de contratos
-
-#### 5. Implementação da interação com os cards de status de devolução
-- Tornamos os cards de status (Pendentes, Devolvidos e Problemas) clicáveis
-- Adicionamos IDs únicos a cada card no layout e atributos de acessibilidade
-- Implementamos o método `getDevolucoesByStatus()` no ViewModel para filtrar devoluções por status
-- Criamos a função `showDevolucoesByStatus()` para exibir uma lista de devoluções do status selecionado
-- Implementamos lógica para mostrar diretamente os detalhes quando há apenas uma devolução
-- Adicionamos um diálogo de seleção quando há múltiplas devoluções
-- Implementamos mensagens informativas quando não existem devoluções de um determinado status
-
-### Benefícios das Implementações
-- Melhor experiência do usuário com navegação mais intuitiva
-- Acesso rápido às devoluções filtradas por status diretamente da tela de detalhes do cliente
-- Feedback visual claro para o usuário sobre quais elementos são interativos
-- Implementação de fluxos adaptados para diferentes situações (nenhuma devolução, uma devolução ou múltiplas devoluções)
-- Melhor organização das informações, evitando sobrecarga visual ao mostrar todas as devoluções de uma vez
-
-### Data das Implementações
-12/05/2025
-
-## Correção do SwipeRefreshLayout no Dashboard Principal
-
-### Problema Detectado
-O aplicativo apresentava um problema onde o SwipeRefreshLayout no dashboard principal ficava carregando eternamente quando puxado para baixo (pull-to-refresh), voltando ao normal apenas quando o usuário navegava para outra página e depois retornava.
-
-### Análise da Causa
-Após análise do código, identificamos que:
-1. O DashboardFragment tinha um SwipeRefreshLayout no layout XML, mas não implementava o listener `setOnRefreshListener`
-2. Não havia um ViewModel associado ao DashboardFragment para gerenciar o estado da UI e controlar o indicador de carregamento
-3. Quando o usuário realizava ação de pull-to-refresh, o indicador de carregamento era mostrado, mas nunca recebia o comando para ser desativado
-
-### Detalhes da Correção
-
-#### 1. Criação do DashboardViewModel
-- Implementamos o `DashboardViewModel` para gerenciar o estado da UI do dashboard
-- Adicionamos um método `refreshDashboard()` para atualizar os dados
-- Utilizamos LiveData com a classe `UiState` para comunicar diferentes estados ao Fragment
-- Implementamos uma simulação de carregamento (2 segundos) com tratamento adequado após conclusão
-
-```kotlin
-fun refreshDashboard() {
-    LogUtils.debug("DashboardViewModel", "Atualizando dados do dashboard")
-    
-    // Emitir estado de carregamento
-    _uiState.value = UiState.Loading()
-    
-    // Usando coroutines para operação assíncrona
-    CoroutineScope(Dispatchers.IO).launch {
-        try {
-            // Simular tempo de carregamento (2 segundos)
-            delay(2000)
-            
-            // Simulação de sucesso após 2 segundos
-            _uiState.postValue(UiState.Success(true))
-            
-            LogUtils.debug("DashboardViewModel", "Dashboard atualizado com sucesso")
-        } catch (e: Exception) {
-            LogUtils.error("DashboardViewModel", "Erro ao atualizar dashboard: ${e.message}")
-            _uiState.postValue(UiState.Error("Erro ao atualizar o dashboard: ${e.message}"))
-        }
-    }
-}
-```
-
-#### 2. Atualização do DashboardFragment
-- Adicionamos a inicialização do SwipeRefreshLayout no método `onViewCreated`
-- Implementamos o ViewModel usando o padrão de ViewModelFactory
-- Configuramos o listener para o SwipeRefreshLayout:
-```kotlin
-swipeRefresh.setOnRefreshListener {
-    LogUtils.debug("DashboardFragment", "Atualizando dashboard via swipe refresh")
-    viewModel.refreshDashboard()
-}
-```
-- Adicionamos observadores para os estados do ViewModel, garantindo que o indicador de carregamento seja desativado em cada estado:
-```kotlin
-viewModel.uiState.observe(viewLifecycleOwner) { state ->
-    when (state) {
-        is UiState.Loading -> {
-            // Mantém o indicador de carregamento visível
-            LogUtils.debug("DashboardFragment", "Carregando dados do dashboard...")
-        }
-        
-        is UiState.Success -> {
-            // Esconde o indicador de carregamento
-            swipeRefresh.isRefreshing = false
-            LogUtils.debug("DashboardFragment", "Dados do dashboard atualizados com sucesso")
-        }
-        
-        is UiState.Error -> {
-            // Esconde o indicador de carregamento e mostra erro
-            swipeRefresh.isRefreshing = false
-            LogUtils.error("DashboardFragment", "Erro ao atualizar dashboard: ${state.message}")
-            Toast.makeText(context, state.message, Toast.LENGTH_SHORT).show()
-        }
-        
-        else -> {
-            // Para outros estados, esconde o indicador
-            swipeRefresh.isRefreshing = false
-        }
-    }
-}
-```
-
-### Benefícios da Correção
-- O SwipeRefreshLayout agora funciona corretamente, mostrando o indicador apenas durante o carregamento
-- O usuário recebe feedback visual adequado durante a atualização do dashboard
-- A arquitetura do app está mais consistente, com o Dashboard também seguindo o padrão MVVM
-- A implementação está preparada para integração futura com dados reais
-
-### Data da Correção
+### Data das Atualizações
 15/05/2025
 
-## Implementação de interação com os cards de status de devolução
+### Melhorias na Interface do Usuário
 
-### Problema Detectado
-No módulo de detalhes do cliente, os cards de status de devolução (Pendentes, Devolvidos e Problemas) eram apenas elementos visuais informativos, não permitindo ao usuário interagir para visualizar as devoluções específicas de cada status.
+#### 1. Atualização do Layout de Detalhes do Contrato
+- Redesenhado o layout para melhor organização das informações
+- Adicionados novos campos para informações detalhadas
+- Implementado estilo consistente com o tema do aplicativo
+- Melhorada a visualização de valores monetários
+- Adicionado suporte para diferentes tipos de cliente (PF/PJ)
 
-### Detalhes da Implementação
+#### 2. Melhorias no Cadastro de Contratos
+- Implementado autocomplete para seleção de clientes
+- Adicionada validação em tempo real dos campos
+- Melhorado o feedback visual durante operações
+- Implementada lista de equipamentos com cálculo automático de valores
+- Adicionado suporte para edição de contratos existentes
 
-#### 1. Atualização do layout
-- Adicionamos atributos `android:clickable="true"` e `android:focusable="true"` aos cards de status
-- Implementamos feedback visual com efeito de ripple ao clicar nos cards
-- Adicionamos IDs únicos para cada card de status para facilitar a implementação do listener:
-  - `cardDevolucoesPendentes`
-  - `cardDevolucoesDevolvidas`
-  - `cardDevolucoesProblem`
+### Correções e Otimizações
 
-#### 2. Implementação de método para filtrar devoluções por status
-- Criamos o método `getDevolucoesByStatus()` no ViewModel para filtrar as devoluções:
-```kotlin
-fun getDevolucoesByStatus(status: String): List<Devolucao> {
-    // Obtém todas as devoluções do cliente atual
-    val devolucoesDoCliente = devolucoes.value
-    
-    // Filtra por status
-    return devolucoesDoCliente?.filter { devolucao ->
-        devolucao.status.equals(status, ignoreCase = true)
-    } ?: emptyList()
-}
-```
+#### 1. Correções no ContratoRepository
+- Otimizado o carregamento de dados relacionados
+- Implementado cache para melhor performance
+- Corrigido problema de valores zerados em contratos
+- Melhorado tratamento de erros de rede
+- Implementada sincronização offline
 
-#### 3. Implementação dos listeners para os cards
-- Adicionamos listeners para cada card no método `setupListeners()`:
-```kotlin
-// Card de devoluções pendentes
-binding.cardDevolucoesPendentes.setOnClickListener {
-    LogUtils.debug("ClientDetailsFragment", "Card de devoluções pendentes clicado")
-    showDevolucoesByStatus("PENDENTE")
-}
+#### 2. Melhorias no ClientDetailsViewModel
+- Implementada lógica para carregamento assíncrono de dados
+- Adicionado suporte para filtragem de contratos
+- Melhorado gerenciamento de estado da UI
+- Implementada atualização automática após edições
+- Otimizado uso de memória
 
-// Card de devoluções devolvidas
-binding.cardDevolucoesDevolvidas.setOnClickListener {
-    LogUtils.debug("ClientDetailsFragment", "Card de devoluções devolvidas clicado")
-    showDevolucoesByStatus("DEVOLVIDO")
-}
+### Novas Funcionalidades
 
-// Card de devoluções com problemas
-binding.cardDevolucoesProblem.setOnClickListener {
-    LogUtils.debug("ClientDetailsFragment", "Card de devoluções com problemas clicado")
-    showDevolucoesByStatus("PROBLEMA")
-}
-```
+#### 1. Sistema de Geração de PDF
+- Implementada geração de PDF com dados completos do contrato
+- Adicionado suporte para diferentes formatos de saída
+- Implementada visualização prévia do PDF
+- Adicionada opção de compartilhamento
+- Implementado salvamento local de PDFs
 
-#### 4. Criação do método para exibir devoluções por status
-- Implementamos o método `showDevolucoesByStatus()` para exibir as devoluções filtradas:
-```kotlin
-private fun showDevolucoesByStatus(status: String) {
-    // Obter devoluções do status selecionado
-    val devolucoesDoStatus = viewModel.getDevolucoesByStatus(status)
-    
-    when {
-        // Caso 1: Nenhuma devolução encontrada
-        devolucoesDoStatus.isEmpty() -> {
-            Toast.makeText(
-                context,
-                "Nenhuma devolução com status '$status' encontrada",
-                Toast.LENGTH_SHORT
-            ).show()
-        }
-        
-        // Caso 2: Apenas uma devolução - mostrar diretamente os detalhes
-        devolucoesDoStatus.size == 1 -> {
-            showDevolucaoDetailDialog(devolucoesDoStatus.first())
-        }
-        
-        // Caso 3: Múltiplas devoluções - mostrar diálogo para escolha
-        else -> {
-            showDevolucoesSelectionDialog(devolucoesDoStatus, status)
-        }
-    }
-}
-```
+#### 2. Melhorias no Cadastro de Clientes
+- Implementada validação de documentos (CPF/CNPJ)
+- Adicionado suporte para múltiplos contatos
+- Melhorada a interface de cadastro
+- Implementada busca avançada de clientes
+- Adicionado histórico de interações
 
-#### 5. Implementação do diálogo para seleção de devolução
-- Criamos um diálogo personalizado para quando houver múltiplas devoluções:
-```kotlin
-private fun showDevolucoesSelectionDialog(devolucoesDoStatus: List<Devolucao>, status: String) {
-    // Criar e configurar o AlertDialog
-    val builder = AlertDialog.Builder(requireContext())
-    builder.setTitle("Devoluções com status: $status")
-    
-    // Criar array de strings com informações das devoluções
-    val devolucoesTitles = devolucoesDoStatus.map { 
-        "Devolução #${it.devNum} - ${it.equipamento.nome}"
-    }.toTypedArray()
-    
-    // Configurar listener para item clicado
-    builder.setItems(devolucoesTitles) { _, which ->
-        val devolucaoSelecionada = devolucoesDoStatus[which]
-        showDevolucaoDetailDialog(devolucaoSelecionada)
-    }
-    
-    // Adicionar botão para cancelar
-    builder.setNegativeButton("Cancelar") { dialog, _ ->
-        dialog.dismiss()
-    }
-    
-    // Mostrar o diálogo
-    builder.show()
-}
-```
+### Melhorias de Estilo e Layout
 
-### Benefícios da Implementação
-- Melhor experiência do usuário com navegação mais intuitiva
-- Acesso rápido às devoluções filtradas por status diretamente da tela de detalhes do cliente
-- Feedback visual claro para o usuário sobre quais elementos são interativos
-- Implementação de fluxos adaptados para diferentes situações (nenhuma devolução, uma devolução ou múltiplas devoluções)
-- Melhor organização das informações, evitando sobrecarga visual ao mostrar todas as devoluções de uma vez
+#### 1. Atualização do Sistema de Temas
+- Implementado novo tema base com cores personalizadas
+- Adicionado suporte para modo claro/escuro
+- Melhorada consistência visual em todo o aplicativo
+- Implementados estilos para diferentes tipos de texto
+- Adicionado suporte para fontes personalizadas (Poppins)
 
-### Data da Implementação
+#### 2. Melhorias nos Componentes de UI
+- Atualizado estilo dos botões com cantos arredondados (12dp)
+- Implementado novo estilo para campos de entrada
+- Melhorado feedback visual em estados de erro
+- Adicionado suporte para ícones em campos de texto
+- Implementado estilo consistente para diálogos
+
+#### 3. Layouts e Espaçamentos
+- Padronizado padding de 16dp em containers principais
+- Implementado sistema de margens consistente
+- Melhorada hierarquia visual com espaçamentos adequados
+- Adicionado suporte para diferentes densidades de tela
+- Implementado layout responsivo para diferentes tamanhos
+
+#### 4. Cores e Estados Visuais
+- Implementada nova paleta de cores semânticas
+- Adicionados estados visuais para diferentes status
+- Melhorado contraste para melhor legibilidade
+- Implementado sistema de cores para feedback
+- Adicionado suporte para gradientes em elementos específicos
+
+#### 5. Melhorias de Acessibilidade
+- Implementado suporte para texto dinâmico
+- Melhorado contraste de cores
+- Adicionadas descrições de conteúdo
+- Implementado suporte para navegação por teclado
+- Melhorada legibilidade de textos
+
+### Benefícios das Atualizações
+- Melhor experiência do usuário com interface mais intuitiva
+- Maior confiabilidade na geração e visualização de PDFs
+- Melhor performance no carregamento de dados
+- Interface mais consistente em todo o aplicativo
+- Suporte completo para operações offline
+
+### Data das Atualizações
 15/05/2025
-
-## Correção de problemas com TextInputLayout nos diálogos de cadastro
-
-### Problema Detectado
-O aplicativo apresentava dois problemas relacionados à aparência dos campos de texto (TextInputLayout) nos diálogos de cadastro:
-
-1. Os campos de texto ficavam quase transparentes quando clicados, dificultando a visualização do conteúdo
-2. O cursor de texto ficava branco e difícil de ser visualizado, prejudicando a experiência do usuário ao digitar
-
-### Detalhes da Implementação
-
-#### 1. Criação de estilos personalizados
-- Implementamos dois estilos personalizados no arquivo `styles.xml`:
-  - `Widget.ALG.TextInputLayout.Dialog` para campos de texto regulares em diálogos
-  - `Widget.ALG.TextInputLayout.ExposedDropdown` para campos de menu suspenso (dropdown)
-
-#### 2. Configuração de propriedades visuais
-- Definimos um fundo branco sólido para melhorar a visualização:
-  ```xml
-  <item name="boxBackgroundColor">@color/white</item>
-  ```
-- Configuramos a cor da dica (hint) quando em foco para usar a cor primária:
-  ```xml
-  <item name="hintTextColor">@color/primary</item>
-  ```
-- Corrigimos a cor do cursor definindo:
-  ```xml
-  <item name="colorControlActivated">@color/primary</item>
-  <item name="android:textCursorDrawable">@null</item>
-  ```
-- Definimos larguras consistentes para os traços da caixa:
-  ```xml
-  <item name="boxStrokeWidth">1dp</item>
-  <item name="boxStrokeWidthFocused">2dp</item>
-  ```
-
-#### 3. Tema de sobreposição
-- Criamos um tema de sobreposição (`ThemeOverlay.ALG.TextInputLayout`) para definir configurações globais:
-  ```xml
-  <style name="ThemeOverlay.ALG.TextInputLayout" parent="">
-      <item name="colorPrimary">@color/primary</item>
-      <item name="colorError">@color/error</item>
-      <item name="colorOnSurface">@color/text_primary</item>
-      <item name="textAppearanceCaption">@style/TextAppearance.ALG.Caption</item>
-  </style>
-  ```
-
-#### 4. Correção de erros nos seletores de cores
-- Removemos o arquivo `mtrl_text_input_stroke_color.xml` que continha atributos inexistentes:
-  - Uso incorreto de `android:state_error` (atributo inexistente)
-  - Uso incorreto de `errorStrokeWidth` (propriedade inexistente)
-
-#### 5. Aplicação dos estilos
-- Aplicamos os novos estilos aos TextInputLayout nos seguintes diálogos de cadastro:
-  - `dialog_cadastro_contrato.xml`
-  - `dialog_cadastro_cliente.xml`
-  - `dialog_cadastro_equipamento.xml`
-
-### Benefícios da Implementação
-- Melhor visibilidade dos campos de texto, mesmo quando selecionados
-- Cursor visível e destacado com a cor primária do aplicativo
-- Consistência visual em todos os estados do campo (normal, foco, erro)
-- Experiência de usuário aprimorada ao preencher formulários
-- Remoção de código com erros e atributos inexistentes
-
-### Data da Implementação
-16/05/2025
