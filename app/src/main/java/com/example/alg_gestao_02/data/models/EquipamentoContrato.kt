@@ -4,9 +4,6 @@ import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 
-/**
- * Modelo de dados para EquipamentoContrato, que associa equipamentos a um contrato
- */
 @Parcelize
 data class EquipamentoContrato(
     @SerializedName("id")
@@ -35,7 +32,7 @@ data class EquipamentoContrato(
     val equipamentoNome: String? = null,
     
     // Campo para referência ao equipamento completo (não armazenado no banco)
-    @Transient
+    @SerializedName("equipamento")
     val equipamento: Equipamento? = null
 ) : Parcelable {
     // Uma propriedade que permite obter o ID do contrato

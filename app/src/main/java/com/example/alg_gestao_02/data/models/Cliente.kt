@@ -1,8 +1,8 @@
 package com.example.alg_gestao_02.data.models
 
 import android.os.Parcelable
-import kotlinx.parcelize.Parcelize
 import com.google.gson.annotations.SerializedName
+import kotlinx.parcelize.Parcelize
 
 /**
  * Representa um cliente no sistema
@@ -82,4 +82,4 @@ data class Cliente(
         enderecoCompleto.append(", $cidade/$estado")
         return enderecoCompleto.toString()
     }
-} 
+}

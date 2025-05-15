@@ -57,7 +57,11 @@ data class Contrato(
     
     // Lista de equipamentos associados ao contrato
     @SerializedName("equipamentos")
-    val equipamentos: List<EquipamentoContrato> = emptyList()
+    val equipamentos: List<EquipamentoContrato> = emptyList(),
+
+    // Suporte para resposta da API que retorna como "equipamentoContratos"
+    @SerializedName("equipamentoContratos")
+    val equipamentoContratos: List<EquipamentoContrato>? = null
 ) : Parcelable {
     
     companion object {
@@ -136,7 +140,6 @@ data class Contrato(
      */
     fun getDataVencimentoFormatada(): String {
         if (dataVenc.isNullOrEmpty()) return ""
-        
         try {
             val formatoEntrada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
             val formatoSaida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
@@ -144,7 +147,7 @@ data class Contrato(
             return formatoSaida.format(data)
         } catch (e: Exception) {
             // Em caso de erro, retorna a string original
-            return dataVenc ?: ""
+            return dataVenc ?: "" // dataVenc já é String?
         }
     }
     
@@ -185,4 +188,17 @@ data class Contrato(
             contratoValor
         }
     }
+    
+    /**
+     * Sempre retorna a lista de equipamentos mais completa para exibição e lógica.
+     * Prioriza a lista 'equipamentos', se não estiver vazia, senão usa 'equipamentoContratos'.
+     */
+    val equipamentosParaExibicao: List<EquipamentoContrato>
+        get() = when {
+            !equipamentos.isNullOrEmpty() -> equipamentos
+            !equipamentoContratos.isNullOrEmpty() -> equipamentoContratos!!
+            else -> emptyList()
+        }
 }
+
+// Trigger recompile for Parcelize

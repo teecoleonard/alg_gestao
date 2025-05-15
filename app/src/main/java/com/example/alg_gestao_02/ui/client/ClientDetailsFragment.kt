@@ -10,6 +10,7 @@ import android.widget.PopupMenu
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
+import androidx.lifecycle.lifecycleScope
 import androidx.navigation.fragment.findNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.alg_gestao_02.R
@@ -26,8 +27,10 @@ import com.example.alg_gestao_02.ui.contrato.ContratoDetailsDialogFragment
 import com.example.alg_gestao_02.ui.contrato.adapter.ContratosAdapter
 import com.example.alg_gestao_02.ui.devolucao.DevolucaoDetailsDialogFragment
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.utils.Resource
 import com.example.alg_gestao_02.utils.ViewModelFactory
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import kotlinx.coroutines.launch
 
 /**
  * Fragment para exibir os detalhes do cliente
@@ -264,12 +267,26 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
 
     private fun showContratoDetails(contrato: Contrato) {
         LogUtils.debug("ClientDetailsFragment", "Mostrando detalhes do contrato: ${contrato.id}")
-        val dialog = ContratoDetailsDialogFragment.newInstance(contrato)
-        
-        // Configurar o listener para edição
-        dialog.setOnEditRequestListener(this)
-        
-        dialog.show(parentFragmentManager, "detalhes_contrato")
+        // Buscar o contrato completo pelo ID antes de abrir o dialog
+        viewLifecycleOwner.lifecycleScope.launch {
+            val repository = ContratoRepository()
+            when (val result = repository.getContratoById(contrato.id)) {
+                is Resource.Success -> {
+                    val contratoCompleto = result.data
+                    if (contratoCompleto != null) {
+                        val dialog = ContratoDetailsDialogFragment.newInstance(contratoCompleto)
+                        dialog.setOnEditRequestListener(this@ClientDetailsFragment)
+                        dialog.show(parentFragmentManager, "detalhes_contrato")
+                    } else {
+                        Toast.makeText(requireContext(), "Contrato não encontrado.", Toast.LENGTH_SHORT).show()
+                    }
+                }
+                is Resource.Error -> {
+                    Toast.makeText(requireContext(), "Erro ao carregar detalhes do contrato", Toast.LENGTH_SHORT).show()
+                }
+                else -> {}
+            }
+        }
     }
     
     override fun onEditRequested(contrato: Contrato) {

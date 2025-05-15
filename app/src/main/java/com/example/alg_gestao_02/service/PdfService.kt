@@ -147,10 +147,10 @@ class PdfService {
             )
         
         // Verificar se a lista de equipamentos não é nula antes de fazer o map
-        val produtosPdf = if (contrato.equipamentos.isNullOrEmpty()) {
+        val produtosPdf = if (contrato.equipamentosParaExibicao.isEmpty()) {
             emptyList()
         } else {
-            contrato.equipamentos.map { mapEquipamentoToProdutoDTO(it) }
+            contrato.equipamentosParaExibicao.map { mapEquipamentoToProdutoDTO(it) }
         }
         
         // Formatar as datas para o formato ISO

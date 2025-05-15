@@ -131,39 +131,35 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             tvResponsavel.text = "Responsável: ${c.respPedido ?: "Não informado"}"
             tvAssinatura.text = c.contratoAss ?: "Não assinado"
             
-            val numEquip = c.equipamentos?.size ?: 0 
-            tvNumEquipamentos.text = "Quantidade: $numEquip"
+            // Soma total das quantidades de todos os equipamentos
+            val somaQuantidade = c.equipamentosParaExibicao.sumOf { it.quantidadeEquip }
+            tvNumEquipamentos.text = "Quantidade total: $somaQuantidade"
 
-            // Exibir o nome do primeiro equipamento se existir
-            if (!c.equipamentos.isNullOrEmpty()) {
-                val primeiroEquipamento = c.equipamentos!!.firstOrNull()
-                if (primeiroEquipamento != null) {
-                    tvNomeEquipamento.text = primeiroEquipamento.nomeEquipamentoExibicao
-                    LogUtils.debug("ContratoDetailsDialog", "Nome do equipamento exibido: ${primeiroEquipamento.nomeEquipamentoExibicao}")
-                } else {
-                    tvNomeEquipamento.text = "Sem equipamento"
-                }
+            // Exibir todos os nomes dos equipamentos, separados por vírgula
+            if (c.equipamentosParaExibicao.isNotEmpty()) {
+                val nomesEquipamentos = c.equipamentosParaExibicao.joinToString(separator = ", ") { it.nomeEquipamentoExibicao }
+                tvNomeEquipamento.text = nomesEquipamentos
             } else {
                 tvNomeEquipamento.text = "Sem equipamentos cadastrados"
             }
 
             // Log detalhado da lista de equipamentos e seus valores totais
-            if (c.equipamentos.isNullOrEmpty()) {
+            if (c.equipamentosParaExibicao.isEmpty()) {
                 LogUtils.debug("ContratoDetailsDialog", "Lista de equipamentos está nula ou vazia.")
             } else {
                 LogUtils.debug("ContratoDetailsDialog", "Detalhes dos equipamentos no contrato:")
-                c.equipamentos!!.forEachIndexed { index, equip ->
+                c.equipamentosParaExibicao.forEachIndexed { index, equip ->
                     LogUtils.debug("ContratoDetailsDialog", 
-                        "  Equipamento[$index]: ID=${equip.id}, Nome=${equip.nomeEquipamentoExibicao}, ValorTotal=${equip.valorTotal}")
+                        "  Equipamento[[index]]: ID=${equip.id}, Nome=${equip.nomeEquipamentoExibicao}, ValorTotal=${equip.valorTotal}")
                 }
             }
             
             // Calcular o valor total a partir dos equipamentos
             // Se houver equipamentos, somar seus valores totais, senão usar o contratoValor
-            val valorTotalCalculado = if (c.equipamentos.isNullOrEmpty()) {
+            val valorTotalCalculado = if (c.equipamentosParaExibicao.isEmpty()) {
                 c.contratoValor
             } else {
-                c.equipamentos.sumOf { it.valorTotal ?: 0.0 }
+                c.equipamentosParaExibicao.sumOf { it.valorTotal ?: 0.0 }
             }
 
             LogUtils.debug("ContratoDetailsDialog", "Valor Total Calculado: $valorTotalCalculado, Valor no contrato: ${c.contratoValor}")
