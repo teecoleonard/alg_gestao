@@ -969,137 +969,37 @@ A API apresentava dois problemas principais:
 - Adicionado suporte para edição de contratos
 - Implementada interface para comunicação com fragment pai
 
-### Melhorias de Estilo e Layout
+### Melhoria na Visualização dos Equipamentos no Detalhe do Contrato
 
-#### 1. Atualização do Sistema de Temas
-- Implementado novo tema base com cores personalizadas
-- Adicionado suporte para modo claro/escuro
-- Melhorada consistência visual em todo o aplicativo
-- Implementados estilos para diferentes tipos de texto
-- Adicionado suporte para fontes personalizadas (Poppins)
+### Problema Detectado
+A tela de detalhes do contrato exibia apenas a quantidade de tipos de equipamentos (tamanho da lista) e o nome do primeiro equipamento, não refletindo corretamente a soma total das quantidades nem listando todos os equipamentos associados ao contrato.
 
-#### 2. Melhorias nos Componentes de UI
-- Atualizado estilo dos botões com cantos arredondados (12dp)
-- Implementado novo estilo para campos de entrada
-- Melhorado feedback visual em estados de erro
-- Adicionado suporte para ícones em campos de texto
-- Implementado estilo consistente para diálogos
+### Detalhes da Implementação
 
-#### 3. Layouts e Espaçamentos
-- Padronizado padding de 16dp em containers principais
-- Implementado sistema de margens consistente
-- Melhorada hierarquia visual com espaçamentos adequados
-- Adicionado suporte para diferentes densidades de tela
-- Implementado layout responsivo para diferentes tamanhos
+1. **Soma das Quantidades**
+   - Alteramos o cálculo da quantidade exibida para mostrar a soma total de todas as quantidades de equipamentos (`quantidadeEquip`) associados ao contrato.
+   - Exemplo: Se o contrato possui 2 "Betoneiras" (quantidade 2) e 3 "Andaimes" (quantidade 3), será exibido "Quantidade total: 5".
 
-#### 4. Cores e Estados Visuais
-- Implementada nova paleta de cores semânticas
-- Adicionados estados visuais para diferentes status
-- Melhorado contraste para melhor legibilidade
-- Implementado sistema de cores para feedback
-- Adicionado suporte para gradientes em elementos específicos
+2. **Listagem de Todos os Nomes de Equipamentos**
+   - Agora, todos os nomes dos equipamentos são exibidos, separados por vírgula, em vez de mostrar apenas o primeiro nome.
+   - Exemplo: "Betoneira Normalizada 400L, Andaime Tubular, Compactador de Solo".
 
-#### 5. Melhorias de Acessibilidade
-- Implementado suporte para texto dinâmico
-- Melhorado contraste de cores
-- Adicionadas descrições de conteúdo
-- Implementado suporte para navegação por teclado
-- Melhorada legibilidade de textos
+3. **Ajuste no Código**
+   - O campo de quantidade foi alterado para:
+     ```kotlin
+     val somaQuantidade = c.equipamentosParaExibicao.sumOf { it.quantidadeEquip }
+     tvNumEquipamentos.text = "Quantidade total: $somaQuantidade"
+     ```
+   - O campo de nomes de equipamentos foi alterado para:
+     ```kotlin
+     val nomesEquipamentos = c.equipamentosParaExibicao.joinToString(separator = ", ") { it.nomeEquipamentoExibicao }
+     tvNomeEquipamento.text = nomesEquipamentos
+     ```
 
-### Data das Atualizações
-15/05/2025
+### Benefícios da Implementação
+- Visualização mais fiel e clara dos equipamentos realmente associados ao contrato.
+- Usuário pode conferir rapidamente a soma total de equipamentos e todos os tipos envolvidos.
+- Melhora a conferência visual antes da geração do PDF e facilita a validação dos dados do contrato.
 
-### Melhorias na Interface do Usuário
-
-#### 1. Atualização do Layout de Detalhes do Contrato
-- Redesenhado o layout para melhor organização das informações
-- Adicionados novos campos para informações detalhadas
-- Implementado estilo consistente com o tema do aplicativo
-- Melhorada a visualização de valores monetários
-- Adicionado suporte para diferentes tipos de cliente (PF/PJ)
-
-#### 2. Melhorias no Cadastro de Contratos
-- Implementado autocomplete para seleção de clientes
-- Adicionada validação em tempo real dos campos
-- Melhorado o feedback visual durante operações
-- Implementada lista de equipamentos com cálculo automático de valores
-- Adicionado suporte para edição de contratos existentes
-
-### Correções e Otimizações
-
-#### 1. Correções no ContratoRepository
-- Otimizado o carregamento de dados relacionados
-- Implementado cache para melhor performance
-- Corrigido problema de valores zerados em contratos
-- Melhorado tratamento de erros de rede
-- Implementada sincronização offline
-
-#### 2. Melhorias no ClientDetailsViewModel
-- Implementada lógica para carregamento assíncrono de dados
-- Adicionado suporte para filtragem de contratos
-- Melhorado gerenciamento de estado da UI
-- Implementada atualização automática após edições
-- Otimizado uso de memória
-
-### Novas Funcionalidades
-
-#### 1. Sistema de Geração de PDF
-- Implementada geração de PDF com dados completos do contrato
-- Adicionado suporte para diferentes formatos de saída
-- Implementada visualização prévia do PDF
-- Adicionada opção de compartilhamento
-- Implementado salvamento local de PDFs
-
-#### 2. Melhorias no Cadastro de Clientes
-- Implementada validação de documentos (CPF/CNPJ)
-- Adicionado suporte para múltiplos contatos
-- Melhorada a interface de cadastro
-- Implementada busca avançada de clientes
-- Adicionado histórico de interações
-
-### Melhorias de Estilo e Layout
-
-#### 1. Atualização do Sistema de Temas
-- Implementado novo tema base com cores personalizadas
-- Adicionado suporte para modo claro/escuro
-- Melhorada consistência visual em todo o aplicativo
-- Implementados estilos para diferentes tipos de texto
-- Adicionado suporte para fontes personalizadas (Poppins)
-
-#### 2. Melhorias nos Componentes de UI
-- Atualizado estilo dos botões com cantos arredondados (12dp)
-- Implementado novo estilo para campos de entrada
-- Melhorado feedback visual em estados de erro
-- Adicionado suporte para ícones em campos de texto
-- Implementado estilo consistente para diálogos
-
-#### 3. Layouts e Espaçamentos
-- Padronizado padding de 16dp em containers principais
-- Implementado sistema de margens consistente
-- Melhorada hierarquia visual com espaçamentos adequados
-- Adicionado suporte para diferentes densidades de tela
-- Implementado layout responsivo para diferentes tamanhos
-
-#### 4. Cores e Estados Visuais
-- Implementada nova paleta de cores semânticas
-- Adicionados estados visuais para diferentes status
-- Melhorado contraste para melhor legibilidade
-- Implementado sistema de cores para feedback
-- Adicionado suporte para gradientes em elementos específicos
-
-#### 5. Melhorias de Acessibilidade
-- Implementado suporte para texto dinâmico
-- Melhorado contraste de cores
-- Adicionadas descrições de conteúdo
-- Implementado suporte para navegação por teclado
-- Melhorada legibilidade de textos
-
-### Benefícios das Atualizações
-- Melhor experiência do usuário com interface mais intuitiva
-- Maior confiabilidade na geração e visualização de PDFs
-- Melhor performance no carregamento de dados
-- Interface mais consistente em todo o aplicativo
-- Suporte completo para operações offline
-
-### Data das Atualizações
+### Data da Implementação
 15/05/2025
