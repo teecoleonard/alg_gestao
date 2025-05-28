@@ -102,4 +102,6 @@ Interface moderna seguindo as diretrizes do Material 3:
 
 ---
 
-**ALG Gestão** - Solução completa para gestão de locações
+<div align="center">
+  <p>Desenvolvido por Leonardo Henrique</p>
+</div>
