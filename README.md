@@ -62,7 +62,7 @@ Aplicativo Android completo para gestão de contratos, clientes e equipamentos d
 
 1. **Clone o projeto**
    ```bash
-   git clone [url-do-repositorio]
+   git clone [https://github.com/teecoleonard/alg_gestao.git]
    cd alg_gestao
    ```
 
