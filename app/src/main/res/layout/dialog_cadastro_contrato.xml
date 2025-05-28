@@ -173,28 +173,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Assinatura do Contrato (Opcional) -->
-            <com.google.android.material.textfield.TextInputLayout
-                android:id="@+id/tilContratoAss"
-                style="@style/Widget.ALG.TextInputLayout.Dialog"
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginTop="8dp"
-                android:hint="Assinatura do Contrato"
-                app:endIconMode="clear_text"
-                app:helperText="Opcional"
-                app:helperTextEnabled="true"
-                app:layout_constraintTop_toBottomOf="@id/tilRespPedido">
-
-                <com.google.android.material.textfield.TextInputEditText
-                    android:id="@+id/etContratoAss"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:inputType="textMultiLine"
-                    android:lines="3" />
-
-            </com.google.android.material.textfield.TextInputLayout>
-
             <!-- Seção de Equipamentos -->
             <TextView
                 android:id="@+id/tvTituloEquipamentos"
@@ -207,7 +185,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tilContratoAss" />
+                app:layout_constraintTop_toBottomOf="@id/tilRespPedido" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddEquipamento"

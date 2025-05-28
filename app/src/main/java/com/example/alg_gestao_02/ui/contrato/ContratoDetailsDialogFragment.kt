@@ -129,7 +129,14 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             tvPeriodo.text = "Período: ${c.contratoPeriodo ?: "Não informado"}"
             tvLocalEntrega.text = "Entrega: ${c.entregaLocal ?: "Não informado"}"
             tvResponsavel.text = "Responsável: ${c.respPedido ?: "Não informado"}"
-            tvAssinatura.text = c.contratoAss ?: "Não assinado"
+            
+            // Atualizar exibição do status da assinatura
+            val statusAssinatura = when {
+                c.status_assinatura == "ASSINADO" -> "Assinado em ${c.data_assinatura}"
+                c.status_assinatura == "PENDENTE" -> "Aguardando assinatura"
+                else -> "Não assinado"
+            }
+            tvAssinatura.text = statusAssinatura
             
             // Soma total das quantidades de todos os equipamentos
             val somaQuantidade = c.equipamentosParaExibicao.sumOf { it.quantidadeEquip }
@@ -213,55 +220,43 @@ class ContratoDetailsDialogFragment : DialogFragment() {
      * Gera o PDF do contrato
      */
     private fun gerarPdfContrato() {
-        val contrato = arguments?.getParcelable<Contrato>(ARG_CONTRATO)
-        if (contrato == null) {
-            Toast.makeText(
-                requireContext(),
-                "Erro: Dados do contrato não disponíveis",
-                Toast.LENGTH_LONG
-            ).show()
-            return
-        }
-        
-        // Verificar dados do cliente, incluindo Inscrição Estadual
-        contrato.cliente?.let { cliente ->
-            LogUtils.debug("ContratoDetailsDialog", """
-                Dados do cliente para o PDF:
-                Nome: ${cliente.contratante}
-                CPF/CNPJ: ${cliente.cpfCnpj}
-                RG/IE: ${cliente.rgIe ?: "Não informado"}
-                Telefone: ${cliente.telefone ?: "Não informado"}
-                Endereço: ${cliente.endereco}, ${cliente.bairro}, ${cliente.cidade}/${cliente.estado}
-                É Pessoa Física: ${cliente.isPessoaFisica()}
-            """.trimIndent())
-        }
-        
-        // Mostrar dialog de progresso
-        val progressDialog = ProgressDialog(requireContext()).apply {
-            setMessage("Gerando PDF, aguarde...")
-            setCancelable(false)
-            show()
-        }
-        
-        // Verificar se o cliente completo já está no contrato
-        val cliente = contrato.cliente
-        
-        // Chamar o serviço em uma coroutine
-        lifecycleScope.launch(Dispatchers.IO) {
-            try {
-                val result = pdfService?.gerarPdfContrato(contrato, cliente)
-                
-                withContext(Dispatchers.Main) {
-                    progressDialog.dismiss()
+        contrato?.let { contratoNaoNulo ->
+            // Mostrar dialog de progresso
+            val progressDialog = ProgressDialog(requireContext()).apply {
+                setMessage("Gerando PDF, aguarde...")
+                setCancelable(false)
+                show()
+            }
+
+            // Verificar dados do cliente, incluindo Inscrição Estadual
+            contratoNaoNulo.cliente?.let { cliente ->
+                LogUtils.debug("ContratoDetailsDialog", """
+                    Dados do cliente para o PDF:
+                    Nome: ${cliente.contratante}
+                    CPF/CNPJ: ${cliente.cpfCnpj}
+                    RG/IE: ${cliente.rgIe ?: "Não informado"}
+                    Telefone: ${cliente.telefone ?: "Não informado"}
+                    Endereço: ${cliente.endereco}, ${cliente.bairro}, ${cliente.cidade}/${cliente.estado}
+                    É Pessoa Física: ${cliente.isPessoaFisica()}
+                """.trimIndent())
+            }
+
+            // Chamar o serviço em uma coroutine
+            lifecycleScope.launch(Dispatchers.IO) {
+                try {
+                    val result = pdfService?.gerarPdfContrato(contratoNaoNulo, contratoNaoNulo.cliente)
                     
-                    if (result?.isSuccess == true) {
-                        val pdfResponse = result.getOrNull()
-                        if (pdfResponse != null && pdfResponse.success) {
-                            // Mostrar o PDF/HTML no visualizador
-                            if (pdfResponse.pdfBase64 != null) {
+                    withContext(Dispatchers.Main) {
+                        progressDialog.dismiss()
+                        
+                        if (result?.isSuccess == true) {
+                            val pdfResponse = result.getOrNull()
+                            if (pdfResponse != null && pdfResponse.success) {
+                                // Mostrar o PDF/HTML no visualizador
                                 val pdfViewer = PdfViewerFragment.newInstance(
                                     pdfBase64 = pdfResponse.pdfBase64,
-                                    contratoNumero = contrato.getContratoNumOuVazio(),
+                                    contratoNumero = contratoNaoNulo.getContratoNumOuVazio(),
+                                    contratoId = contratoNaoNulo.id,
                                     htmlUrl = pdfResponse.htmlUrl,
                                     htmlContent = pdfResponse.htmlContent
                                 )
@@ -274,37 +269,37 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                             } else {
                                 Toast.makeText(
                                     requireContext(),
-                                    "Erro: PDF não gerado corretamente",
+                                    "Erro ao gerar PDF: ${pdfResponse?.message ?: "Resposta inválida"}",
                                     Toast.LENGTH_LONG
                                 ).show()
                             }
                         } else {
+                            val error = result?.exceptionOrNull()?.message ?: "Erro desconhecido"
                             Toast.makeText(
                                 requireContext(),
-                                "Erro ao gerar PDF: ${pdfResponse?.message ?: "Resposta inválida"}",
+                                "Falha ao gerar PDF: $error",
                                 Toast.LENGTH_LONG
                             ).show()
                         }
-                    } else {
-                        val error = result?.exceptionOrNull()?.message ?: "Erro desconhecido"
+                    }
+                } catch (e: Exception) {
+                    LogUtils.error("ContratoDetailsDialogFragment", "Erro ao gerar PDF", e)
+                    withContext(Dispatchers.Main) {
+                        progressDialog.dismiss()
                         Toast.makeText(
                             requireContext(),
-                            "Falha ao gerar PDF: $error",
+                            "Erro ao gerar PDF: ${e.message}",
                             Toast.LENGTH_LONG
                         ).show()
                     }
                 }
-            } catch (e: Exception) {
-                LogUtils.error("ContratoDetailsDialogFragment", "Erro ao gerar PDF", e)
-                withContext(Dispatchers.Main) {
-                    progressDialog.dismiss()
-                    Toast.makeText(
-                        requireContext(),
-                        "Erro ao gerar PDF: ${e.message}",
-                        Toast.LENGTH_LONG
-                    ).show()
-                }
             }
+        } ?: run {
+            Toast.makeText(
+                requireContext(),
+                "Erro: Dados do contrato não disponíveis",
+                Toast.LENGTH_LONG
+            ).show()
         }
     }
 }

@@ -62,15 +62,14 @@
             android:text="Fechar" />
 
         <Button
-            android:id="@+id/btnSalvar"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:id="@+id/btnAssinar"
+            style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="4dp"
             android:layout_marginEnd="4dp"
-            android:layout_weight="0.7"
-            android:enabled="false"
-            android:text="Salvar" />
+            android:layout_weight="1"
+            android:text="Assinar" />
 
         <Button
             android:id="@+id/btnCompartilhar"
@@ -82,5 +81,16 @@
             android:enabled="false"
             android:text="Compartilhar" />
     </LinearLayout>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/btnSalvar"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:enabled="false"
+        android:contentDescription="Salvar PDF"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toTopOf="parent"
+        app:srcCompat="@android:drawable/ic_menu_save" />
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

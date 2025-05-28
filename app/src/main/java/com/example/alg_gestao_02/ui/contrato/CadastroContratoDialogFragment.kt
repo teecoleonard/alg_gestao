@@ -59,8 +59,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
     private lateinit var etEntregaLocal: TextInputEditText
     private lateinit var tilRespPedido: TextInputLayout
     private lateinit var etRespPedido: TextInputEditText
-    private lateinit var tilContratoAss: TextInputLayout
-    private lateinit var etContratoAss: TextInputEditText
     private lateinit var btnCancel: Button
     private lateinit var btnSave: Button
     private lateinit var loadingView: View
@@ -120,15 +118,15 @@ class CadastroContratoDialogFragment : DialogFragment() {
         setupToolbar()
         setupPeriodoDropdown()
         setupListeners()
+        setupRecyclerView()
         
         // Usar lifecycleScope para evitar bloqueio da UI
         lifecycleScope.launch {
-        // Observar estados e carregamento de dados
-        observeViewModel()
-        
-        // Preencher formulário com dados para edição, se necessário
-        preencherFormulario()
-            setupRecyclerView()
+            // Observar estados e carregamento de dados
+            observeViewModel()
+            
+            // Preencher formulário com dados para edição, se necessário
+            preencherFormulario()
         }
     }
     
@@ -148,8 +146,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
         etEntregaLocal = view.findViewById(R.id.etEntregaLocal)
         tilRespPedido = view.findViewById(R.id.tilRespPedido)
         etRespPedido = view.findViewById(R.id.etRespPedido)
-        tilContratoAss = view.findViewById(R.id.tilContratoAss)
-        etContratoAss = view.findViewById(R.id.etContratoAss)
         btnCancel = view.findViewById(R.id.btnCancel)
         btnSave = view.findViewById(R.id.btnSave)
         loadingView = view.findViewById(R.id.loadingView)
@@ -429,41 +425,32 @@ class CadastroContratoDialogFragment : DialogFragment() {
     
     private fun preencherFormulario() {
         contratoParaEdicao?.let { contrato ->
-            // O cliente já é configurado no observer de clientesState
+            // Preencher dados do cliente
+            contrato.cliente?.let { cliente ->
+                clienteSelecionado = cliente
+                actvCliente.setText(cliente.contratante, false)
+            }
             
-            // Número do contrato
+            // Preencher outros campos
             etContratoNum.setText(contrato.contratoNum)
-            
-            // Local da obra
             etObraLocal.setText(contrato.obraLocal)
-            
-            // Período do contrato
-            actvContratoPeriodo.setText(contrato.contratoPeriodo)
-            
-            // Local de entrega
+            actvContratoPeriodo.setText(contrato.contratoPeriodo, false)
             etEntregaLocal.setText(contrato.entregaLocal)
+            etRespPedido.setText(contrato.respPedido)
             
-            // Responsável pelo pedido
-            etRespPedido.setText(contrato.respPedido ?: "")
-            
-            // Assinatura do contrato
-            etContratoAss.setText(contrato.contratoAss ?: "")
+            // Preencher equipamentos
+            equipamentosContrato.clear()
+            equipamentosContrato.addAll(contrato.equipamentosParaExibicao)
+            equipamentosAdapter.notifyDataSetChanged()
+            atualizarVisibilidadeListaEquipamentos()
+            atualizarValorTotal()
         }
-        
-        // Se for um novo contrato, configura os campos que são autopreenchidos
-        if (contratoParaEdicao == null) {
-            // Os campos de data são preenchidos na API
-            // O número do contrato é preenchido quando o cliente é selecionado
-        }
-        atualizarDisplayValorTotalContrato()
     }
     
     private fun atualizarDisplayValorTotalContrato() {
         val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
         val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
-        if (::tvValorTotalContratoCalculado.isInitialized) {
-            tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
-        }
+        tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
     }
     
     private fun validarFormulario(): Boolean {
@@ -716,7 +703,6 @@ class CadastroContratoDialogFragment : DialogFragment() {
         val contratoPeriodo = actvContratoPeriodo.text.toString()
         val entregaLocal = etEntregaLocal.text.toString()
         val respPedido = etRespPedido.text.toString().takeIf { it.isNotBlank() }
-        val contratoAss = etContratoAss.text.toString().takeIf { it.isNotBlank() }
         
         // Atualizar o contratoId dos equipamentos para garantir que eles sejam associados ao contrato correto
         val contratoIdAtual = contratoParaEdicao?.id ?: 0
@@ -799,8 +785,7 @@ class CadastroContratoDialogFragment : DialogFragment() {
             obraLocal = obraLocal,
             contratoPeriodo = contratoPeriodo,
             entregaLocal = entregaLocal,
-            respPedido = respPedido,
-            contratoAss = contratoAss
+            respPedido = respPedido
         )
         
         LogUtils.debug("CadastroContratoDialog", 
@@ -821,5 +806,22 @@ class CadastroContratoDialogFragment : DialogFragment() {
      */
     fun setOnContratoSavedListener(listener: (Contrato) -> Unit) {
         this.onContratoSavedListener = listener
+    }
+
+    private fun atualizarVisibilidadeListaEquipamentos() {
+        if (equipamentosContrato.isEmpty()) {
+            tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
+            tvEmptyEquipamentos.visibility = View.VISIBLE
+            rvEquipamentos.visibility = View.GONE
+        } else {
+            tvEmptyEquipamentos.visibility = View.GONE
+            rvEquipamentos.visibility = View.VISIBLE
+        }
+    }
+
+    private fun atualizarValorTotal() {
+        val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
+        tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
     }
 }

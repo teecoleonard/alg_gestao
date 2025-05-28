@@ -1,6 +1,8 @@
 package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.data.api.ApiClient
+import com.example.alg_gestao_02.data.api.AssinaturaApiRequest
+import com.example.alg_gestao_02.data.api.AssinaturaResponse
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
 import com.example.alg_gestao_02.data.models.EquipamentoJson
@@ -353,5 +355,33 @@ class ContratoRepository {
         val calendar = java.util.Calendar.getInstance()
         calendar.add(java.util.Calendar.DAY_OF_MONTH, 30) // 30 dias a partir de hoje
         return formatoData.format(calendar.time)
+    }
+    
+    /**
+     * Envia a assinatura para a API para processamento
+     */
+    suspend fun enviarAssinatura(base64Data: String, contratoId: Int): Resource<AssinaturaResponse> {
+        return try {
+            LogUtils.debug("ContratoRepository", "Enviando assinatura para contrato ID: $contratoId")
+            val requestBody = AssinaturaApiRequest(base64Data, contratoId)
+            val response = apiService.enviarAssinatura(requestBody)
+            
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    Resource.Success(it)
+                } ?: Resource.Error("Resposta vazia do servidor")
+            } else {
+                LogUtils.warning("ContratoRepository", "Falha ao enviar assinatura: ${response.code()}")
+                val errorMessage = if (response.errorBody() != null) {
+                    "Erro ao enviar assinatura: ${response.errorBody()?.string() ?: "Erro desconhecido"}"
+                } else {
+                    "Erro ao enviar assinatura: ${response.message()}"
+                }
+                Resource.Error(errorMessage)
+            }
+        } catch (e: Exception) {
+            LogUtils.error("ContratoRepository", "Erro ao enviar assinatura", e)
+            Resource.Error("Erro de conexão: ${e.message}")
+        }
     }
 }

@@ -16,6 +16,18 @@ import retrofit2.http.POST
 import retrofit2.http.PUT
 import retrofit2.http.Path
 import com.google.gson.annotations.SerializedName
+import com.example.alg_gestao_02.data.models.Assinatura
+
+data class AssinaturaApiRequest(
+    val base64Data: String,
+    val contratoId: Int
+)
+
+data class AssinaturaResponse(
+    val success: Boolean,
+    val message: String,
+    val assinaturaId: Int? = null
+)
 
 interface ApiService {
     
@@ -200,6 +212,12 @@ interface ApiService {
         @Path("id") id: Int,
         @Body requestData: DevolucaoUpdateRequest
     ): Response<DevolucaoUpdateResponse>
+
+    /**
+     * Enviar assinatura para processamento
+     */
+    @POST("api/assinaturas")
+    suspend fun enviarAssinatura(@Body request: AssinaturaApiRequest): Response<AssinaturaResponse>
 
     /**
      * Classe para requisição de login

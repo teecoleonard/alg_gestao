@@ -258,16 +258,18 @@
                 android:id="@+id/btnFecharDetalhesDevolucao"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginEnd="8dp"
                 android:layout_weight="1"
-                android:text="Fechar" />
+                android:text="Fechar"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp"/>
 
             <Button
                 android:id="@+id/btnProcessarDevolucao"
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
-                android:layout_height="wrap_content"
+                android:layout_height="match_parent"
                 android:layout_marginStart="8dp"
                 android:layout_weight="1"
                 android:text="Processar Devolução" />

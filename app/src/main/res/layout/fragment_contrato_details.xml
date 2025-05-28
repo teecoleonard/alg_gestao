@@ -145,7 +145,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
-            tools:text="Assinado" />
+            tools:text="Assinado em 01/01/2023" />
 
         <!-- Número de Equipamentos -->
         <TextView

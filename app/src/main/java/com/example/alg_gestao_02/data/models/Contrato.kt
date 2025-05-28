@@ -3,6 +3,7 @@ package com.example.alg_gestao_02.data.models
 import android.os.Parcelable
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
+import kotlinx.parcelize.RawValue
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -46,7 +47,13 @@ data class Contrato(
     
     @SerializedName("contratoAss")
     val contratoAss: String? = null,
-    
+
+    @SerializedName("status_assinatura")
+    val status_assinatura: String? = null,
+
+    @SerializedName("data_assinatura")
+    val data_assinatura: String? = null,
+
     // Campo adicional para nome do cliente
     @SerializedName("cliente_nome")
     val clienteNome: String? = null,
@@ -61,7 +68,11 @@ data class Contrato(
 
     // Suporte para resposta da API que retorna como "equipamentoContratos"
     @SerializedName("equipamentoContratos")
-    val equipamentoContratos: List<EquipamentoContrato>? = null
+    val equipamentoContratos: List<EquipamentoContrato>? = null,
+
+    // Associação com a entidade Assinatura (agora é um objeto aninhado)
+    @SerializedName("assinatura")
+    val assinatura: Assinatura? = null
 ) : Parcelable {
     
     companion object {
@@ -155,7 +166,7 @@ data class Contrato(
      * Verifica se o contrato já está assinado
      */
     fun isAssinado(): Boolean {
-        return !contratoAss.isNullOrBlank()
+        return status_assinatura == "ASSINADO"
     }
     
     /**
@@ -199,6 +210,52 @@ data class Contrato(
             !equipamentoContratos.isNullOrEmpty() -> equipamentoContratos!!
             else -> emptyList()
         }
+
+    /**
+     * Verifica se o contrato pode ser excluído com base no status e papel do usuário
+     * @param isAdmin Indica se o usuário tem papel de administrador
+     * @param forcar Indica se a exclusão deve ser forçada (apenas para admin)
+     * @return Pair<Boolean, String> onde o primeiro valor indica se pode excluir e o segundo a mensagem explicativa
+     */
+    fun podeExcluir(isAdmin: Boolean, forcar: Boolean = false): Pair<Boolean, String> {
+        return when {
+            // Se for admin e forçar, permite exclusão independente do status
+            isAdmin && forcar -> Pair(true, "Exclusão forçada permitida para administrador")
+            
+            // Se for admin mas não forçar, verifica regras normais
+            isAdmin -> when (status_assinatura) {
+                "ASSINADO" -> Pair(false, "Contrato assinado não pode ser excluído")
+                "PENDENTE" -> Pair(true, "Contrato pendente pode ser excluído")
+                else -> Pair(true, "Contrato não assinado pode ser excluído")
+            }
+            
+            // Se não for admin, só permite excluir contratos não assinados
+            else -> when (status_assinatura) {
+                "ASSINADO" -> Pair(false, "Apenas administradores podem excluir contratos assinados")
+                "PENDENTE" -> Pair(false, "Apenas administradores podem excluir contratos pendentes")
+                else -> Pair(true, "Contrato não assinado pode ser excluído")
+            }
+        }
+    }
+
+    /**
+     * Retorna uma mensagem explicativa sobre a possibilidade de exclusão
+     */
+    fun getMensagemExclusao(isAdmin: Boolean): String {
+        return when (status_assinatura) {
+            "ASSINADO" -> if (isAdmin) {
+                "Contrato assinado. Apenas administradores podem forçar a exclusão."
+            } else {
+                "Contrato assinado não pode ser excluído."
+            }
+            "PENDENTE" -> if (isAdmin) {
+                "Contrato pendente. Apenas administradores podem excluir."
+            } else {
+                "Contrato pendente não pode ser excluído."
+            }
+            else -> "Contrato não assinado pode ser excluído."
+        }
+    }
 }
 
 // Trigger recompile for Parcelize

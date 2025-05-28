@@ -10,8 +10,14 @@ import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.webkit.WebResourceRequest
+import android.webkit.WebResourceResponse
 import android.webkit.WebView
 import android.webkit.WebViewClient
+import android.webkit.WebSettings
+import android.webkit.WebResourceError
+import android.webkit.WebChromeClient
+import android.webkit.ConsoleMessage
 import android.widget.Button
 import android.widget.ProgressBar
 import android.widget.TextView
@@ -22,6 +28,8 @@ import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.service.PdfService
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -37,13 +45,17 @@ class PdfViewerFragment : DialogFragment() {
     private lateinit var webView: WebView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCompartilhar: Button
-    private lateinit var btnSalvar: Button
+    private lateinit var btnSalvar: FloatingActionButton
     private lateinit var btnFechar: Button
+    private lateinit var btnAssinar: Button
     private lateinit var tvInfo: TextView
     
     private var pdfBytes: ByteArray? = null
     private var pdfFile: File? = null
     private var contratoNumero: String = ""
+    private var contratoId: Int = 0
+    
+    private val pdfService = PdfService()
     
     private val requestPermissionLauncher = registerForActivityResult(
         ActivityResultContracts.RequestPermission()
@@ -59,33 +71,17 @@ class PdfViewerFragment : DialogFragment() {
         }
     }
     
-    companion object {
-        private const val ARG_PDF_BASE64 = "pdf_base64"
-        private const val ARG_CONTRATO_NUMERO = "contrato_numero"
-        private const val ARG_HTML_URL = "html_url"
-        private const val ARG_HTML_CONTENT = "html_content"
-        private const val SERVER_BASE_URL = "http://192.168.100.195:8080"
-        
-        fun newInstance(
-            pdfBase64: String, 
-            contratoNumero: String,
-            htmlUrl: String? = null, 
-            htmlContent: String? = null
-        ): PdfViewerFragment {
-            val fragment = PdfViewerFragment()
-            val args = Bundle()
-            args.putString(ARG_PDF_BASE64, pdfBase64)
-            args.putString(ARG_CONTRATO_NUMERO, contratoNumero)
-            htmlUrl?.let { args.putString(ARG_HTML_URL, it) }
-            htmlContent?.let { args.putString(ARG_HTML_CONTENT, it) }
-            fragment.arguments = args
-            return fragment
-        }
-    }
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setStyle(STYLE_NORMAL, R.style.FullScreenDialogStyle)
+        // Mantém o padrão do DialogFragment
+    }
+
+    override fun onStart() {
+        super.onStart()
+        dialog?.window?.setLayout(
+            ViewGroup.LayoutParams.MATCH_PARENT,
+            ViewGroup.LayoutParams.MATCH_PARENT
+        )
     }
     
     override fun onCreateView(
@@ -104,395 +100,277 @@ class PdfViewerFragment : DialogFragment() {
         btnCompartilhar = view.findViewById(R.id.btnCompartilhar)
         btnSalvar = view.findViewById(R.id.btnSalvar)
         btnFechar = view.findViewById(R.id.btnFechar)
+        btnAssinar = view.findViewById(R.id.btnAssinar)
         tvInfo = view.findViewById(R.id.tvInfo)
+        
+        webView.visibility = View.VISIBLE // Garante que o WebView está visível
         
         val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
         val htmlUrl = arguments?.getString(ARG_HTML_URL)
         val htmlContent = arguments?.getString(ARG_HTML_CONTENT)
         contratoNumero = arguments?.getString(ARG_CONTRATO_NUMERO) ?: ""
+        contratoId = arguments?.getInt(ARG_CONTRATO_ID) ?: 0
         
-        btnFechar.setOnClickListener { dismiss() }
-        btnCompartilhar.isEnabled = false
-        btnSalvar.isEnabled = false
+        setupWebView()
+        setupButtons()
         
-        // Aplicar cores explicitamente para garantir que apareçam corretamente
-        btnCompartilhar.setBackgroundColor(ContextCompat.getColor(requireContext(), R.color.primary))
-        btnCompartilhar.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-        
-        btnSalvar.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
-        btnFechar.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary))
-        
-        if (pdfBase64 != null) {
-            try {
-                // Decodificar o PDF de base64 para bytes
-                pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
-                
-                // Criar arquivo temporário para o PDF
-                val tempFile = File.createTempFile("contrato_temp_", ".pdf", requireContext().cacheDir)
-                FileOutputStream(tempFile).use { it.write(pdfBytes) }
-                pdfFile = tempFile
-                
-                // Configurar botões de ação
-                btnCompartilhar.setOnClickListener { compartilharPdf() }
-                btnSalvar.setOnClickListener { verificarPermissao() }
-                
-                // Decidir como exibir o contrato (prioridade: URL HTML > Conteúdo HTML > PDF em Base64)
-                when {
-                    // 1. Se tiver URL HTML, carrega diretamente do servidor
-                    htmlUrl != null && htmlUrl.isNotEmpty() -> {
-                        carregarHtmlExterno(htmlUrl)
-                    }
-                    // 2. Se tiver conteúdo HTML, exibe direto
-                    htmlContent != null && htmlContent.isNotEmpty() -> {
-                        carregarHtmlDireto(htmlContent)
-                    }
-                    // 3. Fallback para exibição do PDF via HTML incorporado
-                    else -> {
-                        exibirPdfEmHtml(pdfBase64)
-                    }
-                }
-            } catch (e: Exception) {
-                mostrarErro("Erro ao processar PDF: ${e.message}", e)
-            }
-        } else {
-            mostrarErro("Não foi possível carregar o PDF", null)
-        }
-    }
-    
-    private fun carregarHtmlExterno(url: String) {
-        try {
-            // Configurar WebView
-            webView.visibility = View.VISIBLE
-            progressBar.visibility = View.VISIBLE
-            
-            webView.settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                allowFileAccess = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                useWideViewPort = true
-                loadWithOverviewMode = true
-            }
-            
-            webView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    progressBar.visibility = View.GONE
-                    btnCompartilhar.isEnabled = true
-                    btnSalvar.isEnabled = true
-                }
-                
-                override fun onReceivedError(
-                    view: WebView?,
-                    errorCode: Int,
-                    description: String?,
-                    failingUrl: String?
-                ) {
-                    LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML externo: $description")
-                    // Fallback para mostrar PDF via HTML incorporado
-                    val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
-                    if (pdfBase64 != null) {
-                        exibirPdfEmHtml(pdfBase64)
-                    } else {
-                        mostrarErro("Não foi possível carregar o contrato", null)
-                    }
-                }
-            }
-            
-            // Verificar se a URL é relativa (começa com /) e adicionar o domínio base
-            val urlCompleta = if (url.startsWith("/")) {
-                // Adicionar o domínio base (mesmo do servidor PDF)
-                SERVER_BASE_URL + url
-            } else {
-                url
-            }
-            
-            webView.loadUrl(urlCompleta)
-            LogUtils.debug("PdfViewerFragment", "Carregando HTML externo: $urlCompleta")
-        } catch (e: Exception) {
-            LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML externo", e)
-            // Fallback para exibição do PDF
-            val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
-            if (pdfBase64 != null) {
-                exibirPdfEmHtml(pdfBase64)
-            } else {
-                mostrarErro("Erro ao carregar o contrato", e)
-            }
-        }
-    }
-    
-    private fun carregarHtmlDireto(htmlContent: String) {
-        try {
-            // Configurar WebView
-            webView.visibility = View.VISIBLE
-            progressBar.visibility = View.VISIBLE
-            
-            webView.settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                allowFileAccess = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                useWideViewPort = true
-                loadWithOverviewMode = true
-            }
-            
-            webView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    progressBar.visibility = View.GONE
-                    btnCompartilhar.isEnabled = true
-                    btnSalvar.isEnabled = true
-                }
-                
-                override fun onReceivedError(
-                    view: WebView?,
-                    errorCode: Int,
-                    description: String?,
-                    failingUrl: String?
-                ) {
-                    LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML direto: $description")
-                    // Fallback para mostrar PDF via HTML incorporado
-                    val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
-                    if (pdfBase64 != null) {
-                        exibirPdfEmHtml(pdfBase64)
-                    } else {
-                        mostrarErro("Não foi possível carregar o contrato", null)
-                    }
-                }
-            }
-            
-            webView.loadDataWithBaseURL(null, htmlContent, "text/html", "UTF-8", null)
-            LogUtils.debug("PdfViewerFragment", "Carregando HTML direto")
-        } catch (e: Exception) {
-            LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML direto", e)
-            // Fallback para exibição do PDF
-            val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
-            if (pdfBase64 != null) {
-                exibirPdfEmHtml(pdfBase64)
-            } else {
-                mostrarErro("Erro ao carregar o contrato", e)
-            }
-        }
-    }
-    
-    private fun mostrarPdf(pdfFile: File) {
-        try {
-            // Configurar WebView
-            webView.visibility = View.VISIBLE
-            webView.settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                allowFileAccess = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                useWideViewPort = true
-                loadWithOverviewMode = true
-            }
-            
-            webView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    progressBar.visibility = View.GONE
-                    btnCompartilhar.isEnabled = true
-                    btnSalvar.isEnabled = true
-                }
-            }
-            
-            // Obter URI para o arquivo
-            val uri = FileProvider.getUriForFile(
-                requireContext(),
-                "${requireContext().packageName}.provider",
-                pdfFile
-            )
-            
-            // Usar o drive.google.com para exibir o PDF online
-            val googleDriveUrl = "https://drive.google.com/viewerng/viewer?embedded=true&url=${Uri.encode(uri.toString())}"
-            webView.loadUrl(googleDriveUrl)
-            
-            LogUtils.debug("PdfViewerFragment", "Carregando PDF via Google Drive Viewer")
-        } catch (e: Exception) {
-            LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF via WebView", e)
-            abrirComVisualizadorExterno()
-        }
-    }
-    
-    private fun exibirPdfEmHtml(pdfBase64: String) {
-        try {
-            // Configurar WebView
-            webView.visibility = View.VISIBLE
-            webView.settings.apply {
-                javaScriptEnabled = true
-                domStorageEnabled = true
-                allowFileAccess = true
-                builtInZoomControls = true
-                displayZoomControls = false
-                useWideViewPort = true
-                loadWithOverviewMode = true
-            }
-            
-            webView.webViewClient = object : WebViewClient() {
-                override fun onPageFinished(view: WebView?, url: String?) {
-                    progressBar.visibility = View.GONE
-                    btnCompartilhar.isEnabled = true
-                    btnSalvar.isEnabled = true
-                }
-
-                override fun onReceivedError(
-                    view: WebView?,
-                    errorCode: Int,
-                    description: String?,
-                    failingUrl: String?
-                ) {
-                    // Fallback para visualizador nativo se falhar o carregamento
-                    LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF via HTML: $description")
-                    tentarAbrirComPdfNativo()
-                }
-            }
-            
-            // Criando um HTML que carrega o PDF como base64 diretamente
-            val htmlData = """
-                <!DOCTYPE html>
-                <html>
-                <head>
-                    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-                    <style>
-                        body, html {
-                            margin: 0;
-                            padding: 0;
-                            height: 100%;
-                            width: 100%;
-                            overflow: hidden;
-                        }
-                        embed {
-                            width: 100%;
-                            height: 100%;
-                        }
-                    </style>
-                </head>
-                <body>
-                    <embed src="data:application/pdf;base64,$pdfBase64" type="application/pdf" />
-                </body>
-                </html>
-            """.trimIndent()
-            
-            webView.loadDataWithBaseURL(null, htmlData, "text/html", "UTF-8", null)
-            LogUtils.debug("PdfViewerFragment", "Carregando PDF via HTML incorporado")
-        } catch (e: Exception) {
-            LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF via WebView", e)
-            tentarAbrirComPdfNativo()
-        }
-    }
-    
-    private fun tentarAbrirComPdfNativo() {
-        pdfFile?.let { file ->
-            try {
-                val uri = FileProvider.getUriForFile(
-                    requireContext(),
-                    "${requireContext().packageName}.provider",
-                    file
-                )
-                
-                val intent = Intent(Intent.ACTION_VIEW).apply {
-                    setDataAndType(uri, "application/pdf")
-                    flags = Intent.FLAG_GRANT_READ_URI_PERMISSION
-                }
-                
-                if (intent.resolveActivity(requireContext().packageManager) != null) {
-                    startActivity(intent)
-                    // Mantemos o fragment aberto para permitir compartilhar/salvar
-                    Toast.makeText(
-                        requireContext(),
-                        "Abrindo PDF com visualizador externo",
-                        Toast.LENGTH_SHORT
-                    ).show()
-                } else {
-                    mostrarErro("Nenhum aplicativo encontrado para visualizar PDFs", null)
-                }
-            } catch (e: Exception) {
-                mostrarErro("Erro ao abrir PDF. Tente usar o botão compartilhar.", e)
-            }
-        } ?: run {
-            mostrarErro("PDF não disponível", null)
-        }
-    }
-    
-    private fun abrirComVisualizadorExterno() {
-        // Manter compatibilidade com código existente
-        tentarAbrirComPdfNativo()
-    }
-    
-    private fun mostrarErro(mensagem: String, erro: Exception?) {
-        progressBar.visibility = View.GONE
-        tvInfo.text = mensagem
-        tvInfo.visibility = View.VISIBLE
-        
-        if (erro != null) {
-            LogUtils.error("PdfViewerFragment", mensagem, erro)
-        } else {
-            LogUtils.error("PdfViewerFragment", mensagem)
-        }
-    }
-    
-    private fun verificarPermissao() {
+        // Carregar o conteúdo
         when {
-            ContextCompat.checkSelfPermission(
-                requireContext(),
-                Manifest.permission.WRITE_EXTERNAL_STORAGE
-            ) == PackageManager.PERMISSION_GRANTED -> {
-                salvarPdf()
+            htmlContent != null -> {
+                LogUtils.debug("PdfViewerFragment", "Carregando conteúdo HTML")
+                carregarHtmlContent(htmlContent)
             }
-            shouldShowRequestPermissionRationale(Manifest.permission.WRITE_EXTERNAL_STORAGE) -> {
-                Toast.makeText(
-                    requireContext(),
-                    "É necessário permissão para salvar arquivos",
-                    Toast.LENGTH_LONG
-                ).show()
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+            htmlUrl != null -> {
+                LogUtils.debug("PdfViewerFragment", "Carregando URL HTML: $htmlUrl")
+                carregarHtmlUrl(htmlUrl)
+            }
+            pdfBase64 != null -> {
+                LogUtils.debug("PdfViewerFragment", "Carregando PDF base64")
+                carregarPdfBase64(pdfBase64)
             }
             else -> {
-                requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
+                LogUtils.error("PdfViewerFragment", "Nenhum conteúdo disponível para exibição")
+                tvInfo.text = "Nenhum conteúdo disponível"
+                tvInfo.visibility = View.VISIBLE
             }
         }
+    }
+    
+    private fun setupWebView() {
+        webView.settings.apply {
+            // Configurações básicas
+            javaScriptEnabled = true
+            domStorageEnabled = true
+            
+            // Configurações de zoom
+            setSupportZoom(true)
+            builtInZoomControls = true
+            displayZoomControls = false
+            
+            // Configurações de cache
+            cacheMode = WebSettings.LOAD_NO_CACHE
+            
+            // Configurações de conteúdo
+            allowContentAccess = true
+            allowFileAccess = true
+            allowFileAccessFromFileURLs = true
+            allowUniversalAccessFromFileURLs = true
+            mixedContentMode = WebSettings.MIXED_CONTENT_ALWAYS_ALLOW
+            
+            // Configurações de visualização
+            useWideViewPort = true
+            loadWithOverviewMode = true
+            
+            // Configurações adicionais para JavaScript
+            setRenderPriority(WebSettings.RenderPriority.HIGH)
+            setEnableSmoothTransition(true)
+            setDatabaseEnabled(true)
+            setGeolocationEnabled(true)
+            setNeedInitialFocus(true)
+            setSupportMultipleWindows(true)
+            setLoadsImagesAutomatically(true)
+            setBlockNetworkImage(false)
+            setBlockNetworkLoads(false)
+            setDefaultTextEncodingName("UTF-8")
+            setJavaScriptCanOpenWindowsAutomatically(true)
+        }
+
+        // Configurar WebViewClient para interceptar requisições
+        webView.webViewClient = object : WebViewClient() {
+            override fun onPageFinished(view: WebView?, url: String?) {
+                super.onPageFinished(view, url)
+                progressBar.visibility = View.GONE
+                btnCompartilhar.isEnabled = true
+                btnSalvar.isEnabled = true
+                LogUtils.debug("PdfViewerFragment", "Página carregada: $url")
+            }
+
+            override fun shouldInterceptRequest(
+                view: WebView?,
+                request: WebResourceRequest?
+            ): WebResourceResponse? {
+                val url = request?.url?.toString() ?: return null
+                LogUtils.debug("PdfViewerFragment", "Interceptando requisição: $url")
+                
+                // Se for um recurso local, permitir
+                if (url.startsWith("file://")) {
+                    return null
+                }
+                
+                // Se for um recurso do servidor, tentar carregar
+                if (url.contains("192.168.100.195:8080")) {
+                    try {
+                        val connection = java.net.URL(url).openConnection() as java.net.HttpURLConnection
+                        connection.requestMethod = "GET"
+                        connection.connect()
+                        
+                        val inputStream = connection.inputStream
+                        val mimeType = connection.contentType ?: "text/plain"
+                        
+                        return WebResourceResponse(
+                            mimeType,
+                            "UTF-8",
+                            inputStream
+                        )
+                    } catch (e: Exception) {
+                        LogUtils.error("PdfViewerFragment", "Erro ao carregar recurso: $url", e)
+                    }
+                }
+                
+                return null
+            }
+
+            override fun onReceivedError(
+                view: WebView?,
+                request: WebResourceRequest?,
+                error: WebResourceError?
+            ) {
+                LogUtils.error("PdfViewerFragment", "Erro ao carregar página: ${error?.description}")
+                tvInfo.text = "Erro ao carregar página: ${error?.description}"
+                tvInfo.visibility = View.VISIBLE
+                super.onReceivedError(view, request, error)
+            }
+        }
+
+        // Adicionar WebChromeClient para suportar console.log e outros recursos do JavaScript
+        webView.webChromeClient = object : WebChromeClient() {
+            override fun onConsoleMessage(consoleMessage: ConsoleMessage): Boolean {
+                LogUtils.debug("WebView", "${consoleMessage.message()} -- From line ${consoleMessage.lineNumber()} of ${consoleMessage.sourceId()}")
+                return true
+            }
+        }
+    }
+    
+    private fun setupButtons() {
+        btnCompartilhar.setOnClickListener {
+            compartilharPdf()
+        }
+
+        btnSalvar.setOnClickListener {
+            verificarPermissaoESalvar()
+        }
+
+        btnFechar.setOnClickListener {
+            dismiss()
+        }
+
+        btnAssinar.setOnClickListener {
+            val bundle = Bundle().apply {
+                putString("contratoNumero", contratoNumero)
+                putInt("contratoId", contratoId)
+            }
+            
+            val signatureFragment = SignatureCaptureFragment().apply {
+                arguments = bundle
+            }
+            
+            signatureFragment.show(parentFragmentManager, "signature_fragment")
+        }
+    }
+    
+    private fun carregarPdfBase64(pdfBase64: String) {
+        LogUtils.debug("PdfViewerFragment", "Iniciando carregamento do PDF base64 no WebView")
+        try {
+            val pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
+            this.pdfBytes = pdfBytes
+            
+            // Salvar temporariamente para visualização
+            val tempFile = File(requireContext().cacheDir, "temp_${System.currentTimeMillis()}.pdf")
+            FileOutputStream(tempFile).use { it.write(pdfBytes) }
+            this.pdfFile = tempFile
+            
+            // Carregar no WebView
+            webView.loadUrl("file://${tempFile.absolutePath}")
+            LogUtils.debug("PdfViewerFragment", "PDF carregado no WebView: file://${tempFile.absolutePath}")
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF base64", e)
+            tvInfo.text = "Erro ao carregar PDF: ${e.message}"
+            tvInfo.visibility = View.VISIBLE
+        }
+    }
+    
+    private fun carregarHtmlUrl(url: String) {
+        webView.loadUrl(url)
+    }
+    
+    private fun carregarHtmlContent(content: String) {
+        LogUtils.debug("PdfViewerFragment", "Iniciando carregamento do HTML no WebView. Tamanho do HTML: ${content.length}")
+        try {
+            // Criar um arquivo temporário com o conteúdo HTML
+            val tempFile = File(requireContext().cacheDir, "temp_${System.currentTimeMillis()}.html")
+            FileOutputStream(tempFile).use { it.write(content.toByteArray()) }
+
+            // Carregar o arquivo HTML com base URL para permitir carregamento de recursos
+            webView.loadDataWithBaseURL(
+                "file://${tempFile.absolutePath}",
+                content,
+                "text/html",
+                "UTF-8",
+                null
+            )
+
+            // Limpar o arquivo temporário quando o fragmento for destruído
+            tempFile.deleteOnExit()
+            LogUtils.debug("PdfViewerFragment", "HTML carregado no WebView com base URL: file://${tempFile.absolutePath}")
+
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML", e)
+            tvInfo.text = "Erro ao carregar HTML: ${e.message}"
+            tvInfo.visibility = View.VISIBLE
+        }
+    }
+    
+    private fun verificarPermissaoESalvar() {
+        if (verificarPermissaoEscrita()) {
+            salvarPdf()
+        } else {
+            solicitarPermissaoEscrita()
+        }
+    }
+    
+    private fun verificarPermissaoEscrita(): Boolean {
+        return ContextCompat.checkSelfPermission(
+            requireContext(),
+            Manifest.permission.WRITE_EXTERNAL_STORAGE
+        ) == PackageManager.PERMISSION_GRANTED
+    }
+    
+    private fun solicitarPermissaoEscrita() {
+        requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
     }
     
     private fun salvarPdf() {
-        if (pdfBytes == null) {
-            Toast.makeText(requireContext(), "Erro: PDF não disponível", Toast.LENGTH_SHORT).show()
-            return
-        }
-        
-        try {
-            // Criar nome do arquivo
-            val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-            val nomeArquivo = if (contratoNumero.isNotEmpty()) {
-                "Contrato_${contratoNumero.replace("/", "_")}.pdf"
-            } else {
-                "Contrato_$timestamp.pdf"
+        pdfBytes?.let { bytes ->
+            try {
+                val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
+                val fileName = "contrato_${contratoNumero}_$timestamp.pdf"
+                val file = File(
+                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+                    fileName
+                )
+                
+                FileOutputStream(file).use { it.write(bytes) }
+                this.pdfFile = file
+                
+                Toast.makeText(
+                    requireContext(),
+                    "PDF salvo em: ${file.absolutePath}",
+                    Toast.LENGTH_LONG
+                ).show()
+            } catch (e: IOException) {
+                LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF", e)
+                Toast.makeText(
+                    requireContext(),
+                    "Erro ao salvar PDF: ${e.message}",
+                    Toast.LENGTH_SHORT
+                ).show()
             }
-            
-            // Diretório para salvar o PDF (Documentos)
-            val diretorio = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOCUMENTS)
-            // Criar subdiretório ALG
-            val algDir = File(diretorio, "ALG")
-            if (!algDir.exists()) {
-                algDir.mkdirs()
-            }
-            
-            // Criar o arquivo
-            val file = File(algDir, nomeArquivo)
-            FileOutputStream(file).use {
-                it.write(pdfBytes)
-            }
-            
-            // Notificar o usuário
+        } ?: run {
             Toast.makeText(
                 requireContext(),
-                "PDF salvo em Documentos/ALG/$nomeArquivo",
-                Toast.LENGTH_LONG
+                "PDF não disponível para salvar",
+                Toast.LENGTH_SHORT
             ).show()
-            
-        } catch (e: IOException) {
-            Toast.makeText(requireContext(), "Erro ao salvar PDF: ${e.message}", Toast.LENGTH_SHORT).show()
-            LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF", e)
         }
     }
     
@@ -519,6 +397,37 @@ class PdfViewerFragment : DialogFragment() {
             }
         } ?: run {
             Toast.makeText(requireContext(), "PDF não disponível para compartilhar", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    override fun onDestroyView() {
+        super.onDestroyView()
+        pdfFile?.delete()
+    }
+    
+    companion object {
+        private const val ARG_PDF_BASE64 = "pdf_base64"
+        private const val ARG_HTML_URL = "html_url"
+        private const val ARG_HTML_CONTENT = "html_content"
+        private const val ARG_CONTRATO_NUMERO = "contrato_numero"
+        private const val ARG_CONTRATO_ID = "contrato_id"
+        
+        fun newInstance(
+            pdfBase64: String? = null,
+            htmlUrl: String? = null,
+            htmlContent: String? = null,
+            contratoNumero: String,
+            contratoId: Int
+        ): PdfViewerFragment {
+            return PdfViewerFragment().apply {
+                arguments = Bundle().apply {
+                    putString(ARG_PDF_BASE64, pdfBase64)
+                    putString(ARG_HTML_URL, htmlUrl)
+                    putString(ARG_HTML_CONTENT, htmlContent)
+                    putString(ARG_CONTRATO_NUMERO, contratoNumero)
+                    putInt(ARG_CONTRATO_ID, contratoId)
+                }
+            }
         }
     }
 }
