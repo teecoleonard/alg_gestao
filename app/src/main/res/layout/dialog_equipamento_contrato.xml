@@ -52,6 +52,25 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Seleção de Período -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilPeriodo"
+                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="Período"
+                app:layout_constraintTop_toBottomOf="@id/tilEquipamento">
+
+                <AutoCompleteTextView
+                    android:id="@+id/actvPeriodo"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="none"
+                    android:padding="16dp"/>
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Quantidade -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilQuantidade"
@@ -61,7 +80,7 @@
                 android:layout_marginTop="16dp"
                 android:hint="Quantidade"
                 app:endIconMode="clear_text"
-                app:layout_constraintTop_toBottomOf="@id/tilEquipamento">
+                app:layout_constraintTop_toBottomOf="@id/tilPeriodo">
 
                 <com.google.android.material.textfield.TextInputEditText
                     android:id="@+id/etQuantidade"

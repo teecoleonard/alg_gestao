@@ -2,19 +2,21 @@ package com.example.alg_gestao_02.dashboard.fragments.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
+import com.example.alg_gestao_02.data.repository.DashboardRepository
 
 /**
  * Factory para criar instâncias do DashboardViewModel.
- * Necessário para ViewModels com parâmetros no construtor ou situações
- * específicas de inicialização.
+ * Usado pelo ViewModelProvider para passar dependências para o ViewModel.
  */
-class DashboardViewModelFactory : ViewModelProvider.Factory {
+class DashboardViewModelFactory(
+    private val repository: DashboardRepository = DashboardRepository()
+) : ViewModelProvider.Factory {
     
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         if (modelClass.isAssignableFrom(DashboardViewModel::class.java)) {
-            return DashboardViewModel() as T
+            return DashboardViewModel(repository) as T
         }
-        throw IllegalArgumentException("ViewModel desconhecido: ${modelClass.name}")
+        throw IllegalArgumentException("Classe ViewModel desconhecida")
     }
 } 

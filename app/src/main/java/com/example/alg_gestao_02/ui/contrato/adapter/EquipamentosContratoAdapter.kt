@@ -70,6 +70,7 @@ class EquipamentosContratoAdapter(
     inner class EquipamentoContratoViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         private val tvNomeEquipamento: TextView = itemView.findViewById(R.id.tvNomeEquipamento)
         private val tvQuantidade: TextView = itemView.findViewById(R.id.tvQuantidade)
+        private val tvPeriodo: TextView = itemView.findViewById(R.id.tvPeriodo)
         private val tvValorUnitario: TextView = itemView.findViewById(R.id.tvValorUnitario)
         private val tvValorTotal: TextView = itemView.findViewById(R.id.tvValorTotal)
         private val tvValorFrete: TextView = itemView.findViewById(R.id.tvValorFrete)
@@ -89,12 +90,44 @@ class EquipamentosContratoAdapter(
             
             tvNomeEquipamento.text = item.nomeEquipamentoExibicao
             tvQuantidade.text = "${item.quantidadeEquip} unid."
+            
+            // Detectar e exibir o período baseado no valor unitário
+            val periodo = detectarPeriodoPorValor(item)
+            tvPeriodo.text = periodo
+            
             tvValorUnitario.text = currencyFormat.format(item.valorUnitario)
             tvValorTotal.text = currencyFormat.format(item.valorTotal)
             tvValorFrete.text = currencyFormat.format(item.valorFrete)
 
             btnEdit.setOnClickListener { onEditClick(item) }
             btnDelete.setOnClickListener { onDeleteClick(item) }
+        }
+        
+        /**
+         * Detecta qual período foi usado baseado no valor unitário salvo
+         */
+        private fun detectarPeriodoPorValor(equipamentoContrato: EquipamentoContrato): String {
+            // Primeiro, verificar se o período está salvo no modelo
+            if (!equipamentoContrato.periodoSelecionado.isNullOrBlank()) {
+                return equipamentoContrato.periodoSelecionado
+            }
+            
+            // Fallback: detectar baseado no valor unitário
+            val equipamento = equipamentoContrato.equipamento
+            if (equipamento == null) {
+                return "Diário" // fallback se não tiver dados do equipamento
+            }
+            
+            val valorSalvo = equipamentoContrato.valorUnitario
+            val tolerancia = 0.01 // tolerância para comparação de double
+            
+            return when {
+                Math.abs(valorSalvo - equipamento.precoDiaria) < tolerancia -> "Diário"
+                Math.abs(valorSalvo - equipamento.precoSemanal) < tolerancia -> "Semanal"
+                Math.abs(valorSalvo - equipamento.precoQuinzenal) < tolerancia -> "Quinzenal"
+                Math.abs(valorSalvo - equipamento.precoMensal) < tolerancia -> "Mensal"
+                else -> "Personalizado" // quando o valor não corresponde aos padrões
+            }
         }
     }
 

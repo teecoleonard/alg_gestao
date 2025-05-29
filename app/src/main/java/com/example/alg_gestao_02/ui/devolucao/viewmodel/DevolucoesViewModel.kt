@@ -266,7 +266,12 @@ class DevolucoesViewModel(
         statusItemDevolucao: String,
         observacaoItemDevolucao: String? = null
     ) {
+        LogUtils.info("DevolucoesViewModel", "🔄 INICIANDO PROCESSAMENTO NO VIEWMODEL")
+        LogUtils.debug("DevolucoesViewModel", "Parâmetros recebidos - ID: $devolucaoId, " +
+                "quantidade: $quantidadeDevolvida, status: $statusItemDevolucao, observação: $observacaoItemDevolucao")
+        
         _processamentoState.value = UiState.loading()
+        LogUtils.debug("DevolucoesViewModel", "Estado alterado para Loading")
 
         viewModelScope.launch {
             try {
@@ -276,7 +281,9 @@ class DevolucoesViewModel(
                 // Formatar data atual como data efetiva de devolução
                 val formatoData = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
                 val dataEfetiva = formatoData.format(Date())
+                LogUtils.debug("DevolucoesViewModel", "Data efetiva formatada: $dataEfetiva")
 
+                LogUtils.info("DevolucoesViewModel", "Chamando repository.processarDevolucao...")
                 when (val resultado = repository.processarDevolucao(
                     id = devolucaoId,
                     quantidadeDevolvida = quantidadeDevolvida,
@@ -286,24 +293,30 @@ class DevolucoesViewModel(
                 )) {
                     is Resource.Success -> {
                         val devolucaoAtualizada = resultado.data
-                        LogUtils.info("DevolucoesViewModel", "Devolução processada: ID=${devolucaoAtualizada.id}")
+                        LogUtils.info("DevolucoesViewModel", "✅ SUCESSO NO VIEWMODEL - Devolução processada: ID=${devolucaoAtualizada.id}")
+                        LogUtils.debug("DevolucoesViewModel", "Status atualizado para: ${devolucaoAtualizada.statusItemDevolucao}")
                         _processamentoState.value = UiState.Success(devolucaoAtualizada)
 
                         // Recarregar o grupo de devoluções para atualizar a UI
                         val devNum = devolucaoAtualizada.devNum
+                        LogUtils.debug("DevolucoesViewModel", "Recarregando devoluções para dev_num: $devNum")
                         carregarDevolucoesPorDevNum(devNum)
                     }
+                    
                     is Resource.Error -> {
-                        LogUtils.error("DevolucoesViewModel", "Erro ao processar devolução: ${resultado.message}")
+                        LogUtils.error("DevolucoesViewModel", "❌ ERRO NO VIEWMODEL - Falha ao processar devolução: ${resultado.message}")
                         _processamentoState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
                     }
+                    
                     is Resource.Loading -> {
                         // Já estamos exibindo o estado de carregamento
                         LogUtils.debug("DevolucoesViewModel", "Processando devolução...")
                     }
                 }
             } catch (e: Exception) {
-                LogUtils.error("DevolucoesViewModel", "Erro ao processar devolução", e)
+                LogUtils.error("DevolucoesViewModel", "❌ EXCEÇÃO NO VIEWMODEL - Erro ao processar devolução", e)
+                LogUtils.error("DevolucoesViewModel", "Tipo da exceção: ${e.javaClass.simpleName}")
+                LogUtils.error("DevolucoesViewModel", "Mensagem: ${e.message}")
                 _processamentoState.value = UiState.Error("Erro ao processar devolução: ${e.message}")
             }
         }
@@ -330,4 +343,4 @@ class DevolucoesViewModelFactory(
         }
         throw IllegalArgumentException("ViewModel desconhecido")
     }
-}
+} 

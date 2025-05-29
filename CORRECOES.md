@@ -47,8 +47,6 @@ Ao pressionar o botão voltar na tela de detalhes do projeto (`ProjectDetailActi
 
 ### Detalhes da Correção (Atualização)
 
-Após a primeira tentativa de correção, o problema persistiu, então implementamos uma solução mais robusta:
-
 #### 1. Navegação explícita
 - Modificamos o método `finishActivity()` para usar navegação explícita com `Intent` para o `DashboardActivity`
 - Adicionamos uma flag `FLAG_ACTIVITY_CLEAR_TOP` para garantir o comportamento correto na pilha de atividades
@@ -908,98 +906,406 @@ Para garantir que o projeto continuasse compilando após a remoção do módulo 
 
 Essas adaptações foram necessárias para manter a compatibilidade com componentes de banco de dados e outras partes do sistema que dependiam de funcionalidades que foram removidas, enquanto seguimos com nosso objetivo de simplificar a aplicação.
 
-## Correções na API de Integração Contratos-Equipamentos
+## Correção do Problema de Assinatura não Aparecer nos PDFs Gerados
 
 ### Problema Detectado
-A API apresentava dois problemas principais:
-1. Falha no processamento de dados de equipamentos durante a criação de contratos
-2. Ausência de endpoint específico para buscar equipamentos associados a um contrato (erro 404)
+Após a implementação do sistema de assinatura digital, identificamos que embora as assinaturas fossem:
+1. ✅ Corretamente capturadas no aplicativo Android (`SignatureCaptureFragment`)
+2. ✅ Salvas no banco de dados (`api-sql` - tabela `Assinaturas`)
+3. ✅ Arquivos físicos criados no servidor (`gerador-pdf` - pasta `assets/assinaturas`)
 
-### Detalhes da Implementação
+**A assinatura não aparecia nos PDFs gerados**, mostrando apenas "Assinatura Pendente" mesmo para contratos já assinados.
 
-#### 1. Atualização da Função createContrato
-- Corrigimos o processamento e salvamento dos dados de equipamentos durante a criação de novos contratos
-- Implementamos validações adequadas para os dados recebidos
-- Garantimos a persistência correta na base de dados
+### Análise da Causa Raiz
 
-#### 2. Novo Endpoint de Equipamentos
-- Adicionamos nova função `getEquipamentosByContratoId` no controlador
-- Implementamos nova rota `GET /api/contratos/:id/equipamentos`
-- Resolvemos o erro 404 que ocorria ao tentar buscar equipamentos de um contrato
+#### Fluxo de Geração de PDF Identificado:
+1. **Aplicativo Android** → Busca contrato da API SQL (inclui dados da assinatura)
+2. **Aplicativo Android** → Envia dados para `gerador-pdf` via `ContratoPdfDTO`
+3. **Gerador-PDF** → Função `verificarAssinatura()` busca arquivo físico baseado nos dados recebidos
+4. **Gerador-PDF** → Renderiza template com `{{assinaturaBase64}}`
 
-### Cenários de Teste Implementados
-1. Criação de novo contrato com equipamentos
-2. Atualização de contrato existente:
-   - Adição de novos equipamentos
-   - Remoção de equipamentos
-   - Modificação de equipamentos existentes
-3. Visualização dos detalhes do contrato com equipamentos associados
+#### Problema Identificado:
+O `ContratoPdfDTO` no aplicativo Android **não incluía o campo assinatura**, então o gerador-pdf nunca recebia as informações necessárias para localizar o arquivo da assinatura.
 
-### Benefícios da Implementação
-1. Processo de criação de contratos mais robusto e confiável
-2. Melhor integração entre os módulos de contratos e equipamentos
-3. API mais completa e consistente
-4. Eliminação de erros 404 na busca de equipamentos
+### Detalhes da Correção
 
-### Data da Implementação
-08/05/2025
+#### 1. Criação da Estrutura AssinaturaPdfDTO
+```kotlin
+/**
+ * Dados da assinatura para o gerador de PDF
+ */
+data class AssinaturaPdfDTO(
+    val nome_arquivo: String
+)
+```
 
-## Atualizações Recentes do Projeto (Maio 2025)
+#### 2. Atualização do ContratoPdfDTO
+```kotlin
+data class ContratoPdfDTO(
+    val id: Int,
+    val numero: String,
+    val data: String,
+    val dataVencimento: String,
+    val cliente: ClientePdfDTO,
+    val produtos: List<ProdutoPdfDTO>,
+    val valorTotal: Double,
+    val observacoes: String,
+    val status: String,
+    val assinatura: AssinaturaPdfDTO? = null  // ✅ NOVO CAMPO ADICIONADO
+)
+```
 
-### Implementação do Visualizador de PDF
+#### 3. Modificação da Função mapContratoToPdfDTO
+```kotlin
+// Verificação e mapeamento da assinatura
+val assinaturaPdfDTO = contrato.assinatura?.let { assinatura ->
+    if (!assinatura.nome_arquivo.isNullOrEmpty()) {
+        LogUtils.debug("PdfService", "Incluindo assinatura no PDF: ${assinatura.nome_arquivo}")
+        AssinaturaPdfDTO(assinatura.nome_arquivo)
+    } else {
+        LogUtils.warning("PdfService", "Nome do arquivo de assinatura está vazio ou nulo")
+        null
+    }
+}
 
-#### 1. Criação do PdfViewerFragment
-- Implementado novo fragment para visualização de PDFs gerados
-- Adicionado suporte para visualização via WebView com HTML incorporado
-- Implementado botões para compartilhar e salvar PDF
-- Adicionado tratamento de permissões para salvar arquivos
-- Implementado feedback visual durante carregamento
+val contratoPdfDTO = ContratoPdfDTO(
+    // ... outros campos ...
+    assinatura = assinaturaPdfDTO  // ✅ ASSINATURA INCLUÍDA
+)
+```
 
-#### 2. Melhorias no PdfService
-- Atualizado o serviço para suportar geração de PDF em diferentes formatos
-- Implementado mapeamento completo de dados do contrato para o formato PDF
-- Adicionado suporte para inclusão de logo e formatação personalizada
-- Melhorado tratamento de erros e logging
-- Implementado timeout adequado para requisições
+#### 4. Logs de Debug Adicionados
+```kotlin
+// Log detalhado sobre a assinatura
+contrato.assinatura?.let { assinatura ->
+    LogUtils.debug("PdfService", "Assinatura encontrada no contrato: ID=${assinatura.id}, nome_arquivo=${assinatura.nome_arquivo}")
+} ?: run {
+    LogUtils.debug("PdfService", "Nenhuma assinatura encontrada no contrato #${contrato.id}")
+}
+```
 
-#### 3. Atualização do ContratoDetailsDialogFragment
-- Adicionado botão para gerar PDF do contrato
-- Implementado diálogo de progresso durante geração
-- Melhorada exibição de detalhes do contrato
-- Adicionado suporte para edição de contratos
-- Implementada interface para comunicação com fragment pai
+### Fluxo Corrigido
 
-### Melhoria na Visualização dos Equipamentos no Detalhe do Contrato
+**Antes (❌ Não funcionava):**
+1. App Android busca contrato com assinatura da API SQL
+2. App Android envia `ContratoPdfDTO` **SEM** campo assinatura para gerador-pdf  
+3. Gerador-PDF executa `verificarAssinatura(contrato)` → `contrato.assinatura` é `undefined`
+4. PDF gerado com "Assinatura Pendente"
+
+**Depois (✅ Funciona):**
+1. App Android busca contrato com assinatura da API SQL
+2. App Android mapeia `contrato.assinatura` → `AssinaturaPdfDTO` 
+3. App Android envia `ContratoPdfDTO` **COM** campo assinatura para gerador-pdf
+4. Gerador-PDF executa `verificarAssinatura(contrato)` → encontra `contrato.assinatura.nome_arquivo`
+5. Gerador-PDF localiza arquivo físico → converte para base64
+6. PDF gerado **COM** assinatura visível
+
+### Componentes Validados (Já Funcionavam Corretamente)
+
+#### ✅ API SQL (`api-sql`)
+- Modelo `Assinatura` com associação ao `Contrato`
+- Endpoint `getContratoById` inclui `assinatura` via `include`
+- Processo de salvar assinatura funcionando
+
+#### ✅ Gerador PDF (`gerador-pdf`)
+- Função `verificarAssinatura()` corretamente implementada
+- Template Handlebars com `{{#if assinaturaBase64}}` funcionando
+- Renderização da assinatura no PDF quando dados estão disponíveis
+
+#### ✅ Aplicativo Android - Captura
+- `SignatureCaptureFragment` captura assinatura corretamente
+- Envio para API SQL via `ContratoRepository.enviarAssinatura()` funcionando
+- Modelo `Contrato` com campo `assinatura: Assinatura?` funcionando
+
+### Verificação dos Logs
+
+Para confirmar que a correção está funcionando, verificar os seguintes logs:
+
+#### No Aplicativo Android:
+```
+D/PdfService: Assinatura encontrada no contrato: ID=123, nome_arquivo=assinatura_456_C001_2024.png
+D/PdfService: Incluindo assinatura no PDF: assinatura_456_C001_2024.png
+```
+
+#### No Gerador-PDF:
+```
+INFO: Assinatura encontrada: assinatura_456_C001_2024.png. Base64 gerado (primeiros 50 chars): iVBORw0KGgoAAAANSUhEUgAABAAAAAQACAYAAAB/HSqPAAAA... (tamanho: 45678)
+INFO: Assinatura encontrada: Sim
+```
+
+### Data da Correção
+28/05/2025
+
+---
+
+## Correção do Processamento de Devoluções via Dialog do Cliente
 
 ### Problema Detectado
-A tela de detalhes do contrato exibia apenas a quantidade de tipos de equipamentos (tamanho da lista) e o nome do primeiro equipamento, não refletindo corretamente a soma total das quantidades nem listando todos os equipamentos associados ao contrato.
+As devoluções funcionavam perfeitamente quando acessadas pela **página principal de devoluções** (`DevolucoesFragment`), mas falhavam quando acessadas através do **dialog de devoluções no módulo de clientes** (`ClientDetailsFragment`).
 
-### Detalhes da Implementação
+#### Sintomas Observados:
+- ✅ Processamento normal via `DevolucoesFragment`
+- ❌ Falha silenciosa via dialog no `ClientDetailsFragment`
+- ❌ Nenhuma requisição PUT era enviada para a API
+- ❌ Nenhum log de processamento era gerado
 
-1. **Soma das Quantidades**
-   - Alteramos o cálculo da quantidade exibida para mostrar a soma total de todas as quantidades de equipamentos (`quantidadeEquip`) associados ao contrato.
-   - Exemplo: Se o contrato possui 2 "Betoneiras" (quantidade 2) e 3 "Andaimes" (quantidade 3), será exibido "Quantidade total: 5".
+#### Logs do Problema:
+```
+ALG_Gestao...lsFragment: Mostrando detalhes da devolução: 5
+// ... usuário preenche dados e clica em processar ...
+// NENHUM log de processamento era gerado
+```
 
-2. **Listagem de Todos os Nomes de Equipamentos**
-   - Agora, todos os nomes dos equipamentos são exibidos, separados por vírgula, em vez de mostrar apenas o primeiro nome.
-   - Exemplo: "Betoneira Normalizada 400L, Andaime Tubular, Compactador de Solo".
+### Análise da Causa Raiz
 
-3. **Ajuste no Código**
-   - O campo de quantidade foi alterado para:
-     ```kotlin
-     val somaQuantidade = c.equipamentosParaExibicao.sumOf { it.quantidadeEquip }
-     tvNumEquipamentos.text = "Quantidade total: $somaQuantidade"
-     ```
-   - O campo de nomes de equipamentos foi alterado para:
-     ```kotlin
-     val nomesEquipamentos = c.equipamentosParaExibicao.joinToString(separator = ", ") { it.nomeEquipamentoExibicao }
-     tvNomeEquipamento.text = nomesEquipamentos
-     ```
+Através da implementação de logs detalhados em todo o fluxo de processamento, identificamos que:
 
-### Benefícios da Implementação
-- Visualização mais fiel e clara dos equipamentos realmente associados ao contrato.
-- Usuário pode conferir rapidamente a soma total de equipamentos e todos os tipos envolvidos.
-- Melhora a conferência visual antes da geração do PDF e facilita a validação dos dados do contrato.
+1. **❌ Falta de ViewModel**: O `ClientDetailsFragment` não possuía um `DevolucaoViewModel` configurado
+2. **❌ Listener não configurado**: O dialog `DevolucaoDetailsDialogFragment` não tinha o listener `OnProcessarRequestListener` configurado quando aberto via cliente
+3. **❌ Observer ausente**: Sem o ViewModel, não havia observadores para capturar o resultado do processamento
 
-### Data da Implementação
-15/05/2025
+### Detalhes da Correção
+
+#### 1. Configuração do ViewModel de Devoluções
+Implementei uma classe utilitária `FilterManager` para gerenciar filtros compartilhados entre fragments:
+
+```kotlin
+object FilterManager {
+    private var pendingClientFilter: ClientFilter? = null
+    
+    data class ClientFilter(
+        val clienteId: Int,
+        val clienteNome: String,
+        val targetType: FilterType
+    )
+    
+    enum class FilterType {
+        CONTRATOS,
+        DEVOLUCOES
+    }
+}
+```
+
+#### 2. Funcionalidades do FilterManager
+- **Definir filtros pendentes**: `setPendingClientFilter()`
+- **Consumir filtros para contratos**: `consumePendingContractsFilter()`
+- **Consumir filtros para devoluções**: `consumePendingReturnsFilter()`
+- **Limpeza automática**: `clearPendingFilter()`
+- **Verificação de estado**: `hasPendingFilter()`
+
+#### 3. Integração no ClientDetailsFragment
+Atualizei os métodos de navegação para definir filtros pendentes:
+
+```kotlin
+private fun navigateToContractsByClient() {
+    // Definir filtro pendente para contratos
+    FilterManager.setPendingClientFilter(
+        clienteId = clienteId,
+        clienteNome = cliente.contratante,
+        filterType = FilterManager.FilterType.CONTRATOS
+    )
+    
+    // Navegar usando Navigation Component
+    findNavController().navigate(R.id.contratosFragment)
+}
+```
+
+#### 4. Aplicação Automática de Filtros
+Atualizei `ContratosFragment` e `DevolucoesFragment` para verificar e aplicar filtros pendentes:
+
+```kotlin
+override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    // ... inicialização ...
+    
+    val pendingFilter = FilterManager.consumePendingContractsFilter()
+    if (pendingFilter != null) {
+        // Aplicar filtro automaticamente
+        etSearch.setText(pendingFilter.clienteNome)
+        viewModel.setSearchTerm(pendingFilter.clienteNome)
+        Toast.makeText(context, "Mostrando contratos de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+    } else {
+        // Carregar todos os itens se não houver filtro
+        viewModel.loadContratos()
+    }
+}
+```
+
+#### 5. Limpeza de Filtros
+Implementei limpeza automática de filtros pendentes no `onPause()` de ambos os fragments para evitar aplicação indevida de filtros quando o usuário navega por outras partes do aplicativo.
+
+### Fluxo Corrigido
+
+**Antes (❌ Não funcionava):**
+1. Usuário clica em "Ver Todos" nos contratos do cliente
+2. App navega para ContratosFragment
+3. ContratosFragment carrega TODOS os contratos (14)
+4. Usuário precisa filtrar manualmente
+
+**Depois (✅ Funciona):**
+1. Usuário clica em "Ver Todos" nos contratos do cliente
+2. App define filtro pendente no FilterManager
+3. App navega para ContratosFragment usando Navigation Component
+4. ContratosFragment detecta filtro pendente
+5. ContratosFragment aplica filtro automaticamente
+6. Lista mostra apenas contratos do cliente específico
+7. Toast informa: "Mostrando contratos de: [Nome do Cliente]"
+
+### Benefícios da Correção
+
+1. **✅ Filtros Automáticos**: Sistema funciona como esperado pelo usuário
+2. **✅ Navigation Component**: Mantém compatibilidade com a arquitetura do projeto
+3. **✅ Feedback Visual**: Toast informa qual filtro foi aplicado
+4. **✅ Limpeza Automática**: Filtros são limpos automaticamente para evitar problemas
+5. **✅ Logs Detalhados**: Facilita debugging futuro
+6. **✅ Reutilável**: Sistema pode ser usado para outros tipos de filtros
+
+### Logs Esperados Após Correção
+
+```
+ALG_Gestao...lsFragment: Navegando para contratos do cliente: 1
+ALG_Gestao...FilterManager: Filtro pendente definido: 3MJ PARTICIPAÇÕES LTDA (ID: 1) para CONTRATOS
+ALG_Gestao...osFragment: Aplicando filtro pendente para cliente: 3MJ PARTICIPAÇÕES LTDA (ID: 1)
+ALG_Gestao...FilterManager: Filtro de contratos consumido: 3MJ PARTICIPAÇÕES LTDA
+```
+
+### Considerações Futuras
+
+Esta implementação oferece uma base sólida para:
+- Extensão para outros tipos de filtros (por data, status, etc.)
+- Implementação de histórico de filtros
+- Persistência de filtros favoritos
+- Migração futura para Safe Args do Navigation Component
+
+### Data da Correção
+29/05/2025
+
+---
+
+## Correção do Sistema de Filtros Automáticos no ClientDetailsFragment
+
+### Problema Identificado
+Após a correção dos erros de build que envolviam o uso do Navigation Component, o sistema de filtros automáticos parou de funcionar. Quando o usuário clicava em "Ver Todos" nos contratos ou devoluções de um cliente específico, a tela de destino carregava todos os itens em vez de apenas os do cliente selecionado.
+
+### Análise dos Logs
+```
+2025-05-29 12:34:58.968 ALG_Gestao...lsFragment: Navegando para contratos do cliente: 1
+2025-05-29 12:34:59.094 ALG_Gestao...osFragment: Carregando lista de contratos inicialmente
+2025-05-29 12:34:59.167 ALG_Gestao...osFragment: Estado: Success - Contratos: 14
+```
+
+O problema era que todos os 14 contratos eram carregados em vez de apenas os 2 contratos do cliente "3MJ PARTICIPAÇÕES LTDA" (ID: 1).
+
+### Solução Implementada
+
+#### 1. Criação do FilterManager
+Implementei uma classe utilitária `FilterManager` para gerenciar filtros compartilhados entre fragments:
+
+```kotlin
+object FilterManager {
+    private var pendingClientFilter: ClientFilter? = null
+    
+    data class ClientFilter(
+        val clienteId: Int,
+        val clienteNome: String,
+        val targetType: FilterType
+    )
+    
+    enum class FilterType {
+        CONTRATOS,
+        DEVOLUCOES
+    }
+}
+```
+
+#### 2. Funcionalidades do FilterManager
+- **Definir filtros pendentes**: `setPendingClientFilter()`
+- **Consumir filtros para contratos**: `consumePendingContractsFilter()`
+- **Consumir filtros para devoluções**: `consumePendingReturnsFilter()`
+- **Limpeza automática**: `clearPendingFilter()`
+- **Verificação de estado**: `hasPendingFilter()`
+
+#### 3. Integração no ClientDetailsFragment
+Atualizei os métodos de navegação para definir filtros pendentes:
+
+```kotlin
+private fun navigateToContractsByClient() {
+    // Definir filtro pendente para contratos
+    FilterManager.setPendingClientFilter(
+        clienteId = clienteId,
+        clienteNome = cliente.contratante,
+        filterType = FilterManager.FilterType.CONTRATOS
+    )
+    
+    // Navegar usando Navigation Component
+    findNavController().navigate(R.id.contratosFragment)
+}
+```
+
+#### 4. Aplicação Automática de Filtros
+Atualizei `ContratosFragment` e `DevolucoesFragment` para verificar e aplicar filtros pendentes:
+
+```kotlin
+override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
+    // ... inicialização ...
+    
+    val pendingFilter = FilterManager.consumePendingContractsFilter()
+    if (pendingFilter != null) {
+        // Aplicar filtro automaticamente
+        etSearch.setText(pendingFilter.clienteNome)
+        viewModel.setSearchTerm(pendingFilter.clienteNome)
+        Toast.makeText(context, "Mostrando contratos de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+    } else {
+        // Carregar todos os itens se não houver filtro
+        viewModel.loadContratos()
+    }
+}
+```
+
+#### 5. Limpeza de Filtros
+Implementei limpeza automática de filtros pendentes no `onPause()` de ambos os fragments para evitar aplicação indevida de filtros quando o usuário navega por outras partes do aplicativo.
+
+### Fluxo Corrigido
+
+**Antes (❌ Não funcionava):**
+1. Usuário clica em "Ver Todos" nos contratos do cliente
+2. App navega para ContratosFragment
+3. ContratosFragment carrega TODOS os contratos (14)
+4. Usuário precisa filtrar manualmente
+
+**Depois (✅ Funciona):**
+1. Usuário clica em "Ver Todos" nos contratos do cliente
+2. App define filtro pendente no FilterManager
+3. App navega para ContratosFragment usando Navigation Component
+4. ContratosFragment detecta filtro pendente
+5. ContratosFragment aplica filtro automaticamente
+6. Lista mostra apenas contratos do cliente específico
+7. Toast informa: "Mostrando contratos de: [Nome do Cliente]"
+
+### Benefícios da Correção
+
+1. **✅ Filtros Automáticos**: Sistema funciona como esperado pelo usuário
+2. **✅ Navigation Component**: Mantém compatibilidade com a arquitetura do projeto
+3. **✅ Feedback Visual**: Toast informa qual filtro foi aplicado
+4. **✅ Limpeza Automática**: Filtros são limpos automaticamente para evitar problemas
+5. **✅ Logs Detalhados**: Facilita debugging futuro
+6. **✅ Reutilável**: Sistema pode ser usado para outros tipos de filtros
+
+### Logs Esperados Após Correção
+
+```
+ALG_Gestao...lsFragment: Navegando para contratos do cliente: 1
+ALG_Gestao...FilterManager: Filtro pendente definido: 3MJ PARTICIPAÇÕES LTDA (ID: 1) para CONTRATOS
+ALG_Gestao...osFragment: Aplicando filtro pendente para cliente: 3MJ PARTICIPAÇÕES LTDA (ID: 1)
+ALG_Gestao...FilterManager: Filtro de contratos consumido: 3MJ PARTICIPAÇÕES LTDA
+```
+
+### Considerações Futuras
+
+Esta implementação oferece uma base sólida para:
+- Extensão para outros tipos de filtros (por data, status, etc.)
+- Implementação de histórico de filtros
+- Persistência de filtros favoritos
+- Migração futura para Safe Args do Navigation Component
+
+### Data da Correção
+29/05/2025

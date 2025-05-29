@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -20,6 +21,12 @@ class DashboardFragment : Fragment() {
     private lateinit var viewModel: DashboardViewModel
     private lateinit var swipeRefresh: SwipeRefreshLayout
     
+    // TextViews para exibir as contagens
+    private lateinit var tvContratosCount: TextView
+    private lateinit var tvClientesCount: TextView
+    private lateinit var tvEquipamentosCount: TextView
+    private lateinit var tvDevolucoesCount: TextView
+    
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -32,8 +39,8 @@ class DashboardFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
         LogUtils.debug("DashboardFragment", "Inicializando fragmento do dashboard")
         
-        // Inicializar SwipeRefreshLayout
-        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        // Inicializar views
+        initViews(view)
         
         // Configurar ViewModel
         setupViewModel()
@@ -43,6 +50,14 @@ class DashboardFragment : Fragment() {
         
         // Observar mudanças no ViewModel
         observeViewModel()
+    }
+    
+    private fun initViews(view: View) {
+        swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        tvContratosCount = view.findViewById(R.id.tvWorkersCount)
+        tvClientesCount = view.findViewById(R.id.tvTasksCount)
+        tvEquipamentosCount = view.findViewById(R.id.tvEquipamentosCount)
+        tvDevolucoesCount = view.findViewById(R.id.tvDevolucoesCount)
     }
     
     private fun setupViewModel() {
@@ -135,6 +150,7 @@ class DashboardFragment : Fragment() {
     }
     
     private fun observeViewModel() {
+        // Observar estado da UI
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             when (state) {
                 is UiState.Loading -> {
@@ -159,6 +175,19 @@ class DashboardFragment : Fragment() {
                     // Para outros estados, esconde o indicador
                     swipeRefresh.isRefreshing = false
                 }
+            }
+        }
+        
+        // Observar estatísticas do dashboard
+        viewModel.dashboardStats.observe(viewLifecycleOwner) { stats ->
+            stats?.let {
+                LogUtils.debug("DashboardFragment", "Atualizando contadores: contratos=${it.contratos}, clientes=${it.clientes}, equipamentos=${it.equipamentos}, devoluções=${it.devolucoes}")
+                
+                // Atualizar as contagens nos TextViews
+                tvContratosCount.text = it.contratos.toString()
+                tvClientesCount.text = it.clientes.toString()
+                tvEquipamentosCount.text = it.equipamentos.toString()
+                tvDevolucoesCount.text = it.devolucoes.toString()
             }
         }
     }

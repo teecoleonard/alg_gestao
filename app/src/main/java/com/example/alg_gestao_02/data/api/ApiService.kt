@@ -7,6 +7,7 @@ import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
 import com.example.alg_gestao_02.data.models.ContratoResponse
 import com.example.alg_gestao_02.data.models.Devolucao
+import com.example.alg_gestao_02.data.models.DashboardStats
 import retrofit2.http.Query
 import retrofit2.Response
 import retrofit2.http.Body
@@ -218,6 +219,13 @@ interface ApiService {
      */
     @POST("api/assinaturas")
     suspend fun enviarAssinatura(@Body request: AssinaturaApiRequest): Response<AssinaturaResponse>
+
+    /**
+     * Endpoint para obter estatísticas do dashboard
+     * @return Response com contadores de contratos, clientes, equipamentos e devoluções
+     */
+    @GET("api/dashboard/stats")
+    suspend fun getDashboardStats(): Response<DashboardStats>
 
     /**
      * Classe para requisição de login

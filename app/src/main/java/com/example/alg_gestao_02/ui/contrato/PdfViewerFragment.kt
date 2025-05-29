@@ -251,7 +251,17 @@ class PdfViewerFragment : DialogFragment() {
         }
 
         btnFechar.setOnClickListener {
+            // Limpar outros dialogs que possam estar empilhados
+            parentFragmentManager.fragments.forEach { fragment ->
+                if (fragment is DialogFragment && fragment != this@PdfViewerFragment) {
+                    fragment.dismissAllowingStateLoss()
+                }
+            }
+            
+            // Fechar este dialog
             dismiss()
+            
+            LogUtils.debug("PdfViewerFragment", "Dialog fechado e navegação limpa")
         }
 
         btnAssinar.setOnClickListener {

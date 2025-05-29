@@ -63,9 +63,24 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         
         observeViewModel()
         
-        // Carregar contratos imediatamente
-        LogUtils.debug("ContratosFragment", "Carregando lista de contratos inicialmente")
-        viewModel.loadContratos()
+        // Verificar se há filtro pendente no FilterManager
+        val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingContractsFilter()
+        if (pendingFilter != null) {
+            LogUtils.info("ContratosFragment", "Aplicando filtro pendente para cliente: ${pendingFilter.clienteNome} (ID: ${pendingFilter.clienteId})")
+            
+            // Aplicar o filtro no campo de busca
+            etSearch.setText(pendingFilter.clienteNome)
+            
+            // Definir termo de busca no ViewModel
+            viewModel.setSearchTerm(pendingFilter.clienteNome)
+            
+            // Mostrar toast informativo sobre o filtro aplicado
+            Toast.makeText(requireContext(), "Mostrando contratos de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+        } else {
+            // Carregar contratos normalmente se não houver filtro
+            LogUtils.debug("ContratosFragment", "Carregando lista de contratos inicialmente")
+            viewModel.loadContratos()
+        }
     }
     
     override fun onResume() {
@@ -78,9 +93,13 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     override fun onPause() {
         super.onPause()
         LogUtils.debug("ContratosFragment", "onPause - Ciclo de vida")
+        
         // Limpar o estado do contrato detalhado para evitar que o diálogo reaparece
         // quando voltar para a tela de contratos
         viewModel.limparContratoDetalhado()
+        
+        // Limpar qualquer filtro pendente quando sair da tela
+        com.example.alg_gestao_02.utils.FilterManager.clearPendingFilter()
         
         // Fechar qualquer diálogo que possa estar aberto
         val dialog = childFragmentManager.findFragmentByTag("ContratoDetailsDialog")

@@ -50,6 +50,45 @@ object ApiClient {
         response
     }
     
+    // Interceptador específico para monitorar operações de devolução
+    private val devolucaoResponseInterceptor = Interceptor { chain ->
+        val request = chain.request()
+        val startTime = System.currentTimeMillis()
+        
+        // Log da requisição sendo enviada
+        if (request.url.toString().contains("/devolucoes")) {
+            LogUtils.debug("ApiClient", 
+                ">>> REQUISIÇÃO DEVOLUÇÃO: ${request.method} ${request.url}")
+            
+            if (request.method == "PUT") {
+                LogUtils.info("ApiClient", 
+                    ">>> PROCESSANDO DEVOLUÇÃO: ID=${request.url.pathSegments.lastOrNull()}")
+            }
+        }
+        
+        val response = chain.proceed(request)
+        val endTime = System.currentTimeMillis()
+        val duration = endTime - startTime
+        
+        // Log da resposta recebida
+        if (request.url.toString().contains("/devolucoes")) {
+            LogUtils.debug("ApiClient", 
+                "<<< RESPOSTA DEVOLUÇÃO: ${response.code} ${response.message} (${duration}ms)")
+            
+            if (request.method == "PUT") {
+                if (response.isSuccessful) {
+                    LogUtils.info("ApiClient", 
+                        "<<< DEVOLUÇÃO PROCESSADA COM SUCESSO: ${response.code}")
+                } else {
+                    LogUtils.error("ApiClient", 
+                        "<<< FALHA NO PROCESSAMENTO DA DEVOLUÇÃO: ${response.code} - ${response.message}")
+                }
+            }
+        }
+        
+        response
+    }
+    
     /**
      * Cria um cliente OkHttp configurado com timeout, logger e interceptor de autenticação
      */
@@ -61,6 +100,7 @@ object ApiClient {
         return OkHttpClient.Builder()
             .addInterceptor(loggingInterceptor)
             .addInterceptor(contractResponseInterceptor)
+            .addInterceptor(devolucaoResponseInterceptor)
             .addInterceptor(AuthInterceptor(sessionManager))
             .connectTimeout(30, TimeUnit.SECONDS)
             .readTimeout(30, TimeUnit.SECONDS)

@@ -53,8 +53,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
     
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
-        LogUtils.debug("DevolucoesFragment", "onViewCreated - Inicializando tela de devoluções")
+        LogUtils.info("DevolucoesFragment", "🔥 TESTE - DevolucoesFragment carregado com logs funcionando!")
         
         initViews(view)
         setupViewModel()
@@ -62,14 +61,38 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         setupListeners()
         observeViewModel()
         
-        // Carregar devoluções imediatamente
-        LogUtils.debug("DevolucoesFragment", "Carregando lista de devoluções inicialmente")
-        viewModel.loadDevolucoes()
+        // Verificar se há filtro pendente no FilterManager
+        val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingReturnsFilter()
+        if (pendingFilter != null) {
+            LogUtils.info("DevolucoesFragment", "Aplicando filtro pendente para cliente: ${pendingFilter.clienteNome} (ID: ${pendingFilter.clienteId})")
+            
+            // Aplicar filtro por cliente ID no ViewModel
+            viewModel.setClienteIdFiltro(pendingFilter.clienteId)
+            
+            // Aplicar o nome do cliente no campo de busca para feedback visual
+            etSearch.setText(pendingFilter.clienteNome)
+            viewModel.setSearchTerm(pendingFilter.clienteNome)
+            
+            // Mostrar toast informativo sobre o filtro aplicado
+            Toast.makeText(requireContext(), "Mostrando devoluções de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+        } else {
+            // Carregar devoluções normalmente se não houver filtro
+            LogUtils.debug("DevolucoesFragment", "Carregando lista de devoluções inicialmente")
+            viewModel.loadDevolucoes()
+        }
     }
     
     override fun onResume() {
         super.onResume()
         LogUtils.debug("DevolucoesFragment", "onResume - Ciclo de vida")
+    }
+    
+    override fun onPause() {
+        super.onPause()
+        LogUtils.debug("DevolucoesFragment", "onPause - Ciclo de vida")
+        
+        // Limpar qualquer filtro pendente quando sair da tela
+        com.example.alg_gestao_02.utils.FilterManager.clearPendingFilter()
     }
     
     private fun initViews(view: View) {
@@ -162,33 +185,43 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         
         // Observar o estado de processamento de devolução
         viewModel.processamentoState.observe(viewLifecycleOwner) { state ->
+            LogUtils.debug("DevolucoesFragment", "Observer processamentoState ativado: ${state?.javaClass?.simpleName}")
             when (state) {
                 is UiState.Loading -> {
                     // Opcional: mostrar um indicador de carregamento
-                    LogUtils.debug("DevolucoesFragment", "Processando devolução...")
+                    LogUtils.info("DevolucoesFragment", "🔄 PROCESSAMENTO EM ANDAMENTO...")
                 }
                 
                 is UiState.Success -> {
-                    LogUtils.debug("DevolucoesFragment", "Devolução processada com sucesso")
+                    val devolucao = state.data
+                    LogUtils.info("DevolucoesFragment", "✅ PROCESSAMENTO CONCLUÍDO COM SUCESSO NO FRAGMENT")
+                    LogUtils.debug("DevolucoesFragment", "Devolução processada - ID: ${devolucao.id}, Status: ${devolucao.statusItemDevolucao}")
                     Toast.makeText(context, "Devolução processada com sucesso", Toast.LENGTH_SHORT).show()
                     
                     // Limpar o estado de processamento para evitar comportamentos indesejados
+                    LogUtils.debug("DevolucoesFragment", "Limpando estado de processamento...")
                     viewModel.clearProcessamentoState()
                     
                     // Atualizar a lista de devoluções
+                    LogUtils.debug("DevolucoesFragment", "Recarregando lista de devoluções...")
                     viewModel.loadDevolucoes()
                 }
                 
                 is UiState.Error -> {
-                    LogUtils.error("DevolucoesFragment", "Erro ao processar devolução: ${state.message}")
-                    Toast.makeText(context, "Erro: ${state.message}", Toast.LENGTH_SHORT).show()
+                    LogUtils.error("DevolucoesFragment", "❌ ERRO NO PROCESSAMENTO - Fragment recebeu erro: ${state.message}")
+                    Toast.makeText(context, "Erro: ${state.message}", Toast.LENGTH_LONG).show()
                     
                     // Limpar o estado de processamento
+                    LogUtils.debug("DevolucoesFragment", "Limpando estado de processamento após erro...")
                     viewModel.clearProcessamentoState()
                 }
                 
+                null -> {
+                    LogUtils.debug("DevolucoesFragment", "Estado de processamento é null (limpo)")
+                }
+                
                 else -> {
-                    // Nada a fazer para outros estados
+                    LogUtils.warning("DevolucoesFragment", "Estado de processamento desconhecido: ${state?.javaClass?.simpleName}")
                 }
             }
         }
@@ -203,15 +236,22 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
     }
     
     override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String, observacao: String?) {
+        LogUtils.info("DevolucoesFragment", "🚀 USUÁRIO SOLICITOU PROCESSAMENTO DE DEVOLUÇÃO")
         LogUtils.debug("DevolucoesFragment", "Processando devolução ID: ${devolucao.id}, " +
                 "Quantidade: $quantidade, Status: $status")
+        LogUtils.debug("DevolucoesFragment", "Equipamento: ${devolucao.equipamento?.nomeEquip}")
+        LogUtils.debug("DevolucoesFragment", "Cliente: ${devolucao.cliente?.contratante}")
+        LogUtils.debug("DevolucoesFragment", "Dev Num: ${devolucao.devNum}")
+        LogUtils.debug("DevolucoesFragment", "Observação: $observacao")
         
+        LogUtils.info("DevolucoesFragment", "Chamando viewModel.processarDevolucao...")
         viewModel.processarDevolucao(
             devolucaoId = devolucao.id,
             quantidadeDevolvida = quantidade,
             statusItemDevolucao = status,
             observacaoItemDevolucao = observacao
         )
+        LogUtils.debug("DevolucoesFragment", "Chamada ao ViewModel concluída, aguardando resultado...")
     }
     
     private fun showFilterDialog() {

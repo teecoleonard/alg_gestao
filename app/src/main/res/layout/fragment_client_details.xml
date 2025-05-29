@@ -113,6 +113,87 @@
                         android:textSize="14sp"
                         tools:text="Endereço: Rua Exemplo, 123, Bairro, Cidade/UF" />
 
+                    <!-- Estatísticas Rápidas -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="16dp"
+                        android:orientation="horizontal"
+                        android:gravity="center">
+
+                        <!-- Contratos Count -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="4dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:background="@drawable/border_rounded">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_contract"
+                                app:tint="@color/primary" />
+
+                            <TextView
+                                android:id="@+id/tvContractsCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:fontFamily="@font/poppins_medium"
+                                android:textColor="@color/primary"
+                                android:textSize="16sp"
+                                tools:text="5" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:fontFamily="@font/poppins"
+                                android:text="Contratos"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+
+                        <!-- Devoluções Count -->
+                        <LinearLayout
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="4dp"
+                            android:gravity="center"
+                            android:orientation="horizontal"
+                            android:padding="8dp"
+                            android:background="@drawable/border_rounded">
+
+                            <ImageView
+                                android:layout_width="20dp"
+                                android:layout_height="20dp"
+                                android:src="@drawable/ic_devolucoes"
+                                app:tint="@color/primary" />
+
+                            <TextView
+                                android:id="@+id/tvReturnsCount"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="6dp"
+                                android:fontFamily="@font/poppins_medium"
+                                android:textColor="@color/primary"
+                                android:textSize="16sp"
+                                tools:text="3" />
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginStart="4dp"
+                                android:fontFamily="@font/poppins"
+                                android:text="Devoluções"
+                                android:textSize="12sp" />
+                        </LinearLayout>
+                    </LinearLayout>
+
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
@@ -142,263 +223,259 @@
                 </LinearLayout>
             </com.google.android.material.card.MaterialCardView>
 
-            <!-- Client Summary Section -->
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="16dp"
-                android:orientation="horizontal">
-
-                <!-- Contracts Count Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginEnd="8dp"
-                    android:layout_weight="1"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_contract"
-                            app:tint="@color/primary" />
-
-                        <TextView
-                            android:id="@+id/tvContractsCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:fontFamily="@font/poppins_medium"
-                            android:textColor="@color/primary"
-                            android:textSize="20sp"
-                            tools:text="5" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins"
-                            android:text="Contratos"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Returns Count Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:layout_weight="1"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="16dp">
-
-                        <ImageView
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_devolucoes"
-                            app:tint="@color/primary" />
-
-                        <TextView
-                            android:id="@+id/tvReturnsCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="8dp"
-                            android:fontFamily="@font/poppins_medium"
-                            android:textColor="@color/primary"
-                            android:textSize="20sp"
-                            tools:text="3" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins"
-                            android:text="Devoluções"
-                            android:textSize="12sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
-
             <!-- Contracts Section -->
-            <TextView
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/poppins_medium"
-                android:text="Contratos"
-                android:textColor="@color/primary"
-                android:textSize="16sp" />
-
-            <androidx.recyclerview.widget.RecyclerView
-                android:id="@+id/rvContracts"
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:layout_marginBottom="16dp"
-                android:nestedScrollingEnabled="false"
-                tools:itemCount="3"
-                tools:listitem="@layout/item_contrato" />
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Section Header -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:fontFamily="@font/poppins_medium"
+                            android:text="Contratos do Cliente"
+                            android:textColor="@color/primary"
+                            android:textSize="16sp" />
+
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewAllContracts"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
+                            android:layout_width="wrap_content"
+                            android:layout_height="wrap_content"
+                            android:text="Ver Todos"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_arrow_right" />
+                    </LinearLayout>
+
+                    <!-- Contracts List (preview) -->
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvContracts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:nestedScrollingEnabled="false"
+                        tools:itemCount="3"
+                        tools:listitem="@layout/item_contrato" />
+
+                    <!-- Empty state for contracts -->
+                    <TextView
+                        android:id="@+id/tvEmptyContracts"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:layout_marginTop="8dp"
+                        android:gravity="center"
+                        android:padding="16dp"
+                        android:text="Nenhum contrato encontrado para este cliente"
+                        android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
+                        android:visibility="gone"
+                        tools:visibility="visible" />
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Returns Section -->
-            <TextView
+            <com.google.android.material.card.MaterialCardView
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginBottom="8dp"
-                android:fontFamily="@font/poppins_medium"
-                android:text="Status das Devoluções"
-                android:textColor="@color/primary"
-                android:textSize="16sp" />
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="8dp"
+                app:cardElevation="4dp">
 
-            <LinearLayout
-                android:layout_width="match_parent"
-                android:layout_height="wrap_content"
-                android:orientation="horizontal">
-
-                <!-- Pending Returns Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardPendingReturns"
-                    android:layout_width="0dp"
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
+                    android:orientation="vertical"
+                    android:padding="16dp">
 
+                    <!-- Section Header -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_pending"
-                            app:tint="@color/warning" />
+                        android:gravity="center_vertical"
+                        android:orientation="horizontal">
 
                         <TextView
-                            android:id="@+id/tvPendingReturnsCount"
-                            android:layout_width="wrap_content"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
+                            android:layout_weight="1"
                             android:fontFamily="@font/poppins_medium"
-                            android:textColor="@color/warning"
-                            android:textSize="18sp"
-                            tools:text="2" />
+                            android:text="Status das Devoluções"
+                            android:textColor="@color/primary"
+                            android:textSize="16sp" />
 
-                        <TextView
+                        <com.google.android.material.button.MaterialButton
+                            android:id="@+id/btnViewAllReturns"
+                            style="@style/Widget.MaterialComponents.Button.TextButton"
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins"
-                            android:text="Pendentes"
-                            android:textSize="10sp" />
+                            android:text="Ver Todas"
+                            android:textAllCaps="false"
+                            app:icon="@drawable/ic_arrow_right" />
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
 
-                <!-- Completed Returns Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardCompletedReturns"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_marginEnd="4dp"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
+                    <!-- Returns Status Grid -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
+                        android:layout_marginTop="8dp"
+                        android:orientation="horizontal">
 
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_check_circle"
-                            app:tint="@color/success" />
-
-                        <TextView
-                            android:id="@+id/tvCompletedReturnsCount"
-                            android:layout_width="wrap_content"
+                        <!-- Pending Returns Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardPendingReturns"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/poppins_medium"
-                            android:textColor="@color/success"
-                            android:textSize="18sp"
-                            tools:text="1" />
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="@color/warning_light">
 
-                        <TextView
-                            android:layout_width="wrap_content"
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_pending"
+                                    app:tint="@color/warning" />
+
+                                <TextView
+                                    android:id="@+id/tvPendingReturnsCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/poppins_medium"
+                                    android:textColor="@color/warning"
+                                    android:textSize="18sp"
+                                    tools:text="2" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/poppins"
+                                    android:text="Pendentes"
+                                    android:textColor="@color/warning"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Completed Returns Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardCompletedReturns"
+                            android:layout_width="0dp"
                             android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins"
-                            android:text="Devolvidos"
-                            android:textSize="10sp" />
+                            android:layout_marginStart="4dp"
+                            android:layout_marginEnd="4dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="@color/success_light">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_check_circle"
+                                    app:tint="@color/success" />
+
+                                <TextView
+                                    android:id="@+id/tvCompletedReturnsCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/poppins_medium"
+                                    android:textColor="@color/success"
+                                    android:textSize="18sp"
+                                    tools:text="1" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/poppins"
+                                    android:text="Devolvidos"
+                                    android:textColor="@color/success"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
+
+                        <!-- Issues Returns Card -->
+                        <com.google.android.material.card.MaterialCardView
+                            android:id="@+id/cardIssuesReturns"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_marginStart="4dp"
+                            android:layout_weight="1"
+                            android:clickable="true"
+                            android:focusable="true"
+                            app:cardCornerRadius="8dp"
+                            app:cardElevation="2dp"
+                            app:cardBackgroundColor="@color/error_light">
+
+                            <LinearLayout
+                                android:layout_width="match_parent"
+                                android:layout_height="wrap_content"
+                                android:gravity="center"
+                                android:orientation="vertical"
+                                android:padding="12dp">
+
+                                <ImageView
+                                    android:layout_width="20dp"
+                                    android:layout_height="20dp"
+                                    android:src="@drawable/ic_error"
+                                    app:tint="@color/error" />
+
+                                <TextView
+                                    android:id="@+id/tvIssuesReturnsCount"
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:layout_marginTop="4dp"
+                                    android:fontFamily="@font/poppins_medium"
+                                    android:textColor="@color/error"
+                                    android:textSize="18sp"
+                                    tools:text="0" />
+
+                                <TextView
+                                    android:layout_width="wrap_content"
+                                    android:layout_height="wrap_content"
+                                    android:fontFamily="@font/poppins"
+                                    android:text="Problemas"
+                                    android:textColor="@color/error"
+                                    android:textSize="10sp" />
+                            </LinearLayout>
+                        </com.google.android.material.card.MaterialCardView>
                     </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-
-                <!-- Issues Returns Card -->
-                <com.google.android.material.card.MaterialCardView
-                    android:id="@+id/cardIssuesReturns"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_marginStart="4dp"
-                    android:layout_weight="1"
-                    android:clickable="true"
-                    android:focusable="true"
-                    app:cardCornerRadius="8dp"
-                    app:cardElevation="2dp">
-
-                    <LinearLayout
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:gravity="center"
-                        android:orientation="vertical"
-                        android:padding="12dp">
-
-                        <ImageView
-                            android:layout_width="20dp"
-                            android:layout_height="20dp"
-                            android:src="@drawable/ic_error"
-                            app:tint="@color/error" />
-
-                        <TextView
-                            android:id="@+id/tvIssuesReturnsCount"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:layout_marginTop="4dp"
-                            android:fontFamily="@font/poppins_medium"
-                            android:textColor="@color/error"
-                            android:textSize="18sp"
-                            tools:text="0" />
-
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:fontFamily="@font/poppins"
-                            android:text="Problemas"
-                            android:textSize="10sp" />
-                    </LinearLayout>
-                </com.google.android.material.card.MaterialCardView>
-            </LinearLayout>
+                </LinearLayout>
+            </com.google.android.material.card.MaterialCardView>
 
             <!-- Progress Indicator -->
             <ProgressBar

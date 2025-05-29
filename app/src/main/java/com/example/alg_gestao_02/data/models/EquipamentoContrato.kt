@@ -33,7 +33,11 @@ data class EquipamentoContrato(
     
     // Campo para referência ao equipamento completo (não armazenado no banco)
     @SerializedName("equipamento")
-    val equipamento: Equipamento? = null
+    val equipamento: Equipamento? = null,
+    
+    // Campo para armazenar o período selecionado (apenas no front-end, não vai para o banco)
+    @Transient
+    val periodoSelecionado: String? = null
 ) : Parcelable {
     // Uma propriedade que permite obter o ID do contrato
     // para comparação com valores específicos

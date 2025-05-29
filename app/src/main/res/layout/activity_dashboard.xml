@@ -10,6 +10,8 @@
     tools:openDrawer="start">
 
     <!-- Conteúdo principal -->
+
+    <!-- Menu de navegação lateral -->
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -115,13 +117,12 @@
             android:layout_width="match_parent"
             android:layout_height="match_parent"
             android:layout_marginTop="?attr/actionBarSize"
+            android:background="@color/background"
             app:defaultNavHost="true"
-            app:navGraph="@navigation/nav_graph"
-            android:background="@color/background" />
+            app:navGraph="@navigation/nav_graph" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
-    <!-- Menu de navegação lateral -->
     <com.google.android.material.navigation.NavigationView
         android:id="@+id/navView"
         android:layout_width="wrap_content"

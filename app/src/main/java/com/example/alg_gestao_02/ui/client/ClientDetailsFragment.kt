@@ -206,6 +206,16 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
             viewModel.carregarDetalhesCliente(clienteId)
         }
         
+        // Navegação para todos os contratos do cliente
+        binding.btnViewAllContracts.setOnClickListener {
+            navigateToContractsByClient()
+        }
+        
+        // Navegação para todas as devoluções do cliente
+        binding.btnViewAllReturns.setOnClickListener {
+            navigateToReturnsByClient()
+        }
+        
         // Configura cliques nos cards de status de devolução
         binding.cardPendingReturns.setOnClickListener {
             val pendentes = viewModel.getDevolucoesByStatus("Pendente")
@@ -240,14 +250,13 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         // Atualiza o contador de contratos
         binding.tvContractsCount.text = contratos.size.toString()
         
-        // Mostra estado vazio se não houver contratos
-        if (!hasContratos && viewModel.isLoading.value == false) {
-            binding.rvContracts.visibility = View.GONE
-            binding.layoutEmpty.visibility = View.VISIBLE
-            binding.tvEmptyMessage.text = getString(R.string.nenhum_contrato_encontrado)
-        } else {
+        // Controla a visibilidade da lista vs estado vazio
+        if (hasContratos) {
             binding.rvContracts.visibility = View.VISIBLE
-            binding.layoutEmpty.visibility = View.GONE
+            binding.tvEmptyContracts.visibility = View.GONE
+        } else {
+            binding.rvContracts.visibility = View.GONE
+            binding.tvEmptyContracts.visibility = View.VISIBLE
         }
     }
 
@@ -267,25 +276,43 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
 
     private fun showContratoDetails(contrato: Contrato) {
         LogUtils.debug("ClientDetailsFragment", "Mostrando detalhes do contrato: ${contrato.id}")
-        // Buscar o contrato completo pelo ID antes de abrir o dialog
+        // Usar o mesmo método que o ContratosFragment usa
         viewLifecycleOwner.lifecycleScope.launch {
-            val repository = ContratoRepository()
-            when (val result = repository.getContratoById(contrato.id)) {
-                is Resource.Success -> {
-                    val contratoCompleto = result.data
-                    if (contratoCompleto != null) {
-                        val dialog = ContratoDetailsDialogFragment.newInstance(contratoCompleto)
-                        dialog.setOnEditRequestListener(this@ClientDetailsFragment)
-                        dialog.show(parentFragmentManager, "detalhes_contrato")
-                    } else {
-                        Toast.makeText(requireContext(), "Contrato não encontrado.", Toast.LENGTH_SHORT).show()
+            val contratoRepository = ContratoRepository()
+            val contratoViewModelFactory = com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory()
+            val contratoViewModel = ViewModelProvider(this@ClientDetailsFragment, contratoViewModelFactory)[com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel::class.java]
+            
+            // Observar o resultado do carregamento do contrato detalhado
+            contratoViewModel.contratoDetalhado.observe(viewLifecycleOwner) { state ->
+                when (state) {
+                    is com.example.alg_gestao_02.ui.state.UiState.Success -> {
+                        if (state.data != null) {
+                            LogUtils.debug("ClientDetailsFragment", "Contrato com detalhes carregado: ${state.data.contratoNum}")
+                            val dialog = ContratoDetailsDialogFragment.newInstance(state.data)
+                            dialog.setOnEditRequestListener(this@ClientDetailsFragment)
+                            dialog.show(parentFragmentManager, "detalhes_contrato")
+                            
+                            // Limpar observer após uso
+                            contratoViewModel.contratoDetalhado.removeObservers(viewLifecycleOwner)
+                        } else {
+                            Toast.makeText(requireContext(), "Contrato não encontrado.", Toast.LENGTH_SHORT).show()
+                        }
+                    }
+                    is com.example.alg_gestao_02.ui.state.UiState.Error -> {
+                        LogUtils.error("ClientDetailsFragment", "Erro ao carregar contrato: ${state.message}")
+                        Toast.makeText(requireContext(), "Erro ao carregar detalhes do contrato", Toast.LENGTH_SHORT).show()
+                        
+                        // Limpar observer após uso
+                        contratoViewModel.contratoDetalhado.removeObservers(viewLifecycleOwner)
+                    }
+                    else -> {
+                        // Loading ou outros estados
                     }
                 }
-                is Resource.Error -> {
-                    Toast.makeText(requireContext(), "Erro ao carregar detalhes do contrato", Toast.LENGTH_SHORT).show()
-                }
-                else -> {}
             }
+            
+            // Carregar o contrato usando o mesmo método do ContratosFragment
+            contratoViewModel.carregarContratoComDetalhes(contrato.id)
         }
     }
     
@@ -341,12 +368,60 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         LogUtils.debug("ClientDetailsFragment", "Mostrando detalhes da devolução: ${devolucao.id}")
         val dialog = DevolucaoDetailsDialogFragment.newInstance(devolucao)
         
-        // Configurar o listener para processamento de devolução, se necessário
+        // Configurar o listener para processamento de devolução
         dialog.setOnProcessarRequestListener(object : DevolucaoDetailsDialogFragment.OnProcessarRequestListener {
             override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String, observacao: String?) {
-                // Implementar no futuro: processar devolução
-                // Por enquanto, apenas recarregamos os dados após o processamento
-                viewModel.carregarDetalhesCliente(clienteId)
+                LogUtils.info("ClientDetailsFragment", "🚀 PROCESSAMENTO DE DEVOLUÇÃO SOLICITADO VIA CLIENTE")
+                LogUtils.debug("ClientDetailsFragment", "Devolução ID: ${devolucao.id}, Quantidade: $quantidade, Status: $status")
+                
+                // Criar ViewModel de devoluções para processar a devolução
+                val apiService = com.example.alg_gestao_02.data.api.ApiClient.apiService
+                val devolucaoRepository = DevolucaoRepository(apiService)
+                val devolucaoViewModelFactory = com.example.alg_gestao_02.ui.devolucao.viewmodel.DevolucoesViewModelFactory(devolucaoRepository)
+                val devolucaoViewModel = ViewModelProvider(requireActivity(), devolucaoViewModelFactory)[com.example.alg_gestao_02.ui.devolucao.viewmodel.DevolucoesViewModel::class.java]
+                
+                // Observar o resultado do processamento
+                devolucaoViewModel.processamentoState.observe(viewLifecycleOwner) { state ->
+                    when (state) {
+                        is com.example.alg_gestao_02.ui.state.UiState.Loading -> {
+                            LogUtils.debug("ClientDetailsFragment", "🔄 Processando devolução...")
+                        }
+                        
+                        is com.example.alg_gestao_02.ui.state.UiState.Success -> {
+                            LogUtils.info("ClientDetailsFragment", "✅ Devolução processada com sucesso!")
+                            Toast.makeText(requireContext(), "Devolução processada com sucesso", Toast.LENGTH_SHORT).show()
+                            
+                            // Limpar observer e recarregar dados do cliente
+                            devolucaoViewModel.processamentoState.removeObservers(viewLifecycleOwner)
+                            devolucaoViewModel.clearProcessamentoState()
+                            
+                            // Recarregar dados do cliente para atualizar contadores
+                            viewModel.carregarDetalhesCliente(clienteId)
+                        }
+                        
+                        is com.example.alg_gestao_02.ui.state.UiState.Error -> {
+                            LogUtils.error("ClientDetailsFragment", "❌ Erro no processamento: ${state.message}")
+                            Toast.makeText(requireContext(), "Erro: ${state.message}", Toast.LENGTH_LONG).show()
+                            
+                            // Limpar observer
+                            devolucaoViewModel.processamentoState.removeObservers(viewLifecycleOwner)
+                            devolucaoViewModel.clearProcessamentoState()
+                        }
+                        
+                        else -> {
+                            // Estado null ou outros
+                        }
+                    }
+                }
+                
+                // Processar a devolução
+                LogUtils.info("ClientDetailsFragment", "Chamando devolucaoViewModel.processarDevolucao...")
+                devolucaoViewModel.processarDevolucao(
+                    devolucaoId = devolucao.id,
+                    quantidadeDevolvida = quantidade,
+                    statusItemDevolucao = status,
+                    observacaoItemDevolucao = observacao
+                )
             }
         })
         
@@ -356,6 +431,72 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
     private fun showError(message: String) {
         binding.layoutError.visibility = View.VISIBLE
         binding.tvErrorMessage.text = message
+    }
+
+    /**
+     * Navega para a tela de contratos filtrada pelo cliente atual
+     */
+    private fun navigateToContractsByClient() {
+        LogUtils.debug("ClientDetailsFragment", "Navegando para contratos do cliente: $clienteId")
+        
+        val cliente = viewModel.cliente.value
+        if (cliente == null) {
+            Toast.makeText(requireContext(), "Dados do cliente não disponíveis", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Definir filtro pendente para contratos
+        com.example.alg_gestao_02.utils.FilterManager.setPendingClientFilter(
+            clienteId = clienteId,
+            clienteNome = cliente.contratante,
+            filterType = com.example.alg_gestao_02.utils.FilterManager.FilterType.CONTRATOS
+        )
+        
+        // Navegar para contratos usando Navigation Component
+        findNavController().navigate(R.id.contratosFragment)
+        
+        // Atualizar item selecionado no menu de navegação
+        try {
+            requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                .setCheckedItem(R.id.nav_contratos)
+        } catch (e: Exception) {
+            LogUtils.error("ClientDetailsFragment", "Erro ao atualizar menu de navegação: ${e.message}")
+        }
+        
+        LogUtils.info("ClientDetailsFragment", "Filtro definido para contratos de: ${cliente.contratante}")
+    }
+    
+    /**
+     * Navega para a tela de devoluções filtrada pelo cliente atual
+     */
+    private fun navigateToReturnsByClient() {
+        LogUtils.debug("ClientDetailsFragment", "Navegando para devoluções do cliente: $clienteId")
+        
+        val cliente = viewModel.cliente.value
+        if (cliente == null) {
+            Toast.makeText(requireContext(), "Dados do cliente não disponíveis", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        // Definir filtro pendente para devoluções
+        com.example.alg_gestao_02.utils.FilterManager.setPendingClientFilter(
+            clienteId = clienteId,
+            clienteNome = cliente.contratante,
+            filterType = com.example.alg_gestao_02.utils.FilterManager.FilterType.DEVOLUCOES
+        )
+        
+        // Navegar para devoluções usando Navigation Component
+        findNavController().navigate(R.id.devolucoesFragment)
+        
+        // Atualizar item selecionado no menu de navegação
+        try {
+            requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                .setCheckedItem(R.id.nav_devolucoes)
+        } catch (e: Exception) {
+            LogUtils.error("ClientDetailsFragment", "Erro ao atualizar menu de navegação: ${e.message}")
+        }
+        
+        LogUtils.info("ClientDetailsFragment", "Filtro definido para devoluções de: ${cliente.contratante}")
     }
 
     override fun onDestroyView() {

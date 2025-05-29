@@ -198,6 +198,18 @@ class SignatureCaptureFragment : DialogFragment() {
                                 
                                 if (pdfResponse.success) {
                                     LogUtils.debug("SignatureCapture", "PDF gerado com sucesso: ${pdfResponse.message}")
+                                    
+                                    // Fechar este dialog primeiro
+                                    dismiss()
+                                    
+                                    // Limpar outros dialogs/fragments que possam estar abertos
+                                    parentFragmentManager.fragments.forEach { fragment ->
+                                        if (fragment is DialogFragment && fragment != this@SignatureCaptureFragment) {
+                                            fragment.dismissAllowingStateLoss()
+                                        }
+                                    }
+                                    
+                                    // Mostrar o PDF atualizado
                                     val pdfViewer = PdfViewerFragment.newInstance(
                                         pdfBase64 = pdfResponse.pdfBase64,
                                         contratoNumero = numero,
@@ -205,9 +217,9 @@ class SignatureCaptureFragment : DialogFragment() {
                                         htmlUrl = pdfResponse.htmlUrl,
                                         htmlContent = pdfResponse.htmlContent
                                     )
-                                    dismiss()
                                     pdfViewer.show(parentFragmentManager, "pdf_viewer")
-                                    Toast.makeText(context, "Assinatura salva com sucesso", Toast.LENGTH_SHORT).show()
+                                    
+                                    Toast.makeText(context, "✅ Assinatura salva! PDF atualizado automaticamente", Toast.LENGTH_LONG).show()
                                 } else {
                                     val errorMsg = "Erro ao gerar PDF: ${pdfResponse.message}"
                                     LogUtils.error("SignatureCapture", errorMsg)

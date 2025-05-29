@@ -36,6 +36,8 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
 
     private lateinit var tilEquipamento: TextInputLayout
     private lateinit var actvEquipamento: AutoCompleteTextView
+    private lateinit var tilPeriodo: TextInputLayout
+    private lateinit var actvPeriodo: AutoCompleteTextView
     private lateinit var tilQuantidade: TextInputLayout
     private lateinit var etQuantidade: TextInputEditText
     private lateinit var tilValorUnitario: TextInputLayout
@@ -52,6 +54,10 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
     private var equipamentoSelecionado: Equipamento? = null
     private var equipamentos: List<Equipamento> = emptyList()
     private var onEquipamentoSalvoListener: ((EquipamentoContrato) -> Unit)? = null
+    
+    // Períodos disponíveis
+    private val periodos = listOf("Diário", "Semanal", "Quinzenal", "Mensal")
+    private var periodoSelecionado: String = "Diário" // Padrão
 
     companion object {
         private const val ARG_EQUIPAMENTO_CONTRATO = "arg_equipamento_contrato"
@@ -145,6 +151,8 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
     private fun initViews(view: View) {
         tilEquipamento = view.findViewById(R.id.tilEquipamento)
         actvEquipamento = view.findViewById(R.id.actvEquipamento)
+        tilPeriodo = view.findViewById(R.id.tilPeriodo)
+        actvPeriodo = view.findViewById(R.id.actvPeriodo)
         tilQuantidade = view.findViewById(R.id.tilQuantidade)
         etQuantidade = view.findViewById(R.id.etQuantidade)
         tilValorUnitario = view.findViewById(R.id.tilValorUnitario)
@@ -172,13 +180,30 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
     }
 
     private fun setupListeners() {
+        // Configurar dropdown de períodos
+        val periodosAdapter = ArrayAdapter(
+            requireContext(),
+            android.R.layout.simple_dropdown_item_1line,
+            periodos
+        )
+        actvPeriodo.setAdapter(periodosAdapter)
+        actvPeriodo.setText(periodoSelecionado, false)
+        
+        // Listener para seleção de período
+        actvPeriodo.setOnItemClickListener { _, _, position, _ ->
+            periodoSelecionado = periodos[position]
+            // Atualiza o valor unitário baseado no novo período
+            equipamentoSelecionado?.let { equipamento ->
+                atualizarValorPorPeriodo(equipamento)
+            }
+        }
+        
         // Listener para seleção de equipamento
         actvEquipamento.setOnItemClickListener { _, _, position, _ ->
             equipamentoSelecionado = equipamentos[position]
             equipamentoSelecionado?.let { equipamento ->
-                // Preenche valor unitário com o valor diário do equipamento selecionado
-                val valorFormatado = DecimalFormat("0.00", DecimalFormatSymbols(Locale("pt", "BR")))
-                etValorUnitario.setText(valorFormatado.format(equipamento.precoDiaria))
+                // Preenche valor unitário baseado no período selecionado
+                atualizarValorPorPeriodo(equipamento)
                 
                 // Se for novo, pré-preenche quantidade com 1
                 if (equipamentoContratoParaEdicao == null) {
@@ -288,7 +313,28 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
         // Valor frete
         etValorFrete.setText(formato.format(equipamentoContrato.valorFrete))
         
+        // Detectar período baseado no valor unitário (se equipamento estiver disponível)
+        equipamentoSelecionado?.let { equipamento ->
+            periodoSelecionado = detectarPeriodoPorValor(equipamento, equipamentoContrato.valorUnitario)
+            actvPeriodo.setText(periodoSelecionado, false)
+        }
+        
         // O valor total é calculado automaticamente pelo TextWatcher
+    }
+    
+    /**
+     * Detecta qual período foi usado baseado no valor unitário salvo
+     */
+    private fun detectarPeriodoPorValor(equipamento: Equipamento, valorSalvo: Double): String {
+        val tolerancia = 0.01 // tolerância para comparação de double
+        
+        return when {
+            Math.abs(valorSalvo - equipamento.precoDiaria) < tolerancia -> "Diário"
+            Math.abs(valorSalvo - equipamento.precoSemanal) < tolerancia -> "Semanal"
+            Math.abs(valorSalvo - equipamento.precoQuinzenal) < tolerancia -> "Quinzenal"
+            Math.abs(valorSalvo - equipamento.precoMensal) < tolerancia -> "Mensal"
+            else -> "Diário" // fallback
+        }
     }
 
     private fun calcularValorTotal() {
@@ -316,6 +362,14 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
             isValid = false
         } else {
             tilEquipamento.error = null
+        }
+        
+        // Validar período selecionado
+        if (periodoSelecionado.isBlank() || !periodos.contains(periodoSelecionado)) {
+            tilPeriodo.error = "Selecione um período válido"
+            isValid = false
+        } else {
+            tilPeriodo.error = null
         }
         
         // Validar quantidade
@@ -397,7 +451,8 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
             valorTotal = valorTotal,
             valorFrete = valorFrete,
             equipamentoNome = equipamentoSelecionado?.nomeEquip,
-            equipamento = equipamentoSelecionado
+            equipamento = equipamentoSelecionado,
+            periodoSelecionado = periodoSelecionado
         )
         
         LogUtils.debug("EquipamentoContratoDialog", "Salvando equipamento: " +
@@ -418,5 +473,27 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
      */
     fun setOnEquipamentoSalvoListener(listener: (EquipamentoContrato) -> Unit) {
         this.onEquipamentoSalvoListener = listener
+    }
+    
+    /**
+     * Atualiza o valor unitário baseado no período selecionado
+     */
+    private fun atualizarValorPorPeriodo(equipamento: Equipamento) {
+        val valorUnitario = when (periodoSelecionado) {
+            "Diário" -> equipamento.precoDiaria
+            "Semanal" -> equipamento.precoSemanal
+            "Quinzenal" -> equipamento.precoQuinzenal
+            "Mensal" -> equipamento.precoMensal
+            else -> equipamento.precoDiaria // fallback para diário
+        }
+        
+        val valorFormatado = DecimalFormat("0.00", DecimalFormatSymbols(Locale("pt", "BR")))
+        etValorUnitario.setText(valorFormatado.format(valorUnitario))
+        
+        // Recalcula o valor total automaticamente
+        calcularValorTotal()
+        
+        LogUtils.debug("EquipamentoContratoDialog", 
+            "Valor atualizado para período '$periodoSelecionado': ${valorFormatado.format(valorUnitario)}")
     }
 }

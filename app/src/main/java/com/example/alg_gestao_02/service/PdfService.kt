@@ -169,13 +169,22 @@ class PdfService {
      * Converte um contrato do app para o formato esperado pelo gerador de PDF
      */
     private fun mapContratoToPdfDTO(contrato: Contrato, cliente: Cliente? = null): ContratoPdfDTO {
-        LogUtils.debug("PdfService", "Iniciando mapeamento do contrato #${contrato.id} para PDF")
+        LogUtils.debug("PdfService", "=== INÍCIO DO MAPEAMENTO DO CONTRATO ===")
+        LogUtils.debug("PdfService", "Contrato ID: ${contrato.id}")
+        LogUtils.debug("PdfService", "Contrato Número: ${contrato.contratoNum}")
+        LogUtils.debug("PdfService", "Status Assinatura: ${contrato.status_assinatura}")
         
         // Log detalhado sobre a assinatura
         contrato.assinatura?.let { assinatura ->
-            LogUtils.debug("PdfService", "Assinatura encontrada no contrato: ID=${assinatura.id}, nome_arquivo=${assinatura.nome_arquivo}")
+            LogUtils.debug("PdfService", "✅ ASSINATURA ENCONTRADA NO CONTRATO:")
+            LogUtils.debug("PdfService", "  - ID da assinatura: ${assinatura.id}")
+            LogUtils.debug("PdfService", "  - Nome do arquivo: '${assinatura.nome_arquivo}'")
+            LogUtils.debug("PdfService", "  - Contrato ID da assinatura: ${assinatura.contrato_id}")
+            LogUtils.debug("PdfService", "  - Cliente ID da assinatura: ${assinatura.cliente_id}")
         } ?: run {
-            LogUtils.debug("PdfService", "Nenhuma assinatura encontrada no contrato #${contrato.id}")
+            LogUtils.warning("PdfService", "❌ NENHUMA ASSINATURA ENCONTRADA NO CONTRATO #${contrato.id}")
+            LogUtils.debug("PdfService", "Status da assinatura do contrato: ${contrato.status_assinatura}")
+            LogUtils.debug("PdfService", "Data da assinatura do contrato: ${contrato.data_assinatura}")
         }
         
         val clientePdf = cliente?.let { 
@@ -239,18 +248,21 @@ class PdfService {
                 LogUtils.debug("PdfService", "Adicionando informações da assinatura ao PDF")
                 append("\n\nAssinatura: ${assinatura.nome_arquivo}")
             } ?: run {
-                LogUtils.warning("PdfService", "Nenhuma assinatura encontrada para o contrato #${contrato.id}")
+                LogUtils.warning("PdfService", "Nenhuma assinatura encontrada para adicionar às observações")
             }
         }.toString()
         
         val assinaturaPdfDTO = contrato.assinatura?.let { assinatura ->
             if (!assinatura.nome_arquivo.isNullOrEmpty()) {
-                LogUtils.debug("PdfService", "Incluindo assinatura no PDF: ${assinatura.nome_arquivo}")
+                LogUtils.debug("PdfService", "✅ CRIANDO AssinaturaPdfDTO com nome: '${assinatura.nome_arquivo}'")
                 AssinaturaPdfDTO(assinatura.nome_arquivo)
             } else {
-                LogUtils.warning("PdfService", "Nome do arquivo de assinatura está vazio ou nulo")
+                LogUtils.warning("PdfService", "❌ Nome do arquivo de assinatura está vazio ou nulo")
                 null
             }
+        } ?: run {
+            LogUtils.warning("PdfService", "❌ Contrato não possui assinatura associada")
+            null
         }
         
         val contratoPdfDTO = ContratoPdfDTO(
@@ -266,7 +278,10 @@ class PdfService {
             assinatura = assinaturaPdfDTO
         )
         
-        LogUtils.debug("PdfService", "Mapeamento do contrato concluído com sucesso")
+        LogUtils.debug("PdfService", "✅ RESULTADO DO MAPEAMENTO:")
+        LogUtils.debug("PdfService", "  - Assinatura no DTO: ${if (assinaturaPdfDTO != null) "SIM (${assinaturaPdfDTO.nome_arquivo})" else "NÃO"}")
+        LogUtils.debug("PdfService", "=== FIM DO MAPEAMENTO DO CONTRATO ===")
+        
         return contratoPdfDTO
     }
 
@@ -275,7 +290,8 @@ class PdfService {
      */
     suspend fun gerarPdfContrato(contrato: Contrato, cliente: Cliente? = null): Result<PdfResponse> {
         return try {
-            LogUtils.debug("PdfService", "Iniciando geração de PDF para contrato #${contrato.contratoNum}")
+            LogUtils.debug("PdfService", "🚀 INICIANDO GERAÇÃO DE PDF")
+            LogUtils.debug("PdfService", "Contrato #${contrato.contratoNum} (ID: ${contrato.id})")
             LogUtils.debug("PdfService", "Iniciando chamada para gerar PDF na porta 8080")
             
             // Validar dados do contrato
@@ -292,7 +308,7 @@ class PdfService {
             }
             
             val contratoPdfDTO = mapContratoToPdfDTO(contrato, cliente)
-            LogUtils.debug("PdfService", "Dados do contrato mapeados com sucesso")
+            LogUtils.debug("PdfService", "✅ Dados do contrato mapeados com sucesso")
             
             val request = ContratoRequestDTO(
                 contrato = contratoPdfDTO,
@@ -301,15 +317,21 @@ class PdfService {
                 tipoContrato = "DETALHADO"
             )
             
-            LogUtils.debug("PdfService", "Enviando requisição para gerar PDF")
+            // Log do JSON que será enviado
+            val gson = com.google.gson.GsonBuilder().setPrettyPrinting().create()
+            val jsonRequest = gson.toJson(request)
+            LogUtils.debug("PdfService", "📤 JSON SENDO ENVIADO PARA O GERADOR DE PDF:")
+            LogUtils.debug("PdfService", jsonRequest)
+            
+            LogUtils.debug("PdfService", "📡 Enviando requisição para gerar PDF...")
             val response = pdfApiService.gerarPdfContrato(request)
-            LogUtils.debug("PdfService", "Resposta recebida do serviço de PDF: ${response.code()}")
+            LogUtils.debug("PdfService", "📥 Resposta recebida do serviço de PDF: ${response.code()}")
             
             if (response.isSuccessful) {
                 val pdfResponse = response.body()
                 if (pdfResponse != null) {
                     if (pdfResponse.success) {
-                        LogUtils.debug("PdfService", "PDF gerado com sucesso: ${pdfResponse.message}")
+                        LogUtils.debug("PdfService", "✅ PDF gerado com sucesso: ${pdfResponse.message}")
                         Result.success(pdfResponse)
                     } else {
                         val error = "Erro na geração do PDF: ${pdfResponse.message}"
@@ -328,7 +350,7 @@ class PdfService {
                 Result.failure(Exception(error))
             }
         } catch (e: Exception) {
-            LogUtils.error("PdfService", "Erro ao gerar PDF", e)
+            LogUtils.error("PdfService", "❌ Erro ao gerar PDF", e)
             Result.failure(e)
         }
     }

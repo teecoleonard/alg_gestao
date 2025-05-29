@@ -26,8 +26,11 @@
     
     <!-- Cores semânticas -->
     <color name="success">#4CAF50</color>
+    <color name="success_light">#E8F5E8</color>
     <color name="warning">#FFC107</color>
+    <color name="warning_light">#FFF8E1</color>
     <color name="error">#F44336</color>
+    <color name="error_light">#FFEBEE</color>
     <color name="info">#2196F3</color>
     
     <!-- Cores de interface -->
@@ -40,12 +43,12 @@
     <color name="icon_default">#757575</color>
     
     <!-- Cores do aplicativo (baseadas no Figma) -->
-    <color name="primary">#3843FF</color>
-    <color name="primary_dark">#2D36CC</color>
-    <color name="primary_light">#6E7AFF</color>
+    <color name="primary">#053c1b</color>
+    <color name="primary_dark">#031b0d</color>
+    <color name="primary_light">#FFB800</color>
     <color name="secondary">#4CD080</color>
     <color name="tertiary">#F57F17</color>
-    <color name="background_card">#F0F4F7</color>
+    <color name="background_card">#fff8e0</color>
     <color name="input_background">#F8FAFB</color>
     <color name="disabled">#E6E8EB</color>
     
