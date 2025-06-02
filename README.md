@@ -1,4 +1,4 @@
-﻿# ALG Gestão
+﻿# ALG Gestão (EM DESENVOLVIMENTO) README DEMOSTRATIVO
 
 Aplicativo Android completo para gestão de contratos, clientes e equipamentos de locação.
 
