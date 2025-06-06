@@ -15,6 +15,7 @@ import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewMode
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.utils.SessionManager
 
 class DashboardFragment : Fragment() {
     
@@ -61,6 +62,28 @@ class DashboardFragment : Fragment() {
     }
     
     private fun setupViewModel() {
+        // ✅ VERIFICAÇÃO DE DEBUG - CHECANDO SESSÃO E TOKEN
+        val sessionManager = SessionManager(requireContext())
+        LogUtils.info("DashboardFragment", "🔍 ========== VERIFICANDO SESSÃO ==========")
+        LogUtils.info("DashboardFragment", "📋 isLoggedIn: ${sessionManager.isLoggedIn()}")
+        LogUtils.info("DashboardFragment", "🔑 Token existe: ${!sessionManager.getToken().isNullOrEmpty()}")
+        LogUtils.info("DashboardFragment", "👤 User ID: ${sessionManager.getUserId()}")
+        LogUtils.info("DashboardFragment", "🎭 User Role: ${sessionManager.getUserRole()}")
+        LogUtils.info("DashboardFragment", "👨‍💼 User Name: ${sessionManager.getUserName()}")
+        LogUtils.info("DashboardFragment", "📄 User CPF: ${sessionManager.getUserCpf()}")
+        
+        if (sessionManager.getToken() != null) {
+            val token = sessionManager.getToken()!!
+            LogUtils.info("DashboardFragment", "🔐 Token (primeiros 50 chars): ${token.take(50)}...")
+            LogUtils.info("DashboardFragment", "📏 Tamanho do token: ${token.length} caracteres")
+            LogUtils.info("DashboardFragment", "🔑 TOKEN COMPLETO: $token")
+        } else {
+            LogUtils.error("DashboardFragment", "❌ TOKEN É NULO!")
+            LogUtils.error("DashboardFragment", "🚨 PROBLEMA: Usuário logado mas sem token!")
+        }
+        LogUtils.info("DashboardFragment", "🔍 ======================================")
+        // ✅ FIM DA VERIFICAÇÃO
+
         val factory = DashboardViewModelFactory()
         viewModel = ViewModelProvider(this, factory)[DashboardViewModel::class.java]
     }
