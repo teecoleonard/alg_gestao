@@ -21,7 +21,7 @@ import javax.net.ssl.HostnameVerifier
  * Cliente para acessar a API
  */
 object ApiClient {
-    private const val BASE_URL = "http://45.10.160.10:3001/api-sql/"
+    private const val BASE_URL = "http://45.10.160.10:3050/"
     private lateinit var sessionManager: SessionManager
     
     /**
