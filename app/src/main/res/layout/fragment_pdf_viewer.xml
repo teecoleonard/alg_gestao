@@ -57,8 +57,10 @@
             style="@style/Widget.MaterialComponents.Button.OutlinedButton"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="0.7"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1.4"
+            android:minWidth="80dp"
+            android:textSize="12sp"
             android:text="Fechar" />
 
         <Button
@@ -66,31 +68,43 @@
             style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1.4"
+            android:minWidth="80dp"
+            android:textSize="12sp"
             android:text="Assinar" />
+
+        <Button
+            android:id="@+id/btnSalvar"
+            style="@style/Widget.MaterialComponents.Button"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="3dp"
+            android:layout_marginEnd="3dp"
+            android:layout_weight="1"
+            android:contentDescription="Salvar PDF"
+            android:gravity="center"
+            android:minWidth="50dp"
+            app:backgroundTint="@android:color/holo_red_dark"
+            app:icon="@android:drawable/ic_menu_save"
+            app:iconGravity="textStart"
+            app:iconPadding="0dp" />
 
         <Button
             android:id="@+id/btnCompartilhar"
             style="@style/Widget.MaterialComponents.Button"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="4dp"
+            android:layout_marginStart="3dp"
             android:layout_weight="1"
-            android:enabled="false"
-            android:text="Compartilhar" />
+            android:minWidth="50dp"
+            android:contentDescription="Compartilhar PDF"
+            app:icon="@android:drawable/ic_menu_share"
+            app:iconPadding="0dp"
+            app:iconGravity="textStart"
+            app:backgroundTint="@android:color/holo_orange_light"
+            android:gravity="center" />
     </LinearLayout>
 
-    <com.google.android.material.floatingactionbutton.FloatingActionButton
-        android:id="@+id/btnSalvar"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_margin="16dp"
-        android:enabled="false"
-        android:contentDescription="Salvar PDF"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintTop_toTopOf="parent"
-        app:srcCompat="@android:drawable/ic_menu_save" />
-
-</androidx.constraintlayout.widget.ConstraintLayout> 
+</androidx.constraintlayout.widget.ConstraintLayout>

@@ -27,26 +27,15 @@ class SplashActivity : AppCompatActivity() {
     
     private fun setupAnimations() {
         try {
-            // Carregar animação de fade in para o texto e loading
-            val fadeIn = AnimationUtils.loadAnimation(this, R.anim.fade_in)
+            // Sequência de animações elegante
+            startLogoAnimation()
             
-            // Após 1 segundo, mostrar o nome do app e o loading com fade in
-            handler.postDelayed({
-                if (!isFinishing && !isDestroyed) {
-                    binding.tvAppName.alpha = 1f
-                    binding.tvAppName.startAnimation(fadeIn)
-                    
-                    binding.loadingAnimation.alpha = 1f
-                    binding.loadingAnimation.startAnimation(fadeIn)
-                }
-            }, 1000)
-            
-            // Navegar para o Login após 2.5 segundos para garantir que as animações terminem
+            // Navegar para o Login após 3.5 segundos para garantir que todas as animações terminem
             handler.postDelayed({
                 if (!isFinishing && !isDestroyed && !isNavigating) {
                     navigateToLogin()
                 }
-            }, 2500)
+            }, 3500)
         } catch (e: Exception) {
             LogUtils.error("SplashActivity", "Erro ao configurar animações: ${e.message}")
             // Em caso de erro, navegar diretamente para o login após um curto delay
@@ -56,6 +45,76 @@ class SplashActivity : AppCompatActivity() {
                 }
             }, 1000)
         }
+    }
+    
+    private fun startLogoAnimation() {
+        // 1. Animação Lottie aparece primeiro com efeito suave
+        handler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                binding.lottieAnimationView.animate()
+                    .alpha(1f)
+                    .scaleX(1.1f)
+                    .scaleY(1.1f)
+                    .setDuration(800)
+                    .withEndAction {
+                        // Volta ao tamanho normal
+                        binding.lottieAnimationView.animate()
+                            .scaleX(1f)
+                            .scaleY(1f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+            }
+        }, 300)
+        
+        // 2. Nome do app aparece (com delay)
+        handler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                binding.tvAppName.animate()
+                    .alpha(1f)
+                    .translationY(-20f)
+                    .setDuration(600)
+                    .withEndAction {
+                        // Volta à posição normal
+                        binding.tvAppName.animate()
+                            .translationY(0f)
+                            .setDuration(200)
+                            .start()
+                    }
+                    .start()
+            }
+        }, 800)
+        
+        // 3. Subtítulo aparece
+        handler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                binding.tvSubtitle.animate()
+                    .alpha(1f)
+                    .setDuration(600)
+                    .start()
+            }
+        }, 1200)
+        
+        // 4. Container de loading aparece
+        handler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                binding.loadingContainer.animate()
+                    .alpha(1f)
+                    .setDuration(400)
+                    .start()
+            }
+        }, 1800)
+        
+        // 5. Versão aparece por último
+        handler.postDelayed({
+            if (!isFinishing && !isDestroyed) {
+                binding.tvVersion.animate()
+                    .alpha(1f)
+                    .setDuration(400)
+                    .start()
+            }
+        }, 2200)
     }
     
     private fun navigateToLogin() {

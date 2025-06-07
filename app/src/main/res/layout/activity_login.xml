@@ -11,27 +11,32 @@
     <View
         android:id="@+id/decorativeTopView"
         android:layout_width="match_parent"
-        android:layout_height="200dp"
+        android:layout_height="250dp"
         android:background="@drawable/bg_gradient_primary"
         app:layout_constraintTop_toTopOf="parent" />
 
     <!-- Container principal -->
+
+    <!-- Progress Bar -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/mainContainer"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:paddingHorizontal="24dp"
+        app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintTop_toTopOf="parent"
-        app:layout_constraintBottom_toBottomOf="parent">
+        app:layout_constraintVertical_bias="0.0"
+        tools:layout_editor_absoluteX="16dp">
 
         <!-- Logo central -->
         <ImageView
             android:id="@+id/ivLogo"
-            android:layout_width="100dp"
-            android:layout_height="100dp"
+            android:layout_width="400dp"
+            android:layout_height="200dp"
             android:layout_marginTop="30dp"
             android:contentDescription="@string/app_name"
-            android:src="@drawable/logo_alg_finance"
+            android:scaleType="centerInside"
+            android:src="@drawable/logo3"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
@@ -41,7 +46,7 @@
             android:id="@+id/tvTitle"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="30dp"
+            android:layout_marginTop="20dp"
             android:text="Gestão ALG"
             android:textAppearance="@style/TextAppearance.ALG.Title"
             android:textSize="24sp"
@@ -198,7 +203,6 @@
             app:layout_constraintStart_toStartOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-    <!-- Progress Bar -->
     <ProgressBar
         android:id="@+id/progressBar"
         style="?android:attr/progressBarStyle"

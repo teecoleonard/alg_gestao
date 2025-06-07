@@ -10,10 +10,10 @@
     android:theme="@style/ThemeOverlay.MaterialComponents.Dark">
 
     <ImageView
-        android:layout_width="64dp"
+        android:layout_width="wrap_content"
         android:layout_height="64dp"
         android:contentDescription="@string/app_name"
-        android:src="@drawable/logo_alg" />
+        android:src="@drawable/logo3" />
 
     <TextView
         android:id="@+id/tvUserName"

@@ -29,7 +29,7 @@ import androidx.fragment.app.DialogFragment
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.service.PdfService
-import com.google.android.material.floatingactionbutton.FloatingActionButton
+
 import java.io.File
 import java.io.FileOutputStream
 import java.io.IOException
@@ -45,7 +45,7 @@ class PdfViewerFragment : DialogFragment() {
     private lateinit var webView: WebView
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCompartilhar: Button
-    private lateinit var btnSalvar: FloatingActionButton
+    private lateinit var btnSalvar: Button
     private lateinit var btnFechar: Button
     private lateinit var btnAssinar: Button
     private lateinit var tvInfo: TextView
