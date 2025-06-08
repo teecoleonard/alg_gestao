@@ -57,39 +57,58 @@
                 android:layout_height="match_parent"
                 android:paddingHorizontal="16dp">
 
-                <!-- Campo de busca -->
+                <!-- Header com boas-vindas -->
                 <androidx.cardview.widget.CardView
-                    android:id="@+id/cardSearch"
+                    android:id="@+id/cardHeader"
                     android:layout_width="match_parent"
-                    android:layout_height="48dp"
+                    android:layout_height="wrap_content"
                     android:layout_marginTop="16dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="24dp"
-                    app:cardElevation="0dp"
+                    app:cardBackgroundColor="@color/primary"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="8dp"
                     app:layout_constraintTop_toTopOf="parent">
 
                     <LinearLayout
                         android:layout_width="match_parent"
-                        android:layout_height="match_parent"
-                        android:gravity="center_vertical"
+                        android:layout_height="wrap_content"
                         android:orientation="horizontal"
-                        android:paddingHorizontal="16dp">
+                        android:padding="20dp"
+                        android:gravity="center_vertical">
 
-                        <TextView
+                        <LinearLayout
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:text="@string/search"
-                            android:textColor="@color/text_secondary" />
+                            android:orientation="vertical">
+
+                            <TextView
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Bem-vindo de volta!"
+                                android:textColor="@color/white"
+                                android:textSize="20sp"
+                                android:textStyle="bold" />
+
+                            <TextView
+                                android:id="@+id/tvCurrentDate"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:layout_marginTop="4dp"
+                                android:text="Segunda-feira, 04 de Dezembro"
+                                android:textColor="@color/white"
+                                android:textSize="14sp"
+                                android:alpha="0.9" />
+
+                        </LinearLayout>
 
                         <ImageView
-                            android:id="@+id/ivSearch"
-                            android:layout_width="24dp"
-                            android:layout_height="24dp"
-                            android:src="@drawable/ic_search"
-                            app:tint="@color/text_secondary" />
-                    </LinearLayout>
+                            android:layout_width="64dp"
+                            android:layout_height="64dp"
+                            android:src="@drawable/ic_dashboard"
+                            app:tint="@color/white"
+                            android:alpha="0.8" />
 
+                    </LinearLayout>
                 </androidx.cardview.widget.CardView>
 
                 <!-- Seção de Insights -->
@@ -97,18 +116,18 @@
                     android:id="@+id/tvInsightsTitle"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="24dp"
-                    android:text="Insights"
+                    android:layout_marginTop="32dp"
+                    android:text="Resumo Geral"
                     android:textAppearance="@style/TextAppearance.ALG.Title"
-                    android:textSize="18sp"
+                    android:textSize="20sp"
                     app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/cardSearch" />
+                    app:layout_constraintTop_toBottomOf="@+id/cardHeader" />
 
                 <TextView
                     android:id="@+id/tvViewAll"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:text="Ver todos"
+                    android:text="Ver detalhes"
                     android:textAppearance="@style/TextAppearance.ALG.Body"
                     android:textColor="@color/primary"
                     android:textSize="14sp"
@@ -121,224 +140,359 @@
                     android:id="@+id/llInsightsCards"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
+                    android:layout_marginTop="20dp"
                     android:orientation="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle"
-                    tools:layout_editor_absoluteX="16dp">
+                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle">
 
-                    <!-- Primeira linha: Equipamentos -->
+                    <!-- Primeira linha: Contratos e Clientes -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:layout_marginBottom="16dp"
                         android:orientation="horizontal">
 
-
-                        <!-- Card Contratos -->
+                        <!-- Card Contratos Melhorado -->
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cardWorkers"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/gray_200"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp">
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="4dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="20dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:src="@drawable/ic_contract"
+                                        app:tint="@color/primary"
+                                        android:background="@drawable/circle_background_primary_light"
+                                        android:padding="8dp" />
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:layout_marginStart="12dp"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Contratos"
+                                            android:textAppearance="@style/TextAppearance.ALG.Body"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/tvWorkersCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="95"
+                                            android:textAppearance="@style/TextAppearance.ALG.Title"
+                                            android:textColor="@color/primary"
+                                            android:textSize="28sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
 
                                 <TextView
+                                    android:id="@+id/tvContratosExtras"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Contratos"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
+                                    android:layout_marginTop="12dp"
+                                    android:text="3 novos esta semana"
+                                    android:textColor="@color/success"
+                                    android:textSize="11sp"
+                                    android:drawableStart="@drawable/ic_trending_up"
+                                    android:drawablePadding="4dp"
+                                    app:drawableTint="@color/success" />
 
-                                <TextView
-                                    android:id="@+id/tvWorkersCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="95"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/primary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
 
-                        <!-- Card Clientes -->
+                        <!-- Card Clientes Melhorado -->
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cardTasks"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/gray_200"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp">
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="4dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="20dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:src="@drawable/ic_people"
+                                        app:tint="@color/tertiary"
+                                        android:background="@drawable/circle_background_tertiary_light"
+                                        android:padding="8dp" />
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:layout_marginStart="12dp"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Clientes"
+                                            android:textAppearance="@style/TextAppearance.ALG.Body"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/tvTasksCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="23"
+                                            android:textAppearance="@style/TextAppearance.ALG.Title"
+                                            android:textColor="@color/tertiary"
+                                            android:textSize="28sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
 
                                 <TextView
+                                    android:id="@+id/tvClientesExtras"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Clientes"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
+                                    android:layout_marginTop="12dp"
+                                    android:text="2 cadastrados hoje"
+                                    android:textColor="@color/success"
+                                    android:textSize="11sp"
+                                    android:drawableStart="@drawable/ic_trending_up"
+                                    android:drawablePadding="4dp"
+                                    app:drawableTint="@color/success" />
 
-                                <TextView
-                                    android:id="@+id/tvTasksCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="23"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/tertiary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
                     </LinearLayout>
 
+                    <!-- Segunda linha: Equipamentos e Devoluções -->
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
                         android:orientation="horizontal">
 
-                        <!-- Card Equipamentos -->
+                        <!-- Card Equipamentos Melhorado -->
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cardEquipamentos"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginEnd="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/gray_200"
-                            android:outlineSpotShadowColor="@color/primary"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp">
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="4dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="20dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:src="@drawable/ic_settings"
+                                        app:tint="@color/primary"
+                                        android:background="@drawable/circle_background_primary_light"
+                                        android:padding="8dp" />
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:layout_marginStart="12dp"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="Equipamentos"
+                                            android:textAppearance="@style/TextAppearance.ALG.Body"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/tvEquipamentosCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="45"
+                                            android:textAppearance="@style/TextAppearance.ALG.Title"
+                                            android:textColor="@color/primary"
+                                            android:textSize="28sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
 
                                 <TextView
+                                    android:id="@+id/tvEquipamentosExtras"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Equipamentos"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
+                                    android:layout_marginTop="12dp"
+                                    android:text="38 disponíveis"
+                                    android:textColor="@color/success"
+                                    android:textSize="11sp"
+                                    android:drawableStart="@drawable/ic_check_circle"
+                                    android:drawablePadding="4dp"
+                                    app:drawableTint="@color/success" />
 
-                                <TextView
-                                    android:id="@+id/tvEquipamentosCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="45"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/primary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
 
+                        <!-- Card Devoluções Melhorado -->
                         <androidx.cardview.widget.CardView
                             android:id="@+id/cardDevolucoes"
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_marginStart="8dp"
                             android:layout_weight="1"
-                            app:cardBackgroundColor="@color/gray_200"
-                            app:cardCornerRadius="12dp"
-                            app:cardElevation="0dp"
-                            android:outlineSpotShadowColor="@color/primary">
+                            app:cardBackgroundColor="@color/white"
+                            app:cardCornerRadius="16dp"
+                            app:cardElevation="4dp">
 
                             <LinearLayout
                                 android:layout_width="match_parent"
                                 android:layout_height="wrap_content"
-                                android:gravity="center"
                                 android:orientation="vertical"
-                                android:padding="16dp">
+                                android:padding="20dp">
+
+                                <LinearLayout
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:orientation="horizontal"
+                                    android:gravity="center_vertical">
+
+                                    <ImageView
+                                        android:layout_width="32dp"
+                                        android:layout_height="32dp"
+                                        android:src="@drawable/ic_assignment_return"
+                                        app:tint="@color/warning"
+                                        android:background="@drawable/circle_background_warning_light"
+                                        android:padding="8dp" />
+
+                                    <LinearLayout
+                                        android:layout_width="0dp"
+                                        android:layout_height="wrap_content"
+                                        android:layout_weight="1"
+                                        android:layout_marginStart="12dp"
+                                        android:orientation="vertical">
+
+                                        <TextView
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="@string/returns"
+                                            android:textAppearance="@style/TextAppearance.ALG.Body"
+                                            android:textColor="@color/text_secondary"
+                                            android:textSize="12sp" />
+
+                                        <TextView
+                                            android:id="@+id/tvDevolucoesCount"
+                                            android:layout_width="wrap_content"
+                                            android:layout_height="wrap_content"
+                                            android:text="25"
+                                            android:textAppearance="@style/TextAppearance.ALG.Title"
+                                            android:textColor="@color/warning"
+                                            android:textSize="28sp"
+                                            android:textStyle="bold" />
+
+                                    </LinearLayout>
+
+                                </LinearLayout>
 
                                 <TextView
+                                    android:id="@+id/tvDevolucoesExtras"
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="@string/returns"
-                                    android:textAppearance="@style/TextAppearance.ALG.Body"
-                                    android:textColor="@color/text_secondary" />
+                                    android:layout_marginTop="12dp"
+                                    android:text="8 pendentes"
+                                    android:textColor="@color/warning"
+                                    android:textSize="11sp"
+                                    android:drawableStart="@drawable/ic_warning"
+                                    android:drawablePadding="4dp"
+                                    app:drawableTint="@color/warning" />
 
-                                <TextView
-                                    android:id="@+id/tvDevolucoesCount"
-                                    android:layout_width="wrap_content"
-                                    android:layout_height="wrap_content"
-                                    android:layout_marginTop="8dp"
-                                    android:text="25"
-                                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                                    android:textColor="@color/primary"
-                                    android:textSize="24sp"
-                                    android:textStyle="bold" />
-
-                                <ImageView
-                                    android:layout_width="24dp"
-                                    android:layout_height="24dp"
-                                    android:layout_gravity="end"
-                                    android:layout_marginTop="8dp"
-                                    android:src="@drawable/ic_arrow_right"
-                                    app:tint="@color/text_secondary" />
                             </LinearLayout>
                         </androidx.cardview.widget.CardView>
                     </LinearLayout>
+                </LinearLayout>
 
-                    <!-- Segunda linha: Contratos e Clientes -->
+                <!-- Seção de Atividades Recentes -->
+                <TextView
+                    android:id="@+id/tvActivitiesTitle"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="32dp"
+                    android:text="Atividades Recentes"
+                    android:textAppearance="@style/TextAppearance.ALG.Title"
+                    android:textSize="18sp"
+                    app:layout_constraintStart_toStartOf="parent"
+                    app:layout_constraintTop_toBottomOf="@+id/llInsightsCards" />
 
-                    <!-- Terceira linha: Devoluções -->
-                    <LinearLayout
+                <!-- Lista de Atividades -->
+                <androidx.cardview.widget.CardView
+                    android:id="@+id/cardActivities"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:layout_marginTop="16dp"
+                    android:layout_marginBottom="24dp"
+                    app:cardBackgroundColor="@color/white"
+                    app:cardCornerRadius="16dp"
+                    app:cardElevation="4dp"
+                    app:layout_constraintTop_toBottomOf="@+id/tvActivitiesTitle"
+                    app:layout_constraintBottom_toBottomOf="parent">
+
+                    <androidx.recyclerview.widget.RecyclerView
+                        android:id="@+id/rvAtividadesRecentes"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:layout_marginTop="16dp"
-                        android:orientation="horizontal">
+                        android:layout_margin="16dp"
+                        android:nestedScrollingEnabled="false" />
 
-                        <!-- Card Devoluções -->
-                    </LinearLayout>
-                </LinearLayout>
+                </androidx.cardview.widget.CardView>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>

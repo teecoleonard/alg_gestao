@@ -21,8 +21,13 @@ import javax.net.ssl.HostnameVerifier
  * Cliente para acessar a API
  */
 object ApiClient {
-    private const val BASE_URL = "http://45.10.160.10:3050/"
+    const val BASE_URL = "http://45.10.160.10:3050/"
     private lateinit var sessionManager: SessionManager
+    
+    /**
+     * Retorna a URL base configurada
+     */
+    fun getBaseUrl(): String = BASE_URL
     
     /**
      * Inicializa o cliente com contexto para o SessionManager
@@ -170,6 +175,20 @@ object ApiClient {
             when {
                 request.url.toString().contains("/login") -> {
                     LogUtils.info("ApiClient", "🔐 LOGIN: ${if (response.isSuccessful) "Sucesso" else "Falhou"}")
+                }
+                request.url.toString().contains("/dashboard/stats") -> {
+                    LogUtils.info("ApiClient", "📊 ========== DASHBOARD STATS ==========")
+                    if (response.isSuccessful) {
+                        LogUtils.info("ApiClient", "✅ DASHBOARD: Estatísticas carregadas com sucesso!")
+                        LogUtils.info("ApiClient", "⏱️ Tempo de resposta: ${duration}ms")
+                        LogUtils.debug("ApiClient", "📄 Content-Type: ${response.header("Content-Type")}")
+                        LogUtils.debug("ApiClient", "📏 Content-Length: ${response.header("Content-Length")} bytes")
+                    } else {
+                        LogUtils.error("ApiClient", "❌ DASHBOARD: Falha ao carregar estatísticas")
+                        LogUtils.error("ApiClient", "💥 Status: ${response.code} - ${response.message}")
+                        LogUtils.error("ApiClient", "⏱️ Tempo até falha: ${duration}ms")
+                    }
+                    LogUtils.info("ApiClient", "========================================")
                 }
                 request.url.toString().contains("/equipamentos") -> {
                     LogUtils.info("ApiClient", "🔧 EQUIPAMENTOS: ${if (response.isSuccessful) "Dados carregados" else "Falha ao carregar"}")
