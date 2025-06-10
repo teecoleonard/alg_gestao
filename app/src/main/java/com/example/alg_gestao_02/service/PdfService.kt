@@ -3,6 +3,8 @@ package com.example.alg_gestao_02.service
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
+import com.example.alg_gestao_02.data.models.Devolucao
+import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.utils.LogUtils
 import com.google.gson.annotations.SerializedName
 import retrofit2.Response
@@ -23,6 +25,10 @@ import com.example.alg_gestao_02.data.dto.AssinaturaRequestDTO
 interface PdfApiService {
     @POST("api/contrato/gerar-pdf-direto")
     suspend fun gerarPdfContrato(@Body request: ContratoRequestDTO): Response<PdfResponse>
+    
+    // Novo endpoint para devoluções
+    @POST("api/devolucao/gerar-pdf-direto")
+    suspend fun gerarPdfDevolucao(@Body request: DevolucaoRequestDTO): Response<DevolucaoPdfResponse>
 }
 
 /**
@@ -112,6 +118,79 @@ data class AssinaturaResponse(
     val success: Boolean,
     val message: String,
     val filePath: String? = null
+)
+
+/**
+ * Dados do cliente para o gerador de PDF de devolução
+ */
+data class ClienteDevolucaoPdfDTO(
+    val id: Int,
+    val nome: String,
+    val cpf: String? = null,
+    val cnpj: String? = null,
+    val inscricaoEstadual: String? = null,
+    val email: String? = null,
+    val telefone: String? = null,
+    val endereco: String? = null
+)
+
+/**
+ * Dados do equipamento para o gerador de PDF de devolução
+ */
+data class EquipamentoDevolucaoPdfDTO(
+    val id: Int,
+    val nome: String,
+    val descricao: String? = null
+)
+
+/**
+ * Dados do contrato para o gerador de PDF de devolução
+ */
+data class ContratoDevolucaoPdfDTO(
+    val id: Int,
+    val numero: String,
+    val dataEmissao: String
+)
+
+/**
+ * Dados da devolução para o gerador de PDF
+ */
+data class DevolucaoPdfDTO(
+    val id: Int,
+    val devNum: String,
+    val contratoId: Int,
+    val clienteId: Int,
+    val equipamentoId: Int,
+    val dataDevolucaoPrevista: String,
+    val dataDevolucaoEfetiva: String? = null,
+    val quantidadeContratada: Int,
+    val quantidadeDevolvida: Int,
+    val quantidadePendente: Int,
+    val status: String,
+    val observacao: String? = null,
+    val cliente: ClienteDevolucaoPdfDTO,
+    val equipamento: EquipamentoDevolucaoPdfDTO,
+    val contrato: ContratoDevolucaoPdfDTO
+)
+
+/**
+ * DTO para a requisição de geração de PDF de devolução
+ */
+data class DevolucaoRequestDTO(
+    val devolucao: DevolucaoPdfDTO,
+    val incluirLogo: Boolean = true,
+    val formatoPdf: String = "A4"
+)
+
+/**
+ * Resposta da API de geração de PDF de devolução
+ */
+data class DevolucaoPdfResponse(
+    val success: Boolean,
+    val message: String,
+    val pdfBase64: String? = null,
+    val htmlUrl: String? = null,
+    val htmlContent: String? = null
 )
 
 /**
@@ -502,6 +581,275 @@ class PdfService {
                 }
             }
             
+            Result.failure(e)
+        }
+    }
+
+    // =================== MÉTODOS PARA DEVOLUÇÕES ===================
+    
+    /**
+     * Converte um cliente para o formato esperado pelo gerador de PDF de devolução
+     */
+    private fun mapClienteToDevolucaoPdfDTO(cliente: Cliente): ClienteDevolucaoPdfDTO {
+        return ClienteDevolucaoPdfDTO(
+            id = cliente.id,
+            nome = cliente.contratante,
+            cpf = if (cliente.isPessoaFisica()) cliente.cpfCnpj else null,
+            cnpj = if (!cliente.isPessoaFisica()) cliente.cpfCnpj else null,
+            inscricaoEstadual = if (!cliente.isPessoaFisica()) cliente.rgIe else null,
+            email = null, // Campo não disponível no modelo Cliente
+            telefone = cliente.telefone,
+            endereco = cliente.getEnderecoCompleto()
+        )
+    }
+
+    /**
+     * Converte um equipamento para o formato esperado pelo gerador de PDF de devolução
+     */
+    private fun mapEquipamentoToDevolucaoPdfDTO(equipamento: Equipamento): EquipamentoDevolucaoPdfDTO {
+        return EquipamentoDevolucaoPdfDTO(
+            id = equipamento.id,
+            nome = equipamento.nomeEquip,
+            descricao = "Código: ${equipamento.codigoEquip}"
+        )
+    }
+
+    /**
+     * Converte um contrato para o formato esperado pelo gerador de PDF de devolução
+     */
+    private fun mapContratoToDevolucaoPdfDTO(contrato: Contrato): ContratoDevolucaoPdfDTO {
+        // Formatar data de emissão para ISO
+        val formatoISO = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        val dataEmissao = try {
+            contrato.dataHoraEmissao ?: formatoISO.format(Date())
+        } catch (e: Exception) {
+            LogUtils.error("PdfService", "Erro ao processar data de emissão do contrato", e)
+            formatoISO.format(Date())
+        }
+
+        return ContratoDevolucaoPdfDTO(
+            id = contrato.id,
+            numero = contrato.getContratoNumOuVazio(),
+            dataEmissao = dataEmissao
+        )
+    }
+
+    /**
+     * Converte uma devolução para o formato esperado pelo gerador de PDF
+     */
+    private fun mapDevolucaoToPdfDTO(
+        devolucao: Devolucao,
+        cliente: Cliente? = null,
+        equipamento: Equipamento? = null,
+        contrato: Contrato? = null
+    ): DevolucaoPdfDTO {
+        LogUtils.debug("PdfService", "=== INÍCIO DO MAPEAMENTO DA DEVOLUÇÃO ===")
+        LogUtils.debug("PdfService", "Devolução ID: ${devolucao.id}")
+        LogUtils.debug("PdfService", "Devolução Número: ${devolucao.devNum}")
+        LogUtils.debug("PdfService", "Status: ${devolucao.statusItemDevolucao}")
+        
+        // Usar cliente da devolução ou o fornecido como parâmetro
+        val clientePdf = cliente?.let {
+            LogUtils.debug("PdfService", "Usando cliente fornecido como parâmetro")
+            mapClienteToDevolucaoPdfDTO(it)
+        } ?: devolucao.cliente?.let {
+            LogUtils.debug("PdfService", "Usando cliente da devolução")
+            mapClienteToDevolucaoPdfDTO(it)
+        } ?: run {
+            LogUtils.warning("PdfService", "Cliente não encontrado, usando dados básicos")
+            ClienteDevolucaoPdfDTO(
+                id = devolucao.clienteId,
+                nome = devolucao.resolverNomeCliente()
+            )
+        }
+        
+        // Usar equipamento da devolução ou o fornecido como parâmetro
+        val equipamentoPdf = equipamento?.let {
+            LogUtils.debug("PdfService", "Usando equipamento fornecido como parâmetro")
+            mapEquipamentoToDevolucaoPdfDTO(it)
+        } ?: devolucao.equipamento?.let {
+            LogUtils.debug("PdfService", "Usando equipamento da devolução")
+            mapEquipamentoToDevolucaoPdfDTO(it)
+        } ?: run {
+            LogUtils.warning("PdfService", "Equipamento não encontrado, usando dados básicos")
+            EquipamentoDevolucaoPdfDTO(
+                id = devolucao.equipamentoId,
+                nome = devolucao.resolverNomeEquipamento()
+            )
+        }
+        
+        // Usar contrato da devolução ou o fornecido como parâmetro
+        val contratoPdf = contrato?.let {
+            LogUtils.debug("PdfService", "Usando contrato fornecido como parâmetro")
+            mapContratoToDevolucaoPdfDTO(it)
+        } ?: devolucao.contrato?.let {
+            LogUtils.debug("PdfService", "Usando contrato da devolução")
+            mapContratoToDevolucaoPdfDTO(it)
+        } ?: run {
+            LogUtils.warning("PdfService", "Contrato não encontrado, usando dados básicos")
+            ContratoDevolucaoPdfDTO(
+                id = devolucao.contratoId,
+                numero = "Desconhecido",
+                dataEmissao = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
+            )
+        }
+        
+        // Formatar datas para o formato ISO
+        val formatoSaida = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        
+        val dataPrevista = try {
+            devolucao.dataDevolucaoPrevista ?: run {
+                LogUtils.warning("PdfService", "Data prevista não encontrada, usando data atual")
+                formatoSaida.format(Date())
+            }
+        } catch (e: Exception) {
+            LogUtils.error("PdfService", "Erro ao processar data prevista", e)
+            formatoSaida.format(Date())
+        }
+        
+        val dataEfetiva = devolucao.dataDevolucaoEfetiva?.let { dataEfetivaStr ->
+            try {
+                // A data efetiva já vem no formato ISO com hora
+                dataEfetivaStr
+            } catch (e: Exception) {
+                LogUtils.error("PdfService", "Erro ao processar data efetiva", e)
+                null
+            }
+        }
+        
+        val devolucaoPdfDTO = DevolucaoPdfDTO(
+            id = devolucao.id,
+            devNum = devolucao.devNum,
+            contratoId = devolucao.contratoId,
+            clienteId = devolucao.clienteId,
+            equipamentoId = devolucao.equipamentoId,
+            dataDevolucaoPrevista = dataPrevista,
+            dataDevolucaoEfetiva = dataEfetiva,
+            quantidadeContratada = devolucao.quantidadeContratada,
+            quantidadeDevolvida = devolucao.quantidadeDevolvida,
+            quantidadePendente = devolucao.getQuantidadePendente(),
+            status = devolucao.statusItemDevolucao,
+            observacao = devolucao.observacaoItemDevolucao,
+            cliente = clientePdf,
+            equipamento = equipamentoPdf,
+            contrato = contratoPdf
+        )
+        
+        LogUtils.debug("PdfService", "✅ RESULTADO DO MAPEAMENTO:")
+        LogUtils.debug("PdfService", "  - Cliente: ${clientePdf.nome}")
+        LogUtils.debug("PdfService", "  - Equipamento: ${equipamentoPdf.nome}")
+        LogUtils.debug("PdfService", "  - Contrato: ${contratoPdf.numero}")
+        LogUtils.debug("PdfService", "=== FIM DO MAPEAMENTO DA DEVOLUÇÃO ===")
+        
+        return devolucaoPdfDTO
+    }
+    
+    /**
+     * Gera um PDF para uma devolução
+     */
+    suspend fun gerarPdfDevolucao(
+        devolucao: Devolucao,
+        cliente: Cliente? = null,
+        equipamento: Equipamento? = null,
+        contrato: Contrato? = null
+    ): Result<DevolucaoPdfResponse> {
+        return try {
+            LogUtils.debug("PdfService", "🚀 INICIANDO GERAÇÃO DE PDF DE DEVOLUÇÃO")
+            LogUtils.debug("PdfService", "📊 INFORMAÇÕES DA REQUISIÇÃO:")
+            LogUtils.debug("PdfService", "  🎯 Servidor destino: $baseUrl")
+            LogUtils.debug("PdfService", "  📋 Devolução #${devolucao.devNum} (ID: ${devolucao.id})")
+            LogUtils.debug("PdfService", "  🏢 Cliente: ${devolucao.resolverNomeCliente()}")
+            LogUtils.debug("PdfService", "  🔧 Equipamento: ${devolucao.resolverNomeEquipamento()}")
+            LogUtils.debug("PdfService", "  📝 Status: ${devolucao.statusItemDevolucao}")
+            
+            // Validar dados da devolução
+            if (devolucao.id <= 0) {
+                val error = "ID da devolução inválido: ${devolucao.id}"
+                LogUtils.error("PdfService", error)
+                return Result.failure(Exception(error))
+            }
+            
+            if (devolucao.devNum.isBlank()) {
+                val error = "Número da devolução inválido"
+                LogUtils.error("PdfService", error)
+                return Result.failure(Exception(error))
+            }
+            
+            LogUtils.debug("PdfService", "✅ VALIDAÇÃO DOS DADOS CONCLUÍDA")
+            LogUtils.debug("PdfService", "🔄 INICIANDO MAPEAMENTO DOS DADOS...")
+            
+            val devolucaoPdfDTO = mapDevolucaoToPdfDTO(devolucao, cliente, equipamento, contrato)
+            LogUtils.debug("PdfService", "✅ Dados da devolução mapeados com sucesso")
+            
+            val request = DevolucaoRequestDTO(
+                devolucao = devolucaoPdfDTO,
+                incluirLogo = true,
+                formatoPdf = "A4"
+            )
+            
+            // Log do payload que será enviado (resumido)
+            LogUtils.debug("PdfService", "📦 PAYLOAD DA REQUISIÇÃO:")
+            LogUtils.debug("PdfService", "  📄 Devolução ID: ${request.devolucao.id}")
+            LogUtils.debug("PdfService", "  📄 Número: ${request.devolucao.devNum}")
+            LogUtils.debug("PdfService", "  👤 Cliente: ${request.devolucao.cliente.nome}")
+            LogUtils.debug("PdfService", "  🔧 Equipamento: ${request.devolucao.equipamento.nome}")
+            LogUtils.debug("PdfService", "  📊 Status: ${request.devolucao.status}")
+            LogUtils.debug("PdfService", "  🎨 Formato: ${request.formatoPdf}")
+            LogUtils.debug("PdfService", "  🖼️ Incluir Logo: ${request.incluirLogo}")
+            
+            val startTime = System.currentTimeMillis()
+            LogUtils.debug("PdfService", "📡 ENVIANDO REQUISIÇÃO HTTP...")
+            LogUtils.debug("PdfService", "  🌐 URL: ${baseUrl}api/devolucao/gerar-pdf-direto")
+            LogUtils.debug("PdfService", "  ⏰ Iniciado em: ${SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())}")
+            
+            val response = pdfApiService.gerarPdfDevolucao(request)
+            val endTime = System.currentTimeMillis()
+            val duration = endTime - startTime
+            
+            LogUtils.debug("PdfService", "📥 RESPOSTA RECEBIDA DO SERVIDOR")
+            LogUtils.debug("PdfService", "  ⏱️ Duração: ${duration}ms")
+            LogUtils.debug("PdfService", "  📊 Status HTTP: ${response.code()}")
+            LogUtils.debug("PdfService", "  ✅ Sucesso: ${response.isSuccessful}")
+            
+            if (response.isSuccessful) {
+                val pdfResponse = response.body()
+                if (pdfResponse != null) {
+                    LogUtils.debug("PdfService", "✅ RESPOSTA VÁLIDA RECEBIDA:")
+                    LogUtils.debug("PdfService", "  🎯 Success: ${pdfResponse.success}")
+                    LogUtils.debug("PdfService", "  💬 Mensagem: ${pdfResponse.message}")
+                    LogUtils.debug("PdfService", "  📄 Tem PDF Base64: ${pdfResponse.pdfBase64 != null}")
+                    LogUtils.debug("PdfService", "  🌐 Tem HTML URL: ${pdfResponse.htmlUrl != null}")
+                    LogUtils.debug("PdfService", "  📝 Tem HTML Content: ${pdfResponse.htmlContent != null}")
+                    
+                    if (pdfResponse.success) {
+                        LogUtils.info("PdfService", "✅ PDF DE DEVOLUÇÃO GERADO COM SUCESSO!")
+                        Result.success(pdfResponse)
+                    } else {
+                        val errorMsg = "Erro retornado pela API: ${pdfResponse.message}"
+                        LogUtils.error("PdfService", errorMsg)
+                        Result.failure(Exception(errorMsg))
+                    }
+                } else {
+                    val errorMsg = "Resposta vazia da API de PDF"
+                    LogUtils.error("PdfService", errorMsg)
+                    Result.failure(Exception(errorMsg))
+                }
+            } else {
+                val errorMsg = "Erro HTTP ${response.code()}: ${response.message()}"
+                LogUtils.error("PdfService", errorMsg)
+                
+                // Tentar ler detalhes do erro
+                try {
+                    val errorBody = response.errorBody()?.string()
+                    LogUtils.error("PdfService", "Detalhes do erro: $errorBody")
+                } catch (e: Exception) {
+                    LogUtils.error("PdfService", "Erro ao ler detalhes do erro HTTP", e)
+                }
+                
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            LogUtils.error("PdfService", "❌ ERRO CRÍTICO NA GERAÇÃO DE PDF DE DEVOLUÇÃO", e)
             Result.failure(e)
         }
     }

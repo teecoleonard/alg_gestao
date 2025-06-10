@@ -252,27 +252,49 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
-            android:orientation="horizontal">
+            android:orientation="vertical">
 
+            <!-- Primeira linha de botões -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <Button
+                    android:id="@+id/btnGerarPdfDevolucao"
+                    style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginEnd="4dp"
+                    android:layout_weight="1"
+                    android:text="Gerar PDF"
+                    android:textColor="@color/red_500"
+                    app:icon="@drawable/ic_pdf"
+                    app:iconGravity="textStart"
+                    app:strokeColor="@color/red_500"
+                    app:strokeWidth="1dp" />
+
+                <Button
+                    android:id="@+id/btnProcessarDevolucao"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="match_parent"
+                    android:layout_marginStart="4dp"
+                    android:layout_weight="1"
+                    android:text="Processar Devolução" />
+            </LinearLayout>
+
+            <!-- Segunda linha de botões -->
             <Button
                 android:id="@+id/btnFecharDetalhesDevolucao"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginEnd="8dp"
-                android:layout_weight="1"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
                 android:text="Fechar"
                 app:strokeColor="@color/primary"
                 app:strokeWidth="1dp"/>
 
-            <Button
-                android:id="@+id/btnProcessarDevolucao"
-                style="@style/Widget.MaterialComponents.Button"
-                android:layout_width="0dp"
-                android:layout_height="match_parent"
-                android:layout_marginStart="8dp"
-                android:layout_weight="1"
-                android:text="Processar Devolução" />
         </LinearLayout>
 
     </LinearLayout>
