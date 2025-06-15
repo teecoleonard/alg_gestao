@@ -29,9 +29,11 @@ class SignatureView @JvmOverloads constructor(
 
     override fun onSizeChanged(w: Int, h: Int, oldw: Int, oldh: Int) {
         super.onSizeChanged(w, h, oldw, oldh)
-        bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
-        canvas = Canvas(bitmap!!)
-        canvas?.drawColor(Color.WHITE)
+        if (w > 0 && h > 0) {
+            bitmap = Bitmap.createBitmap(w, h, Bitmap.Config.ARGB_8888)
+            canvas = Canvas(bitmap!!)
+            canvas?.drawColor(Color.WHITE)
+        }
     }
 
     override fun onDraw(canvas: Canvas) {

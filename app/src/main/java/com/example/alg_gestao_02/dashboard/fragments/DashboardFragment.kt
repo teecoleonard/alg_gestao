@@ -10,11 +10,8 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
-import androidx.recyclerview.widget.RecyclerView
-import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.alg_gestao_02.R
-import com.example.alg_gestao_02.dashboard.adapters.AtividadesRecentesAdapter
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModel
 import com.example.alg_gestao_02.data.models.DashboardStats
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModelFactory
@@ -44,10 +41,6 @@ class DashboardFragment : Fragment() {
     
     // Header elements
     private lateinit var tvCurrentDate: TextView
-    
-    // RecyclerView para atividades recentes
-    private lateinit var rvAtividadesRecentes: RecyclerView
-    private lateinit var atividadesAdapter: AtividadesRecentesAdapter
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -100,12 +93,6 @@ class DashboardFragment : Fragment() {
         // Header elements
         tvCurrentDate = view.findViewById(R.id.tvCurrentDate)
         
-        // RecyclerView para atividades recentes
-        rvAtividadesRecentes = view.findViewById(R.id.rvAtividadesRecentes)
-        
-        // Configurar RecyclerView
-        setupRecyclerView()
-        
         // Setup current date
         setupCurrentDate()
     }
@@ -117,18 +104,7 @@ class DashboardFragment : Fragment() {
         tvCurrentDate.text = formattedDate.replaceFirstChar { it.uppercase() }
     }
     
-    private fun setupRecyclerView() {
-        LogUtils.debug("DashboardFragment", "🎨 Configurando RecyclerView de atividades recentes...")
-        
-        atividadesAdapter = AtividadesRecentesAdapter()
-        rvAtividadesRecentes.apply {
-            layoutManager = LinearLayoutManager(context)
-            adapter = atividadesAdapter
-            isNestedScrollingEnabled = false
-        }
-        
-        LogUtils.info("DashboardFragment", "✅ RecyclerView configurado com sucesso")
-    }
+
     
     private fun setupViewModel() {
         // ✅ VERIFICAÇÃO DE DEBUG - CHECANDO SESSÃO E TOKEN
@@ -307,17 +283,8 @@ class DashboardFragment : Fragment() {
                 
                 updateEstatisticasExpandidas(stats)
                 
-                // Atualizar atividades recentes
-                if (stats.atividadesRecentes.isNotEmpty()) {
-                    LogUtils.info("DashboardFragment", "🎯 ATUALIZANDO ATIVIDADES RECENTES (${stats.atividadesRecentes.size} itens):")
-                    stats.atividadesRecentes.forEach { atividade ->
-                        LogUtils.debug("DashboardFragment", "   - [${atividade.tipo}] ${atividade.titulo}: ${atividade.descricao}")
-                    }
-                    atividadesAdapter.updateAtividades(stats.atividadesRecentes)
-                } else {
-                    LogUtils.warning("DashboardFragment", "⚠️ Nenhuma atividade recente disponível")
-                    atividadesAdapter.updateAtividades(emptyList())
-                }
+                // As atividades recentes agora são exibidas como notificações
+                LogUtils.info("DashboardFragment", "ℹ️ Atividades recentes foram movidas para o sistema de notificações")
                 
                 // Log final de confirmação
                 LogUtils.info("DashboardFragment", "✅ INTERFACE ATUALIZADA COM SUCESSO!")

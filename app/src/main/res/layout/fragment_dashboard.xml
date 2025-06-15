@@ -140,9 +140,10 @@
                     android:id="@+id/llInsightsCards"
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_marginTop="20dp"
+                    android:layout_marginTop="30dp"
                     android:orientation="vertical"
-                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle">
+                    app:layout_constraintTop_toBottomOf="@+id/tvInsightsTitle"
+                    tools:layout_editor_absoluteX="16dp">
 
                     <!-- Primeira linha: Contratos e Clientes -->
                     <LinearLayout
@@ -171,22 +172,22 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical">
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
 
                                     <ImageView
                                         android:layout_width="32dp"
                                         android:layout_height="32dp"
-                                        android:src="@drawable/ic_contract"
-                                        app:tint="@color/primary"
                                         android:background="@drawable/circle_background_primary_light"
-                                        android:padding="8dp" />
+                                        android:padding="8dp"
+                                        android:src="@drawable/ic_contract"
+                                        app:tint="@color/primary" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_weight="1"
                                         android:layout_marginStart="12dp"
+                                        android:layout_weight="1"
                                         android:orientation="vertical">
 
                                         <TextView
@@ -216,11 +217,11 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="12dp"
+                                    android:drawableStart="@drawable/ic_trending_up"
+                                    android:drawablePadding="4dp"
                                     android:text="3 esta semana"
                                     android:textColor="@color/success"
                                     android:textSize="11sp"
-                                    android:drawableStart="@drawable/ic_trending_up"
-                                    android:drawablePadding="4dp"
                                     app:drawableTint="@color/success" />
 
                             </LinearLayout>
@@ -246,22 +247,22 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical">
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
 
                                     <ImageView
                                         android:layout_width="32dp"
                                         android:layout_height="32dp"
-                                        android:src="@drawable/ic_people"
-                                        app:tint="@color/tertiary"
                                         android:background="@drawable/circle_background_tertiary_light"
-                                        android:padding="8dp" />
+                                        android:padding="8dp"
+                                        android:src="@drawable/ic_people"
+                                        app:tint="@color/tertiary" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_weight="1"
                                         android:layout_marginStart="12dp"
+                                        android:layout_weight="1"
                                         android:orientation="vertical">
 
                                         <TextView
@@ -291,11 +292,11 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="12dp"
+                                    android:drawableStart="@drawable/ic_trending_up"
+                                    android:drawablePadding="4dp"
                                     android:text="2 cadastrados hoje"
                                     android:textColor="@color/success"
                                     android:textSize="11sp"
-                                    android:drawableStart="@drawable/ic_trending_up"
-                                    android:drawablePadding="4dp"
                                     app:drawableTint="@color/success" />
 
                             </LinearLayout>
@@ -328,28 +329,28 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical">
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
 
                                     <ImageView
                                         android:layout_width="32dp"
                                         android:layout_height="32dp"
-                                        android:src="@drawable/ic_settings"
-                                        app:tint="@color/primary"
                                         android:background="@drawable/circle_background_primary_light"
-                                        android:padding="8dp" />
+                                        android:padding="8dp"
+                                        android:src="@drawable/ic_settings"
+                                        app:tint="@color/primary" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_weight="1"
                                         android:layout_marginStart="12dp"
+                                        android:layout_weight="1"
                                         android:orientation="vertical">
 
                                         <TextView
                                             android:layout_width="wrap_content"
                                             android:layout_height="wrap_content"
-                                            android:text="Equipamentos"
+                                            android:text="Materiais"
                                             android:textAppearance="@style/TextAppearance.ALG.Body"
                                             android:textColor="@color/text_secondary"
                                             android:textSize="12sp" />
@@ -373,11 +374,11 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="12dp"
+                                    android:drawableStart="@drawable/ic_check_circle"
+                                    android:drawablePadding="4dp"
                                     android:text="38 disponíveis"
                                     android:textColor="@color/success"
                                     android:textSize="11sp"
-                                    android:drawableStart="@drawable/ic_check_circle"
-                                    android:drawablePadding="4dp"
                                     app:drawableTint="@color/success" />
 
                             </LinearLayout>
@@ -403,22 +404,22 @@
                                 <LinearLayout
                                     android:layout_width="match_parent"
                                     android:layout_height="wrap_content"
-                                    android:orientation="horizontal"
-                                    android:gravity="center_vertical">
+                                    android:gravity="center_vertical"
+                                    android:orientation="horizontal">
 
                                     <ImageView
                                         android:layout_width="32dp"
                                         android:layout_height="32dp"
-                                        android:src="@drawable/ic_assignment_return"
-                                        app:tint="@color/warning"
                                         android:background="@drawable/circle_background_warning_light"
-                                        android:padding="8dp" />
+                                        android:padding="8dp"
+                                        android:src="@drawable/ic_assignment_return"
+                                        app:tint="@color/warning" />
 
                                     <LinearLayout
                                         android:layout_width="0dp"
                                         android:layout_height="wrap_content"
-                                        android:layout_weight="1"
                                         android:layout_marginStart="12dp"
+                                        android:layout_weight="1"
                                         android:orientation="vertical">
 
                                         <TextView
@@ -448,11 +449,11 @@
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
                                     android:layout_marginTop="12dp"
+                                    android:drawableStart="@drawable/ic_warning"
+                                    android:drawablePadding="4dp"
                                     android:text="8 pendentes"
                                     android:textColor="@color/warning"
                                     android:textSize="11sp"
-                                    android:drawableStart="@drawable/ic_warning"
-                                    android:drawablePadding="4dp"
                                     app:drawableTint="@color/warning" />
 
                             </LinearLayout>
@@ -460,39 +461,7 @@
                     </LinearLayout>
                 </LinearLayout>
 
-                <!-- Seção de Atividades Recentes -->
-                <TextView
-                    android:id="@+id/tvActivitiesTitle"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="32dp"
-                    android:text="Atividades Recentes"
-                    android:textAppearance="@style/TextAppearance.ALG.Title"
-                    android:textSize="18sp"
-                    app:layout_constraintStart_toStartOf="parent"
-                    app:layout_constraintTop_toBottomOf="@+id/llInsightsCards" />
 
-                <!-- Lista de Atividades -->
-                <androidx.cardview.widget.CardView
-                    android:id="@+id/cardActivities"
-                    android:layout_width="match_parent"
-                    android:layout_height="wrap_content"
-                    android:layout_marginTop="16dp"
-                    android:layout_marginBottom="24dp"
-                    app:cardBackgroundColor="@color/white"
-                    app:cardCornerRadius="16dp"
-                    app:cardElevation="4dp"
-                    app:layout_constraintTop_toBottomOf="@+id/tvActivitiesTitle"
-                    app:layout_constraintBottom_toBottomOf="parent">
-
-                    <androidx.recyclerview.widget.RecyclerView
-                        android:id="@+id/rvAtividadesRecentes"
-                        android:layout_width="match_parent"
-                        android:layout_height="wrap_content"
-                        android:layout_margin="16dp"
-                        android:nestedScrollingEnabled="false" />
-
-                </androidx.cardview.widget.CardView>
 
             </androidx.constraintlayout.widget.ConstraintLayout>
         </FrameLayout>

@@ -2,7 +2,11 @@ package com.example.alg_gestao_02.dashboard
 
 import android.content.Intent
 import android.os.Bundle
+import android.view.Gravity
 import android.view.MenuItem
+import android.view.View
+import android.view.ViewGroup
+import android.widget.PopupWindow
 import android.widget.TextView
 import androidx.activity.OnBackPressedCallback
 import androidx.appcompat.app.ActionBarDrawerToggle
@@ -14,9 +18,14 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.navigation.ui.navigateUp
 import androidx.navigation.ui.setupActionBarWithNavController
 import androidx.navigation.ui.setupWithNavController
+import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.alg_gestao_02.R
+import com.example.alg_gestao_02.adapter.NotificationAdapter
 import com.example.alg_gestao_02.auth.LoginActivity
 import com.example.alg_gestao_02.databinding.ActivityDashboardBinding
+import com.example.alg_gestao_02.databinding.LayoutNotificationsPanelBinding
+import com.example.alg_gestao_02.manager.NotificationManager
+import com.example.alg_gestao_02.model.Notification
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.navigation.NavigationView
@@ -27,6 +36,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     private lateinit var toggle: ActionBarDrawerToggle
     private lateinit var navController: NavController
     private lateinit var appBarConfiguration: AppBarConfiguration
+    private lateinit var notificationManager: NotificationManager
+    private var notificationPopup: PopupWindow? = null
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -36,10 +47,12 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         LogUtils.debug("DashboardActivity", "Inicializando dashboard")
         
         sessionManager = SessionManager(this)
+        notificationManager = NotificationManager.getInstance()
         setupToolbar()
         setupNavigation()
         setupUserInfo()
         setupBackPressHandler()
+        setupNotifications()
         
         // Garantir que a fonte seja aplicada corretamente em toda a aplicação
         enforceFontConsistency()
@@ -53,7 +66,7 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         // Configurar clique no ícone de notificação
         binding.ivNotification.setOnClickListener {
             LogUtils.debug("DashboardActivity", "Ícone de notificação clicado")
-            // Implementar exibição de notificações (em desenvolvimento)
+            showNotificationPanel()
         }
     }
     
@@ -184,6 +197,118 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         }
     }
     
+    private fun setupNotifications() {
+        updateNotificationBadge()
+    }
+    
+    private fun updateNotificationBadge() {
+        val unreadCount = notificationManager.getUnreadCount()
+        binding.tvNotificationBadge.apply {
+            if (unreadCount > 0) {
+                visibility = View.VISIBLE
+                text = if (unreadCount > 99) "99+" else unreadCount.toString()
+            } else {
+                visibility = View.GONE
+            }
+        }
+    }
+    
+    private fun showNotificationPanel() {
+        if (notificationPopup?.isShowing == true) {
+            notificationPopup?.dismiss()
+            return
+        }
+        
+        // Criar binding para o painel de notificações
+        val panelBinding = LayoutNotificationsPanelBinding.inflate(layoutInflater)
+        
+        // Configurar RecyclerView
+        val adapter = NotificationAdapter(
+            notifications = notificationManager.getAllNotifications(),
+            onNotificationClick = { notification ->
+                LogUtils.debug("DashboardActivity", "Notificação clicada: ${notification.title}")
+                notificationPopup?.dismiss()
+                // Aqui você pode implementar navegação baseada no tipo de notificação
+                handleNotificationClick(notification)
+            },
+            onMarkAsRead = { notification ->
+                notificationManager.markAsRead(notification.id)
+                updateNotificationBadge()
+            }
+        )
+        
+        panelBinding.rvNotifications.apply {
+            layoutManager = LinearLayoutManager(this@DashboardActivity)
+            this.adapter = adapter
+        }
+        
+        // Configurar estado vazio
+        val notifications = notificationManager.getAllNotifications()
+        if (notifications.isEmpty()) {
+            panelBinding.rvNotifications.visibility = View.GONE
+            panelBinding.layoutEmptyNotifications.visibility = View.VISIBLE
+        } else {
+            panelBinding.rvNotifications.visibility = View.VISIBLE
+            panelBinding.layoutEmptyNotifications.visibility = View.GONE
+        }
+        
+        // Configurar "Marcar todas como lidas"
+        panelBinding.tvMarkAllRead.setOnClickListener {
+            notificationManager.markAllAsRead()
+            adapter.updateNotifications(notificationManager.getAllNotifications())
+            updateNotificationBadge()
+        }
+        
+        // Criar e mostrar popup
+        notificationPopup = PopupWindow(
+            panelBinding.root,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            ViewGroup.LayoutParams.WRAP_CONTENT,
+            true
+        ).apply {
+            elevation = 8f
+            setBackgroundDrawable(null)
+            
+            // Posicionar o popup abaixo do ícone de notificação
+            val location = IntArray(2)
+            binding.ivNotification.getLocationOnScreen(location)
+            
+            showAtLocation(
+                binding.root,
+                Gravity.NO_GRAVITY,
+                location[0] - 280, // Ajustar posição horizontal
+                location[1] + binding.ivNotification.height + 8 // Abaixo do ícone
+            )
+        }
+    }
+    
+    private fun handleNotificationClick(notification: Notification) {
+        // Implementar navegação baseada no tipo de notificação
+        when (notification.type) {
+            com.example.alg_gestao_02.model.NotificationType.CONTRACT_CREATED -> {
+                navController.navigate(R.id.contratosFragment)
+            }
+            com.example.alg_gestao_02.model.NotificationType.CLIENT_ADDED -> {
+                navController.navigate(R.id.clientesFragment)
+            }
+            com.example.alg_gestao_02.model.NotificationType.EQUIPMENT_AVAILABLE -> {
+                navController.navigate(R.id.equipamentosFragment)
+            }
+            com.example.alg_gestao_02.model.NotificationType.RETURN_PENDING,
+            com.example.alg_gestao_02.model.NotificationType.RETURN_COMPLETED -> {
+                navController.navigate(R.id.devolucoesFragment)
+            }
+            else -> {
+                // Para notificações gerais, não navegar
+            }
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        notificationPopup?.dismiss()
+    }
+
     /**
      * Aplica a fonte Poppins a todos os itens do menu de navegação
      * Nota: Esta é uma solução parcial, pois o Android não fornece uma API direta 

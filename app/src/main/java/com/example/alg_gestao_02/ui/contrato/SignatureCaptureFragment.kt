@@ -12,6 +12,7 @@ import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.service.PdfService
+import com.example.alg_gestao_02.service.PdfResponse
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.launch
 import java.io.ByteArrayOutputStream
@@ -127,7 +128,10 @@ class SignatureCaptureFragment : DialogFragment() {
                 when (result) {
                     is Resource.Success -> {
                         LogUtils.debug("SignatureCapture", "Assinatura enviada com sucesso: ${result.data.message}")
-                        if (result.data.success) {
+                        // Verificar se a assinatura foi processada com sucesso
+                        // Se temos um assinaturaId, significa que foi salva com sucesso
+                        if (result.data.assinaturaId != null && result.data.assinaturaId > 0) {
+                            progressDialog.dismiss()
                             // Aguardar um momento para garantir que o backend processou a assinatura
                             LogUtils.debug("SignatureCapture", "Aguardando 1 segundo para processamento no backend...")
                             kotlinx.coroutines.delay(1000)
@@ -199,25 +203,8 @@ class SignatureCaptureFragment : DialogFragment() {
                                 if (pdfResponse.success) {
                                     LogUtils.debug("SignatureCapture", "PDF gerado com sucesso: ${pdfResponse.message}")
                                     
-                                    // Fechar este dialog primeiro
-                                    dismiss()
-                                    
-                                    // Limpar outros dialogs/fragments que possam estar abertos
-                                    parentFragmentManager.fragments.forEach { fragment ->
-                                        if (fragment is DialogFragment && fragment != this@SignatureCaptureFragment) {
-                                            fragment.dismissAllowingStateLoss()
-                                        }
-                                    }
-                                    
-                                    // Mostrar o PDF atualizado
-                                    val pdfViewer = PdfViewerFragment.newInstance(
-                                        pdfBase64 = pdfResponse.pdfBase64,
-                                        contratoNumero = numero,
-                                        contratoId = contratoId,
-                                        htmlUrl = pdfResponse.htmlUrl,
-                                        htmlContent = pdfResponse.htmlContent
-                                    )
-                                    pdfViewer.show(parentFragmentManager, "pdf_viewer")
+                                    // Mostrar o PDF atualizado com navegação limpa
+                                    mostrarPdfAtualizadoComNavegacaoLimpa(pdfResponse, numero)
                                     
                                     Toast.makeText(context, "✅ Assinatura salva! PDF atualizado automaticamente", Toast.LENGTH_LONG).show()
                                 } else {
@@ -251,6 +238,67 @@ class SignatureCaptureFragment : DialogFragment() {
                     LogUtils.error("SignatureCapture", errorMsg, e)
                     Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+    }
+    
+
+    
+    /**
+     * Mostra o PDF atualizado com navegação limpa (remove todos os dialogs anteriores)
+     */
+    private fun mostrarPdfAtualizadoComNavegacaoLimpa(pdfResponse: PdfResponse, contratoNumero: String) {
+        viewLifecycleOwner.lifecycleScope.launch {
+            LogUtils.debug("SignatureCapture", "Iniciando processo de navegação limpa")
+            
+            // 1. Fechar este dialog de assinatura
+            dismiss()
+            
+            // 2. Aguardar um momento para garantir que o dismiss foi processado
+            kotlinx.coroutines.delay(150)
+            
+            // 3. Limpar TODOS os outros dialogs que possam estar empilhados
+            val fragmentsToRemove = mutableListOf<DialogFragment>()
+            parentFragmentManager.fragments.forEach { fragment ->
+                if (fragment is DialogFragment && fragment != this@SignatureCaptureFragment) {
+                    fragmentsToRemove.add(fragment)
+                    LogUtils.debug("SignatureCapture", "Marcando dialog para remoção: ${fragment::class.simpleName}")
+                }
+            }
+            
+            // 4. Remover todos os dialogs encontrados
+            fragmentsToRemove.forEach { fragment ->
+                try {
+                    fragment.dismissAllowingStateLoss()
+                    LogUtils.debug("SignatureCapture", "Dialog removido: ${fragment::class.simpleName}")
+                } catch (e: Exception) {
+                    LogUtils.error("SignatureCapture", "Erro ao remover dialog: ${fragment::class.simpleName}", e)
+                }
+            }
+            
+            LogUtils.debug("SignatureCapture", "Stack limpo. ${fragmentsToRemove.size} dialogs removidos")
+            
+            // 5. Aguardar mais um momento para garantir limpeza completa
+            kotlinx.coroutines.delay(100)
+            
+            // 6. Criar e mostrar o PDF viewer atualizado
+            LogUtils.debug("SignatureCapture", "Criando PDF viewer com documento assinado")
+            
+            val pdfViewer = PdfViewerFragment.newInstance(
+                pdfBase64 = pdfResponse.pdfBase64,
+                contratoNumero = contratoNumero,
+                contratoId = contratoId,
+                htmlUrl = pdfResponse.htmlUrl,
+                htmlContent = pdfResponse.htmlContent
+            )
+            
+            // 7. Mostrar o PDF atualizado (agora será o único dialog na pilha)
+            try {
+                pdfViewer.show(parentFragmentManager, "pdf_viewer_signed")
+                LogUtils.debug("SignatureCapture", "✅ PDF assinado exibido com navegação limpa")
+            } catch (e: Exception) {
+                LogUtils.error("SignatureCapture", "Erro ao exibir PDF assinado", e)
+                Toast.makeText(context, "Erro ao exibir PDF: ${e.message}", Toast.LENGTH_SHORT).show()
             }
         }
     }

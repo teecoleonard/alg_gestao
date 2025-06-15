@@ -19,6 +19,7 @@ import android.webkit.WebResourceError
 import android.webkit.WebChromeClient
 import android.webkit.ConsoleMessage
 import android.widget.Button
+import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
@@ -46,9 +47,12 @@ class PdfViewerFragment : DialogFragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCompartilhar: Button
     private lateinit var btnSalvar: Button
-    private lateinit var btnFechar: Button
     private lateinit var btnAssinar: Button
     private lateinit var tvInfo: TextView
+    
+    // Novos containers para gerenciar estados
+    private lateinit var loadingContainer: LinearLayout
+    private lateinit var errorContainer: LinearLayout
     
     private var pdfBytes: ByteArray? = null
     private var pdfFile: File? = null
@@ -99,11 +103,15 @@ class PdfViewerFragment : DialogFragment() {
         progressBar = view.findViewById(R.id.progressBar)
         btnCompartilhar = view.findViewById(R.id.btnCompartilhar)
         btnSalvar = view.findViewById(R.id.btnSalvar)
-        btnFechar = view.findViewById(R.id.btnFechar)
         btnAssinar = view.findViewById(R.id.btnAssinar)
         tvInfo = view.findViewById(R.id.tvInfo)
         
-        webView.visibility = View.VISIBLE // Garante que o WebView está visível
+        // Inicializar novos containers
+        loadingContainer = view.findViewById(R.id.loadingContainer)
+        errorContainer = view.findViewById(R.id.errorContainer)
+        
+        // Inicializar no estado de loading
+        mostrarLoading()
         
         val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
         val htmlUrl = arguments?.getString(ARG_HTML_URL)
@@ -130,8 +138,7 @@ class PdfViewerFragment : DialogFragment() {
             }
             else -> {
                 LogUtils.error("PdfViewerFragment", "Nenhum conteúdo disponível para exibição")
-                tvInfo.text = "Nenhum conteúdo disponível"
-                tvInfo.visibility = View.VISIBLE
+                mostrarErro("Nenhum conteúdo disponível para exibição")
             }
         }
     }
@@ -179,7 +186,7 @@ class PdfViewerFragment : DialogFragment() {
         webView.webViewClient = object : WebViewClient() {
             override fun onPageFinished(view: WebView?, url: String?) {
                 super.onPageFinished(view, url)
-                progressBar.visibility = View.GONE
+                mostrarConteudo()
                 btnCompartilhar.isEnabled = true
                 btnSalvar.isEnabled = true
                 LogUtils.debug("PdfViewerFragment", "Página carregada: $url")
@@ -226,8 +233,7 @@ class PdfViewerFragment : DialogFragment() {
                 error: WebResourceError?
             ) {
                 LogUtils.error("PdfViewerFragment", "Erro ao carregar página: ${error?.description}")
-                tvInfo.text = "Erro ao carregar página: ${error?.description}"
-                tvInfo.visibility = View.VISIBLE
+                mostrarErro("Erro ao carregar página: ${error?.description}")
                 super.onReceivedError(view, request, error)
             }
         }
@@ -250,19 +256,7 @@ class PdfViewerFragment : DialogFragment() {
             verificarPermissaoESalvar()
         }
 
-        btnFechar.setOnClickListener {
-            // Limpar outros dialogs que possam estar empilhados
-            parentFragmentManager.fragments.forEach { fragment ->
-                if (fragment is DialogFragment && fragment != this@PdfViewerFragment) {
-                    fragment.dismissAllowingStateLoss()
-                }
-            }
-            
-            // Fechar este dialog
-            dismiss()
-            
-            LogUtils.debug("PdfViewerFragment", "Dialog fechado e navegação limpa")
-        }
+
 
         btnAssinar.setOnClickListener {
             val bundle = Bundle().apply {
@@ -294,8 +288,7 @@ class PdfViewerFragment : DialogFragment() {
             LogUtils.debug("PdfViewerFragment", "PDF carregado no WebView: file://${tempFile.absolutePath}")
         } catch (e: Exception) {
             LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF base64", e)
-            tvInfo.text = "Erro ao carregar PDF: ${e.message}"
-            tvInfo.visibility = View.VISIBLE
+            mostrarErro("Erro ao carregar PDF: ${e.message}")
         }
     }
     
@@ -325,8 +318,7 @@ class PdfViewerFragment : DialogFragment() {
 
         } catch (e: Exception) {
             LogUtils.error("PdfViewerFragment", "Erro ao carregar HTML", e)
-            tvInfo.text = "Erro ao carregar HTML: ${e.message}"
-            tvInfo.visibility = View.VISIBLE
+            mostrarErro("Erro ao carregar HTML: ${e.message}")
         }
     }
     
@@ -413,6 +405,37 @@ class PdfViewerFragment : DialogFragment() {
     override fun onDestroyView() {
         super.onDestroyView()
         pdfFile?.delete()
+    }
+    
+    /**
+     * Mostra o estado de loading
+     */
+    private fun mostrarLoading() {
+        loadingContainer.visibility = View.VISIBLE
+        errorContainer.visibility = View.GONE
+        webView.visibility = View.GONE
+    }
+    
+    /**
+     * Mostra o conteúdo (PDF/HTML carregado)
+     */
+    private fun mostrarConteudo() {
+        loadingContainer.visibility = View.GONE
+        errorContainer.visibility = View.GONE
+        webView.visibility = View.VISIBLE
+    }
+    
+    /**
+     * Mostra o estado de erro
+     */
+    private fun mostrarErro(mensagem: String) {
+        loadingContainer.visibility = View.GONE
+        errorContainer.visibility = View.VISIBLE
+        webView.visibility = View.GONE
+        
+        // Atualizar a mensagem de erro no container de erro
+        val tvError = errorContainer.findViewById<TextView>(R.id.tvError)
+        tvError?.text = mensagem
     }
     
     companion object {
