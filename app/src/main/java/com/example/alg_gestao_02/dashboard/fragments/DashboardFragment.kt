@@ -10,8 +10,10 @@ import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.alg_gestao_02.R
+
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModel
 import com.example.alg_gestao_02.data.models.DashboardStats
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModelFactory
@@ -41,6 +43,8 @@ class DashboardFragment : Fragment() {
     
     // Header elements
     private lateinit var tvCurrentDate: TextView
+    
+
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -283,8 +287,7 @@ class DashboardFragment : Fragment() {
                 
                 updateEstatisticasExpandidas(stats)
                 
-                // As atividades recentes agora são exibidas como notificações
-                LogUtils.info("DashboardFragment", "ℹ️ Atividades recentes foram movidas para o sistema de notificações")
+
                 
                 // Log final de confirmação
                 LogUtils.info("DashboardFragment", "✅ INTERFACE ATUALIZADA COM SUCESSO!")
