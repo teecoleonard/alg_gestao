@@ -395,6 +395,5 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
   <p><em>Transformando a gestão de equipamentos com tecnologia moderna</em></p>
   
   [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/teecoleonard/alg_gestao)
-  [![Version](https://img.shields.io/badge/Version-1.0.0-blue.svg)](https://github.com/teecoleonard/alg_gestao/releases)
-  [![Stars](https://img.shields.io/github/stars/teecoleonard/alg_gestao.svg)](https://github.com/teecoleonard/alg_gestao/stargazers)
+  [![Version](https://img.shields.io/badge/Version-0.0.0-blue.svg)](https://github.com/teecoleonard/alg_gestao/releases)
 </div>
