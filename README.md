@@ -14,17 +14,9 @@
 ## 🚀 Funcionalidades Principais
 
 ### 🎨 **Interface & UX**
-<<<<<<< HEAD
 - Splash Screen animado com Material 3 Design
 - Tipografia Poppins e animações fluidas
 - Navigation Drawer completo
-=======
-- **Splash Screen** animado com transições suaves
-- **Design Material 3** com tipografia Poppins
-- **Animações** fluidas em toda a aplicação
-- **Navigation Drawer** com menu lateral completo
-- **Dark/Light Theme** support (futuro)
->>>>>>> 85bce7014953f91035629e2ac9181b5860721171
 
 <!-- 📸 ADICIONAR AQUI: Screenshots do Splash Screen e Interface principal -->
 <div align="center">
@@ -383,46 +375,6 @@ app/src/main/java/com.example.alg_gestao_02/
 
 ---
 
-## 📋 Roadmap e Features Futuras
-
-### **v2.0 - Em Desenvolvimento**
-- [ ] **Modo Offline** completo
-- [ ] **Sincronização** bidirecional
-- [ ] **Dashboard Analytics** avançado
-- [ ] **Push Notifications** remotas
-- [ ] **Backup automático** para nuvem
-- [ ] **Multi-empresa** support
-- [ ] **Relatórios** customizáveis
-- [ ] **API de integração** para terceiros
-
-### **v2.1 - Planejado**
-- [ ] **App para Tablet** otimizado
-- [ ] **Modo escuro** completo
-- [ ] **Biometria** para login
-- [ ] **Integração** com sistemas ERP
-- [ ] **Workflow** de aprovações
-- [ ] **Chat** interno entre usuários
-
----
-
-## 🤝 Contribuição
-
-### **Como Contribuir**
-1. **Fork** o projeto
-2. **Crie** uma branch para sua feature (`git checkout -b feature/nova-feature`)
-3. **Commit** suas mudanças (`git commit -am 'Adiciona nova feature'`)
-4. **Push** para a branch (`git push origin feature/nova-feature`)
-5. **Abra** um Pull Request
-
-### **Padrões de Código**
-- **Kotlin Coding Conventions**
-- **MVVM Architecture**
-- **Clean Code** principles
-- **Documentation** em português
-- **Commit messages** semânticos
-
----
-
 ## 📄 Licença
 
 Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](LICENSE) para detalhes.
@@ -432,18 +384,9 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
 ## 👨‍💻 Autor
 
 **Leonardo Henrique**  
-📧 Email: [seu-email@example.com](mailto:seu-email@example.com)  
+📧 Email: [leonardo4q@example.com](mailto:leonardo4q@example.com)  
 🐙 GitHub: [@teecoleonard](https://github.com/teecoleonard)  
-💼 LinkedIn: [Leonardo Henrique](https://linkedin.com/in/leonardo-henrique)
-
----
-
-## 🙏 Agradecimentos
-
-- **Material Design Team** pela inspiração visual
-- **Android Jetpack** pelos componentes robustos
-- **Comunidade Kotlin** pelo suporte contínuo
-- **Equipe de teste** pelos feedbacks valiosos
+💼 LinkedIn: [Leonardo Henrique](https://www.linkedin.com/in/leonardohenriquedejesussilva/)
 
 ---
 
