@@ -14,9 +14,17 @@
 ## 🚀 Funcionalidades Principais
 
 ### 🎨 **Interface & UX**
+<<<<<<< HEAD
 - Splash Screen animado com Material 3 Design
 - Tipografia Poppins e animações fluidas
 - Navigation Drawer completo
+=======
+- **Splash Screen** animado com transições suaves
+- **Design Material 3** com tipografia Poppins
+- **Animações** fluidas em toda a aplicação
+- **Navigation Drawer** com menu lateral completo
+- **Dark/Light Theme** support (futuro)
+>>>>>>> 85bce7014953f91035629e2ac9181b5860721171
 
 <!-- 📸 ADICIONAR AQUI: Screenshots do Splash Screen e Interface principal -->
 <div align="center">
