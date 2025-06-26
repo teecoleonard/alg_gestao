@@ -1,4 +1,4 @@
-﻿# 🏗️ ALG Gestão - Sistema Completo de Gestão de Locação
+﻿# 🏗️ ALG Gestão - Gestão de Locação de Equipamentos
 
 [![Android](https://img.shields.io/badge/Android-7.0%2B-green.svg)](https://developer.android.com/about/versions/nougat/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
@@ -135,7 +135,7 @@
 ```
 ┌─────────────────┐    ┌─────────────────┐    ┌─────────────────┐
 │   Presentation  │    │     Domain      │    │      Data       │
-│   (UI/ViewModels)│◄──►│   (Use Cases)   │◄──►│  (Repositories) │
+│  (UI/ViewModels)│◄──►│   (Use Cases)   │◄──►│  (Repositories) │
 └─────────────────┘    └─────────────────┘    └─────────────────┘
          │                                              │
          ▼                                              ▼
@@ -205,105 +205,105 @@ object ApiConfig {
 
 ```
 app/src/main/java/com.example.alg_gestao_02/
-├── 🔐 auth/                    # Sistema de autenticação
-│   ├── LoginActivity.kt        # Tela de login
-│   ├── LoginViewModel.kt       # Lógica de autenticação
-│   ├── RegisterActivity.kt     # Cadastro de usuários
-│   └── RegisterViewModel.kt    # Lógica de registro
+├── 🔐 auth/                                 # Sistema de autenticação
+│   ├── LoginActivity.kt                      # Tela de login
+│   ├── LoginViewModel.kt                     # Lógica de autenticação
+│   ├── RegisterActivity.kt                   # Cadastro de usuários
+│   └── RegisterViewModel.kt                  # Lógica de registro
 │
-├── 📊 dashboard/              # Dashboard principal
-│   ├── DashboardActivity.kt   # Activity principal
-│   ├── DashboardFragment.kt   # Fragment do dashboard
-│   └── fragments/             # Sub-fragments do dashboard
+├── 📊 dashboard/                           # Dashboard principal
+│   ├── DashboardActivity.kt                 # Activity principal
+│   ├── DashboardFragment.kt                 # Fragment do dashboard
+│   └── fragments/                           # Sub-fragments do dashboard
 │
-├── 🎨 ui/                     # Interface do usuário
-│   ├── 👥 cliente/           # Módulo de clientes
-│   │   ├── ClienteFragment.kt # Lista de clientes
-│   │   ├── ClientDetailsFragment.kt # Detalhes do cliente
+├── 🎨 ui/                                  # Interface do usuário
+│   ├── 👥 cliente/                         # Módulo de clientes
+│   │   ├── ClienteFragment.kt               # Lista de clientes
+│   │   ├── ClientDetailsFragment.kt         # Detalhes do cliente
 │   │   ├── CadastroClienteDialogFragment.kt # Cadastro
-│   │   └── viewmodel/         # ViewModels do módulo
+│   │   └── viewmodel/                       # ViewModels do módulo
 │   │
-│   ├── 📋 contrato/          # Módulo de contratos
-│   │   ├── ContratosFragment.kt # Lista de contratos
-│   │   ├── ContratoDetailsDialogFragment.kt # Detalhes
+│   ├── 📋 contrato/                         # Módulo de contratos
+│   │   ├── ContratosFragment.kt              # Lista de contratos
+│   │   ├── ContratoDetailsDialogFragment.kt  # Detalhes
 │   │   ├── CadastroContratoDialogFragment.kt # Cadastro
-│   │   ├── SignatureCaptureFragment.kt # Captura de assinatura
-│   │   ├── PdfViewerFragment.kt # Visualizador de PDF
-│   │   └── adapter/           # Adapters personalizados
+│   │   ├── SignatureCaptureFragment.kt       # Captura de assinatura
+│   │   ├── PdfViewerFragment.kt              # Visualizador de PDF
+│   │   └── adapter/                          # Adapters personalizados
 │   │
-│   ├── 🔧 equipamento/       # Módulo de equipamentos
-│   │   ├── EquipamentosFragment.kt # Lista de equipamentos
-│   │   ├── EquipamentoDetailsDialogFragment.kt # Detalhes
+│   ├── 🔧 equipamento/                         # Módulo de equipamentos
+│   │   ├── EquipamentosFragment.kt              # Lista de equipamentos
+│   │   ├── EquipamentoDetailsDialogFragment.kt  # Detalhes
 │   │   ├── CadastroEquipamentoDialogFragment.kt # Cadastro
-│   │   └── viewmodel/         # ViewModels do módulo
+│   │   └── viewmodel/                           # ViewModels do módulo
 │   │
-│   ├── 📦 devolucao/         # Módulo de devoluções
-│   │   ├── DevolucoesFragment.kt # Lista de devoluções
+│   ├── 📦 devolucao/                        # Módulo de devoluções
+│   │   ├── DevolucoesFragment.kt             # Lista de devoluções
 │   │   ├── DevolucaoDetailsDialogFragment.kt # Detalhes
-│   │   └── viewmodel/         # ViewModels do módulo
+│   │   └── viewmodel/                        # ViewModels do módulo
 │   │
-│   ├── 💰 financial/         # Módulo financeiro
-│   │   ├── FinancialFragment.kt # Dashboard financeiro
-│   │   ├── ReportFragment.kt  # Relatórios
-│   │   └── viewmodel/         # ViewModels financeiros
+│   ├── 💰 financial/                       # Módulo financeiro
+│   │   ├── FinancialFragment.kt             # Dashboard financeiro
+│   │   ├── ReportFragment.kt                # Relatórios
+│   │   └── viewmodel/                       # ViewModels financeiros
 │   │
-│   └── 🔧 common/            # Componentes comuns
-│       ├── LoadingDialog.kt   # Dialog de carregamento
-│       ├── ConfirmDialog.kt   # Confirmações
-│       └── BaseFragment.kt    # Fragment base
+│   └── 🔧 common/                          # Componentes comuns
+│       ├── LoadingDialog.kt                 # Dialog de carregamento
+│       ├── ConfirmDialog.kt                 # Confirmações
+│       └── BaseFragment.kt                  # Fragment base
 │
-├── 🗄️ data/                   # Camada de dados
-│   ├── 🌐 api/               # Serviços de API
-│   │   ├── ApiService.kt      # Interface da API
-│   │   ├── ApiConfig.kt       # Configurações
-│   │   ├── AuthInterceptor.kt # Interceptador de auth
-│   │   └── NetworkUtils.kt    # Utilitários de rede
+├── 🗄️ data/                                # Camada de dados
+│   ├── 🌐 api/                             # Serviços de API
+│   │   ├── ApiService.kt                    # Interface da API
+│   │   ├── ApiConfig.kt                     # Configurações
+│   │   ├── AuthInterceptor.kt               # Interceptador de auth
+│   │   └── NetworkUtils.kt                  # Utilitários de rede
 │   │
-│   ├── 🗃️ db/                # Banco de dados local
-│   │   ├── AppDatabase.kt     # Configuração do Room
-│   │   ├── entities/          # Entidades do banco
-│   │   └── dao/               # Data Access Objects
+│   ├── 🗃️ db/                             # Banco de dados local
+│   │   ├── AppDatabase.kt                  # Configuração do Room
+│   │   ├── entities/                       # Entidades do banco
+│   │   └── dao/                            # Data Access Objects
 │   │
-│   ├── 📋 models/            # Modelos de dados
-│   │   ├── User.kt           # Modelo de usuário
-│   │   ├── Cliente.kt        # Modelo de cliente
-│   │   ├── Contrato.kt       # Modelo de contrato
-│   │   ├── Equipamento.kt    # Modelo de equipamento
-│   │   ├── Devolucao.kt      # Modelo de devolução
-│   │   └── FinancialMetrics.kt # Métricas financeiras
+│   ├── 📋 models/                        # Modelos de dados
+│   │   ├── User.kt                        # Modelo de usuário
+│   │   ├── Cliente.kt                     # Modelo de cliente
+│   │   ├── Contrato.kt                    # Modelo de contrato
+│   │   ├── Equipamento.kt                 # Modelo de equipamento
+│   │   ├── Devolucao.kt                   # Modelo de devolução
+│   │   └── FinancialMetrics.kt            # Métricas financeiras
 │   │
-│   └── 🔄 repository/        # Repositórios
-│       ├── ClienteRepository.kt # Lógica de clientes
-│       ├── ContratoRepository.kt # Lógica de contratos
-│       ├── EquipamentoRepository.kt # Lógica de equipamentos
-│       └── DevolucaoRepository.kt # Lógica de devoluções
+│   └── 🔄 repository/                    # Repositórios
+│       ├── ClienteRepository.kt           # Lógica de clientes
+│       ├── ContratoRepository.kt          # Lógica de contratos
+│       ├── EquipamentoRepository.kt       # Lógica de equipamentos
+│       └── DevolucaoRepository.kt         # Lógica de devoluções
 │
-├── 🛠️ service/               # Serviços especializados
-│   ├── PdfService.kt         # Geração de PDFs
-│   ├── ReportService.kt      # Relatórios
-│   └── NotificationService.kt # Notificações
+├── 🛠️ service/                           # Serviços especializados
+│   ├── PdfService.kt                      # Geração de PDFs
+│   ├── ReportService.kt                   # Relatórios
+│   └── NotificationService.kt             # Notificações
 │
-├── 🔔 manager/               # Gerenciadores
-│   ├── NotificationManager.kt # Gestor de notificações
-│   └── SessionManager.kt     # Gestor de sessões
+├── 🔔 manager/                           # Gerenciadores
+│   ├── NotificationManager.kt             # Gestor de notificações
+│   └── SessionManager.kt                  # Gestor de sessões
 │
-├── 🎛️ utils/                 # Utilitários
-│   ├── SessionManager.kt     # Gerenciamento de sessão
-│   ├── TextMaskUtils.kt      # Máscaras de texto
-│   ├── ValidationUtils.kt    # Validações
-│   ├── DateUtils.kt          # Manipulação de datas
-│   ├── CurrencyUtils.kt      # Formatação monetária
-│   ├── PdfUtils.kt           # Utilitários PDF
-│   ├── ShareUtils.kt         # Compartilhamento
-│   ├── LogUtils.kt           # Sistema de logs
-│   └── NetworkUtils.kt       # Utilitários de rede
+├── 🎛️ utils/                             # Utilitários
+│   ├── SessionManager.kt                  # Gerenciamento de sessão
+│   ├── TextMaskUtils.kt                   # Máscaras de texto
+│   ├── ValidationUtils.kt                 # Validações
+│   ├── DateUtils.kt                       # Manipulação de datas
+│   ├── CurrencyUtils.kt                   # Formatação monetária
+│   ├── PdfUtils.kt                        # Utilitários PDF
+│   ├── ShareUtils.kt                      # Compartilhamento
+│   ├── LogUtils.kt                        # Sistema de logs
+│   └── NetworkUtils.kt                    # Utilitários de rede
 │
-└── 🧩 adapter/               # Adapters do RecyclerView
-    ├── ClientesAdapter.kt    # Adapter de clientes
-    ├── ContratosAdapter.kt   # Adapter de contratos
-    ├── EquipamentosAdapter.kt # Adapter de equipamentos
-    ├── DevolucoesAdapter.kt  # Adapter de devoluções
-    └── NotificationAdapter.kt # Adapter de notificações
+└── 🧩 adapter/                           # Adapters do RecyclerView
+    ├── ClientesAdapter.kt                 # Adapter de clientes
+    ├── ContratosAdapter.kt                # Adapter de contratos
+    ├── EquipamentosAdapter.kt             # Adapter de equipamentos
+    ├── DevolucoesAdapter.kt               # Adapter de devoluções
+    └── NotificationAdapter.kt             # Adapter de notificações
 ```
 
 ---
