@@ -1,24 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <paths>
-    <external-path
-        name="external_files"
-        path="." />
+    <!-- Cache interno do app para arquivos temporários -->
     <cache-path
         name="cache_files"
         path="." />
-    <external-files-path
-        name="external_files_path"
-        path="." />
-    <files-path
-        name="files"
-        path="." />
-    <external-cache-path
-        name="external_cache"
-        path="." />
+    <!-- Pasta externa de Downloads -->
     <external-path
         name="downloads"
         path="Download" />
+    <!-- Pasta externa Documents -->
     <external-path
         name="documents"
         path="Documents" />
+    <!-- Arquivos externos do app -->
+    <external-files-path
+        name="external_files"
+        path="." />
 </paths> 

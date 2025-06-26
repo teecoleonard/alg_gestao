@@ -84,11 +84,33 @@ object PdfUtils {
         textoAdicional: String = ""
     ): Result<Unit> {
         return try {
+            LogUtils.debug("PdfUtils", "🚀 INÍCIO - compartilharPdf")
+            LogUtils.debug("PdfUtils", "📄 Arquivo: ${arquivo.absolutePath}")
+            LogUtils.debug("PdfUtils", "📏 Tamanho: ${arquivo.length()} bytes")
+            LogUtils.debug("PdfUtils", "✅ Arquivo existe: ${arquivo.exists()}")
+            LogUtils.debug("PdfUtils", "📦 Package name: ${context.packageName}")
+            LogUtils.debug("PdfUtils", "🏗️ Authority: ${context.packageName}.provider")
+            
+            if (!arquivo.exists()) {
+                val error = Exception("Arquivo não encontrado: ${arquivo.absolutePath}")
+                LogUtils.error("PdfUtils", "❌ Arquivo não existe", error)
+                return Result.failure(error)
+            }
+            
+            // Verificar se o FileProvider está configurado corretamente antes de usar
+            if (!verificarFileProvider(context)) {
+                val error = Exception("FileProvider não está configurado corretamente. Verifique AndroidManifest.xml e file_paths.xml")
+                LogUtils.error("PdfUtils", "❌ FileProvider mal configurado", error)
+                return Result.failure(error)
+            }
+            
             val uri = FileProvider.getUriForFile(
                 context,
                 "${context.packageName}.provider",
                 arquivo
             )
+            
+            LogUtils.debug("PdfUtils", "🔗 URI gerada: $uri")
             
             val shareIntent = Intent().apply {
                 action = Intent.ACTION_SEND
@@ -106,15 +128,29 @@ object PdfUtils {
             val packageManager = context.packageManager
             if (shareIntent.resolveActivity(packageManager) != null) {
                 context.startActivity(Intent.createChooser(shareIntent, titulo))
-                LogUtils.debug("PdfUtils", "Compartilhamento iniciado com sucesso")
+                LogUtils.debug("PdfUtils", "✅ Compartilhamento iniciado com sucesso")
                 Result.success(Unit)
             } else {
                 val error = Exception("Nenhum app disponível para compartilhar PDFs")
-                LogUtils.warning("PdfUtils", "Nenhum app encontrado para compartilhar")
+                LogUtils.warning("PdfUtils", "⚠️ Nenhum app encontrado para compartilhar")
                 Result.failure(error)
             }
         } catch (e: Exception) {
-            LogUtils.error("PdfUtils", "Erro ao compartilhar PDF", e)
+            LogUtils.error("PdfUtils", "💥 Erro ao compartilhar PDF: ${e.message}", e)
+            
+            // Tentar detectar problemas específicos
+            when {
+                e.message?.contains("meta-data") == true -> {
+                    LogUtils.error("PdfUtils", "🔧 DIAGNÓSTICO: Problema com FileProvider - verificar AndroidManifest.xml e file_paths.xml")
+                }
+                e.message?.contains("authority") == true -> {
+                    LogUtils.error("PdfUtils", "🔧 DIAGNÓSTICO: Authority incorreta - usando: ${context.packageName}.provider")
+                }
+                else -> {
+                    LogUtils.error("PdfUtils", "🔧 DIAGNÓSTICO: Erro genérico de compartilhamento")
+                }
+            }
+            
             Result.failure(e)
         }
     }
@@ -213,6 +249,32 @@ object PdfUtils {
             }
         } catch (e: Exception) {
             LogUtils.error("PdfUtils", "Erro ao verificar acesso à pasta Downloads", e)
+            false
+        }
+    }
+    
+    /**
+     * Verifica se o FileProvider está configurado corretamente
+     */
+    fun verificarFileProvider(context: Context): Boolean {
+        return try {
+            val authority = "${context.packageName}.provider"
+            LogUtils.debug("PdfUtils", "🔍 Verificando FileProvider com authority: $authority")
+            
+            // Tentar criar um arquivo temporário para teste
+            val testFile = File(context.cacheDir, "test_fileprovider.txt")
+            testFile.writeText("teste")
+            
+            // Tentar obter URI usando FileProvider
+            val uri = FileProvider.getUriForFile(context, authority, testFile)
+            LogUtils.debug("PdfUtils", "✅ FileProvider configurado corretamente. URI teste: $uri")
+            
+            // Limpar arquivo de teste
+            testFile.delete()
+            
+            true
+        } catch (e: Exception) {
+            LogUtils.error("PdfUtils", "❌ FileProvider NÃO está configurado corretamente: ${e.message}", e)
             false
         }
     }

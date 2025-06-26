@@ -36,11 +36,12 @@ import kotlinx.coroutines.launch
 import java.text.DecimalFormat
 import java.text.DecimalFormatSymbols
 import java.util.Locale
+import com.example.alg_gestao_02.ui.common.BaseDialogFragment
 
 /**
  * DialogFragment para cadastro e edição de contrato
  */
-class CadastroContratoDialogFragment : DialogFragment() {
+class CadastroContratoDialogFragment : BaseDialogFragment() {
     
     private lateinit var viewModel: ContratosViewModel
     
@@ -823,5 +824,18 @@ class CadastroContratoDialogFragment : DialogFragment() {
         val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
         val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
         tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
+    }
+
+    /**
+     * Implementação obrigatória da BaseDialogFragment
+     * Retorna um tag único para este dialog
+     */
+    override fun getDialogTag(): String {
+        val contratoId = contratoParaEdicao?.id ?: 0
+        return if (contratoId > 0) {
+            "cadastro_contrato_edit_$contratoId"
+        } else {
+            "cadastro_contrato_new_${System.currentTimeMillis()}"
+        }
     }
 }

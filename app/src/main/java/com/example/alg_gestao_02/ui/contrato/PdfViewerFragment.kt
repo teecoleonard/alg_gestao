@@ -32,6 +32,9 @@ import java.util.Locale
 
 /**
  * Fragment para visualização de PDF gerado
+ * 
+ * OTIMIZAÇÃO: Para evitar TransactionTooLargeException quando o app é minimizado,
+ * este fragment usa cache temporário e não salva dados grandes no Bundle de argumentos.
  */
 class PdfViewerFragment : DialogFragment() {
     
@@ -52,6 +55,10 @@ class PdfViewerFragment : DialogFragment() {
     private var contratoId: Int = 0
     private var onContratoAtualizadoCallback: (() -> Unit)? = null
     
+    // Cache IDs para evitar salvar dados grandes no Bundle
+    private var cachedPdfId: String? = null
+    private var cachedHtmlId: String? = null
+    
     private val pdfService = PdfService()
     
     // Método para configurar callback de atualização do contrato
@@ -59,11 +66,52 @@ class PdfViewerFragment : DialogFragment() {
         this.onContratoAtualizadoCallback = callback
     }
     
-    // requestPermissionLauncher removido - PdfUtils gerencia permissões automaticamente
-    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        // Mantém o padrão do DialogFragment
+        LogUtils.debug("PdfViewerFragment", "📱 onCreate - Fragment inicializado")
+        
+        // Restaurar IDs do cache se existirem
+        savedInstanceState?.let { bundle ->
+            cachedPdfId = bundle.getString(STATE_CACHED_PDF_ID)
+            cachedHtmlId = bundle.getString(STATE_CACHED_HTML_ID)
+            contratoNumero = bundle.getString(STATE_CONTRATO_NUMERO, "")
+            contratoId = bundle.getInt(STATE_CONTRATO_ID, 0)
+            LogUtils.debug("PdfViewerFragment", "🔄 Estado restaurado - PDF ID: $cachedPdfId, HTML ID: $cachedHtmlId")
+        }
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        // CRÍTICO: Não salvar dados grandes para evitar TransactionTooLargeException
+        // Salvar apenas IDs pequenos e metadados
+        super.onSaveInstanceState(outState)
+        
+        LogUtils.debug("PdfViewerFragment", "💾 Salvando estado do PdfViewerFragment...")
+        
+        // Salvar apenas IDs pequenos e metadados essenciais
+        cachedPdfId?.let { outState.putString(STATE_CACHED_PDF_ID, it) }
+        cachedHtmlId?.let { outState.putString(STATE_CACHED_HTML_ID, it) }
+        outState.putString(STATE_CONTRATO_NUMERO, contratoNumero)
+        outState.putInt(STATE_CONTRATO_ID, contratoId)
+        
+        // IMPORTANTE: Limpar argumentos grandes para evitar crash
+        arguments?.let { args ->
+            if (args.containsKey(ARG_PDF_BASE64)) {
+                val pdfSize = args.getString(ARG_PDF_BASE64)?.length ?: 0
+                if (pdfSize > 10000) { // Mais de 10KB
+                    LogUtils.debug("PdfViewerFragment", "🧹 Limpando PDF base64 dos argumentos (${pdfSize} bytes)")
+                    args.remove(ARG_PDF_BASE64)
+                }
+            }
+            if (args.containsKey(ARG_HTML_CONTENT)) {
+                val htmlSize = args.getString(ARG_HTML_CONTENT)?.length ?: 0
+                if (htmlSize > 10000) { // Mais de 10KB
+                    LogUtils.debug("PdfViewerFragment", "🧹 Limpando HTML content dos argumentos (${htmlSize} bytes)")
+                    args.remove(ARG_HTML_CONTENT)
+                }
+            }
+        }
+        
+        LogUtils.debug("PdfViewerFragment", "✅ Estado do PdfViewerFragment salvo com segurança")
     }
 
     override fun onStart() {
@@ -96,9 +144,72 @@ class PdfViewerFragment : DialogFragment() {
         loadingContainer = view.findViewById(R.id.loadingContainer)
         errorContainer = view.findViewById(R.id.errorContainer)
         
+        // Verificar se o FileProvider está configurado corretamente
+        LogUtils.debug("PdfViewerFragment", "🔍 Verificando configuração do FileProvider...")
+        if (!PdfUtils.verificarFileProvider(requireContext())) {
+            LogUtils.error("PdfViewerFragment", "❌ FileProvider não está configurado corretamente!")
+            mostrarErro("Erro de configuração: FileProvider não encontrado")
+            return
+        }
+        LogUtils.debug("PdfViewerFragment", "✅ FileProvider configurado corretamente")
+        
         // Inicializar no estado de loading
         mostrarLoading()
         
+        // Priorizar cache restaurado sobre argumentos
+        if (cachedPdfId != null || cachedHtmlId != null) {
+            LogUtils.debug("PdfViewerFragment", "🔄 Restaurando conteúdo do cache...")
+            restaurarConteudoDoCache()
+        } else {
+            LogUtils.debug("PdfViewerFragment", "📥 Carregando conteúdo dos argumentos...")
+            carregarConteudoDosArgumentos()
+        }
+    }
+    
+    private fun restaurarConteudoDoCache() {
+        try {
+            var conteudoCarregado = false
+            
+            // Tentar restaurar HTML primeiro (melhor para visualização)
+            cachedHtmlId?.let { htmlId ->
+                val htmlFile = File(requireContext().cacheDir, "cached_html_$htmlId.html")
+                if (htmlFile.exists()) {
+                    val htmlContent = htmlFile.readText()
+                    LogUtils.debug("PdfViewerFragment", "📄 HTML restaurado do cache (${htmlContent.length} chars)")
+                    carregarHtmlContent(htmlContent)
+                    conteudoCarregado = true
+                }
+            }
+            
+            // Tentar restaurar PDF se HTML não foi encontrado
+            if (!conteudoCarregado) {
+                cachedPdfId?.let { pdfId ->
+                    val pdfFile = File(requireContext().cacheDir, "cached_pdf_$pdfId.pdf")
+                    if (pdfFile.exists()) {
+                        val pdfBytes = pdfFile.readBytes()
+                        LogUtils.debug("PdfViewerFragment", "📱 PDF restaurado do cache (${pdfBytes.size} bytes)")
+                        val pdfBase64 = android.util.Base64.encodeToString(pdfBytes, android.util.Base64.DEFAULT)
+                        carregarPdfBase64(pdfBase64)
+                        conteudoCarregado = true
+                    }
+                }
+            }
+            
+            if (!conteudoCarregado) {
+                LogUtils.warning("PdfViewerFragment", "⚠️ Nenhum conteúdo em cache encontrado")
+                mostrarErro("Conteúdo não disponível após restauração")
+            }
+            
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "❌ Erro ao restaurar conteúdo do cache", e)
+            mostrarErro("Erro ao restaurar conteúdo: ${e.message}")
+        }
+        
+        setupWebView()
+        setupButtons()
+    }
+    
+    private fun carregarConteudoDosArgumentos() {
         val pdfBase64 = arguments?.getString(ARG_PDF_BASE64)
         val htmlUrl = arguments?.getString(ARG_HTML_URL)
         val htmlContent = arguments?.getString(ARG_HTML_CONTENT)
@@ -111,7 +222,8 @@ class PdfViewerFragment : DialogFragment() {
         // Carregar o conteúdo - HTML para visualização, mas salvar PDF em background
         when {
             htmlContent != null -> {
-                LogUtils.debug("PdfViewerFragment", "Carregando conteúdo HTML para visualização")
+                LogUtils.debug("PdfViewerFragment", "📄 Carregando conteúdo HTML para visualização")
+                salvarHtmlNoCache(htmlContent)
                 carregarHtmlContent(htmlContent)
                 // Salvar PDF em background para download/compartilhamento
                 if (pdfBase64 != null) {
@@ -119,7 +231,7 @@ class PdfViewerFragment : DialogFragment() {
                 }
             }
             htmlUrl != null -> {
-                LogUtils.debug("PdfViewerFragment", "Carregando URL HTML: $htmlUrl")
+                LogUtils.debug("PdfViewerFragment", "🌐 Carregando URL HTML: $htmlUrl")
                 carregarHtmlUrl(htmlUrl)
                 // Salvar PDF em background para download/compartilhamento
                 if (pdfBase64 != null) {
@@ -127,13 +239,51 @@ class PdfViewerFragment : DialogFragment() {
                 }
             }
             pdfBase64 != null -> {
-                LogUtils.debug("PdfViewerFragment", "Carregando PDF base64 (sem HTML disponível)")
+                LogUtils.debug("PdfViewerFragment", "📱 Carregando PDF base64 (sem HTML disponível)")
+                salvarPdfNoCache(pdfBase64)
                 carregarPdfBase64(pdfBase64)
             }
             else -> {
-                LogUtils.error("PdfViewerFragment", "Nenhum conteúdo disponível para exibição")
+                LogUtils.error("PdfViewerFragment", "❌ Nenhum conteúdo disponível para exibição")
                 mostrarErro("Nenhum conteúdo disponível para exibição")
             }
+        }
+    }
+    
+    private fun salvarHtmlNoCache(htmlContent: String) {
+        try {
+            cachedHtmlId = "html_${System.currentTimeMillis()}"
+            val htmlFile = File(requireContext().cacheDir, "cached_html_$cachedHtmlId.html")
+            htmlFile.writeText(htmlContent)
+            LogUtils.debug("PdfViewerFragment", "💾 HTML salvo no cache: $cachedHtmlId")
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "❌ Erro ao salvar HTML no cache", e)
+        }
+    }
+    
+    private fun salvarPdfNoCache(pdfBase64: String) {
+        try {
+            val pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
+            cachedPdfId = "pdf_${System.currentTimeMillis()}"
+            val pdfFile = File(requireContext().cacheDir, "cached_pdf_$cachedPdfId.pdf")
+            pdfFile.writeBytes(pdfBytes)
+            this.pdfBytes = pdfBytes
+            LogUtils.debug("PdfViewerFragment", "💾 PDF salvo no cache: $cachedPdfId")
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "❌ Erro ao salvar PDF no cache", e)
+        }
+    }
+    
+    private fun salvarPdfEmBackground(pdfBase64: String) {
+        try {
+            val pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
+            this.pdfBytes = pdfBytes
+            cachedPdfId = "pdf_${System.currentTimeMillis()}"
+            val pdfFile = File(requireContext().cacheDir, "cached_pdf_$cachedPdfId.pdf")
+            pdfFile.writeBytes(pdfBytes)
+            LogUtils.debug("PdfViewerFragment", "📱 PDF salvo em background para compartilhamento/download")
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "❌ Erro ao salvar PDF em background", e)
         }
     }
     
@@ -250,8 +400,6 @@ class PdfViewerFragment : DialogFragment() {
             verificarPermissaoESalvar()
         }
 
-
-
         btnAssinar.setOnClickListener {
             LogUtils.debug("PdfViewerFragment", "🖊️ Botão assinar clicado")
             val bundle = Bundle().apply {
@@ -278,16 +426,7 @@ class PdfViewerFragment : DialogFragment() {
         }
     }
     
-    private fun salvarPdfEmBackground(pdfBase64: String) {
-        LogUtils.debug("PdfViewerFragment", "Salvando PDF em background para download/compartilhamento")
-        try {
-            val pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
-            this.pdfBytes = pdfBytes
-            LogUtils.debug("PdfViewerFragment", "PDF salvo em background: ${pdfBytes.size} bytes")
-        } catch (e: Exception) {
-            LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF em background", e)
-        }
-    }
+
 
     private fun carregarPdfBase64(pdfBase64: String) {
         LogUtils.debug("PdfViewerFragment", "Iniciando carregamento do PDF base64 no WebView")
@@ -431,7 +570,30 @@ class PdfViewerFragment : DialogFragment() {
     
     override fun onDestroyView() {
         super.onDestroyView()
+        
+        // Limpar arquivos temporários
         pdfFile?.delete()
+        
+        // Limpar cache criado por este fragment
+        try {
+            cachedPdfId?.let { pdfId ->
+                val pdfFile = File(requireContext().cacheDir, "cached_pdf_$pdfId.pdf")
+                if (pdfFile.exists()) {
+                    pdfFile.delete()
+                    LogUtils.debug("PdfViewerFragment", "🧹 Cache PDF limpo: $pdfId")
+                }
+            }
+            
+            cachedHtmlId?.let { htmlId ->
+                val htmlFile = File(requireContext().cacheDir, "cached_html_$htmlId.html")
+                if (htmlFile.exists()) {
+                    htmlFile.delete()
+                    LogUtils.debug("PdfViewerFragment", "🧹 Cache HTML limpo: $htmlId")
+                }
+            }
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "❌ Erro ao limpar cache", e)
+        }
     }
     
     /**
@@ -472,6 +634,12 @@ class PdfViewerFragment : DialogFragment() {
         private const val ARG_CONTRATO_NUMERO = "contrato_numero"
         private const val ARG_CONTRATO_ID = "contrato_id"
         
+        // Constantes para salvar estado (não salvar dados grandes!)
+        private const val STATE_CACHED_PDF_ID = "cached_pdf_id"
+        private const val STATE_CACHED_HTML_ID = "cached_html_id"
+        private const val STATE_CONTRATO_NUMERO = "contrato_numero"
+        private const val STATE_CONTRATO_ID = "contrato_id"
+        
         fun newInstance(
             pdfBase64: String? = null,
             htmlUrl: String? = null,
@@ -481,9 +649,32 @@ class PdfViewerFragment : DialogFragment() {
         ): PdfViewerFragment {
             return PdfViewerFragment().apply {
                 arguments = Bundle().apply {
-                    putString(ARG_PDF_BASE64, pdfBase64)
+                    // OTIMIZAÇÃO: Não salvar dados grandes nos argumentos para evitar TransactionTooLargeException
+                    // Salvar apenas se for pequeno (< 10KB) ou usar cache
+                    
+                    val pdfSize = pdfBase64?.length ?: 0
+                    val htmlSize = htmlContent?.length ?: 0
+                    
+                    LogUtils.debug("PdfViewerFragment", "📊 Criando instância - PDF: ${pdfSize}b, HTML: ${htmlSize}b")
+                    
+                    // PDF base64: salvar apenas se pequeno
+                    if (pdfBase64 != null && pdfSize < 10000) {
+                        putString(ARG_PDF_BASE64, pdfBase64)
+                    } else if (pdfBase64 != null) {
+                        LogUtils.debug("PdfViewerFragment", "⚠️ PDF muito grande (${pdfSize}b) - será salvo no cache")
+                        putString(ARG_PDF_BASE64, pdfBase64) // Ainda passa, mas será limpo no onSaveInstanceState
+                    }
+                    
+                    // HTML content: salvar apenas se pequeno
+                    if (htmlContent != null && htmlSize < 10000) {
+                        putString(ARG_HTML_CONTENT, htmlContent)
+                    } else if (htmlContent != null) {
+                        LogUtils.debug("PdfViewerFragment", "⚠️ HTML muito grande (${htmlSize}b) - será salvo no cache")
+                        putString(ARG_HTML_CONTENT, htmlContent) // Ainda passa, mas será limpo no onSaveInstanceState
+                    }
+                    
+                    // Dados pequenos - sempre seguros
                     putString(ARG_HTML_URL, htmlUrl)
-                    putString(ARG_HTML_CONTENT, htmlContent)
                     putString(ARG_CONTRATO_NUMERO, contratoNumero)
                     putInt(ARG_CONTRATO_ID, contratoId)
                 }

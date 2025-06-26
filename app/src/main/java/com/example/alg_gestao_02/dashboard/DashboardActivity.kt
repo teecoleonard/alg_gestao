@@ -28,6 +28,7 @@ import com.example.alg_gestao_02.manager.NotificationManager
 import com.example.alg_gestao_02.model.Notification
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
+import com.example.alg_gestao_02.utils.DialogStateManager
 import com.google.android.material.navigation.NavigationView
 
 class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -39,12 +40,19 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
     private lateinit var notificationManager: NotificationManager
     private var notificationPopup: PopupWindow? = null
     
+    // Estado para preservar dialogs
+    private companion object {
+        private const val KEY_CURRENT_FRAGMENT = "current_fragment"
+        private const val KEY_DRAWER_STATE = "drawer_state"
+        private const val KEY_NAVIGATION_STATE = "navigation_state"
+    }
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         binding = ActivityDashboardBinding.inflate(layoutInflater)
         setContentView(binding.root)
         
-        LogUtils.debug("DashboardActivity", "Inicializando dashboard")
+        LogUtils.debug("DashboardActivity", "Inicializando dashboard com savedInstanceState: ${savedInstanceState != null}")
         
         sessionManager = SessionManager(this)
         notificationManager = NotificationManager.getInstance()
@@ -56,6 +64,11 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
         
         // Garantir que a fonte seja aplicada corretamente em toda a aplicação
         enforceFontConsistency()
+        
+        // Restaurar estado se necessário
+        if (savedInstanceState != null) {
+            restoreInstanceState(savedInstanceState)
+        }
     }
     
     private fun setupUserInfo() {
@@ -330,6 +343,131 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             LogUtils.debug("DashboardActivity", "Menu recriado para aplicar estilo")
         } catch (e: Exception) {
             LogUtils.error("DashboardActivity", "Erro ao recriar menu: ${e.message}")
+        }
+    }
+
+    private fun restoreInstanceState(savedInstanceState: Bundle) {
+        LogUtils.debug("DashboardActivity", "🔄 Iniciando restauração detalhada do estado...")
+        
+        // Verificar se a sessão ainda é válida (segurança)
+        val savedUserId = savedInstanceState.getString("user_id")
+        val currentUserId = sessionManager.getUserId()
+        
+        if (savedUserId != null && savedUserId != currentUserId) {
+            LogUtils.warning("DashboardActivity", "⚠️ ID do usuário mudou, redirecionando para login...")
+            // Usuário mudou, redirecionar para login por segurança
+            sessionManager.logout()
+            val intent = Intent(this, LoginActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            startActivity(intent)
+            finish()
+            return
+        }
+        
+        // Restaurar o estado do NavController primeiro (importante)
+        val navigationState = savedInstanceState.getBundle(KEY_NAVIGATION_STATE)
+        if (navigationState != null) {
+            try {
+                navController.restoreState(navigationState)
+                LogUtils.debug("DashboardActivity", "🔄 Estado da navegação restaurado")
+            } catch (e: Exception) {
+                LogUtils.warning("DashboardActivity", "⚠️ Erro ao restaurar navegação: ${e.message}")
+            }
+        }
+        
+        // Restaurar o fragmento atual se necessário
+        val currentFragment = savedInstanceState.getInt(KEY_CURRENT_FRAGMENT, 0)
+        if (currentFragment != 0) {
+            try {
+                // Verificar se o fragmento atual é diferente do salvo
+                val currentDestination = navController.currentDestination
+                if (currentDestination == null || currentDestination.id != currentFragment) {
+                    LogUtils.debug("DashboardActivity", "🔄 Navegando para fragmento salvo: $currentFragment")
+                    navController.navigate(currentFragment)
+                }
+            } catch (e: Exception) {
+                LogUtils.warning("DashboardActivity", "⚠️ Erro ao navegar para fragmento: ${e.message}")
+                // Fallback: navegar para dashboard
+                try {
+                    navController.navigate(R.id.dashboardFragment)
+                } catch (ex: Exception) {
+                    LogUtils.error("DashboardActivity", "❌ Erro no fallback de navegação: ${ex.message}")
+                }
+            }
+        }
+        
+        // Restaurar o estado do drawer (fazer após a navegação)
+        val drawerState = savedInstanceState.getBoolean(KEY_DRAWER_STATE, false)
+        if (drawerState) {
+            LogUtils.debug("DashboardActivity", "🔄 Abrindo drawer (estado salvo)")
+            // Usar post para garantir que o layout foi processado
+            binding.drawerLayout.post {
+                binding.drawerLayout.openDrawer(GravityCompat.START)
+            }
+        }
+        
+        // 🆕 Restaurar o estado dos DialogFragments (fazer por último)
+        DialogStateManager.restoreDialogStates(supportFragmentManager, savedInstanceState)
+        
+        LogUtils.debug("DashboardActivity", "✅ Restauração do estado concluída!")
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        
+        LogUtils.debug("DashboardActivity", "💾 Salvando estado da aplicação...")
+        
+        try {
+            // Salvar o estado do fragmento atual
+            val currentDestination = navController.currentDestination
+            if (currentDestination != null) {
+                outState.putInt(KEY_CURRENT_FRAGMENT, currentDestination.id)
+                LogUtils.debug("DashboardActivity", "💾 Fragmento atual salvo: ${currentDestination.label}")
+            }
+            
+            // Salvar o estado do drawer
+            val isDrawerOpen = binding.drawerLayout.isDrawerOpen(GravityCompat.START)
+            outState.putBoolean(KEY_DRAWER_STATE, isDrawerOpen)
+            LogUtils.debug("DashboardActivity", "💾 Estado do drawer salvo: ${if (isDrawerOpen) "aberto" else "fechado"}")
+            
+            // Salvar o estado do NavController
+            try {
+                val navState = navController.saveState()
+                if (navState != null) {
+                    outState.putBundle(KEY_NAVIGATION_STATE, navState)
+                    LogUtils.debug("DashboardActivity", "💾 Estado da navegação salvo")
+                }
+            } catch (e: Exception) {
+                LogUtils.warning("DashboardActivity", "⚠️ Erro ao salvar estado da navegação: ${e.message}")
+            }
+            
+            // Salvar informações de sessão do usuário (para segurança)
+            if (sessionManager.isLoggedIn()) {
+                outState.putString("user_id", sessionManager.getUserId())
+                outState.putString("user_name", sessionManager.getUserName())
+                LogUtils.debug("DashboardActivity", "💾 Dados do usuário salvos")
+            }
+            
+            // 🆕 Salvar o estado dos DialogFragments
+            DialogStateManager.saveDialogStates(supportFragmentManager, outState)
+            
+            LogUtils.debug("DashboardActivity", "✅ Estado da aplicação salvo com sucesso!")
+            
+        } catch (e: Exception) {
+            LogUtils.error("DashboardActivity", "❌ Erro ao salvar estado: ${e.message}", e)
+        }
+    }
+    
+    override fun onRestoreInstanceState(savedInstanceState: Bundle) {
+        super.onRestoreInstanceState(savedInstanceState)
+        
+        LogUtils.debug("DashboardActivity", "🔄 Restaurando estado da aplicação...")
+        
+        try {
+            restoreInstanceState(savedInstanceState)
+            LogUtils.debug("DashboardActivity", "✅ Estado da aplicação restaurado com sucesso!")
+        } catch (e: Exception) {
+            LogUtils.error("DashboardActivity", "❌ Erro ao restaurar estado: ${e.message}", e)
         }
     }
 } 
