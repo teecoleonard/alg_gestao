@@ -63,4 +63,10 @@
         android:label="Equipamentos"
         tools:layout="@layout/fragment_equipamentos" />
 
+    <fragment
+        android:id="@+id/financialFragment"
+        android:name="com.example.alg_gestao_02.ui.financial.FinancialFragment"
+        android:label="Financeiro"
+        tools:layout="@layout/fragment_financial" />
+
 </navigation>

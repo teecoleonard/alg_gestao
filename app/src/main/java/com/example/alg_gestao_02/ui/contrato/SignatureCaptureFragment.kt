@@ -30,6 +30,16 @@ class SignatureCaptureFragment : DialogFragment() {
     private var contratoId: Int = 0
     private val contratoRepository = ContratoRepository()
     private var isGeneratingPdf = false
+    private var onContratoAtualizadoListener: (() -> Unit)? = null
+    
+    // Interface para comunicar que o contrato foi atualizado com assinatura
+    interface OnContratoAtualizadoListener {
+        fun onContratoAtualizadoComAssinatura(contratoId: Int, contratoNumero: String)
+    }
+    
+    fun setOnContratoAtualizadoListener(listener: () -> Unit) {
+        this.onContratoAtualizadoListener = listener
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -135,7 +145,7 @@ class SignatureCaptureFragment : DialogFragment() {
                             // Aguardar um momento para garantir que o backend processou a assinatura
                             LogUtils.debug("SignatureCapture", "Aguardando 1 segundo para processamento no backend...")
                             kotlinx.coroutines.delay(1000)
-                            gerarNovoPdf()
+                            voltarParaContratoAtualizado()
                         } else {
                             progressDialog.dismiss()
                             Toast.makeText(context, result.data.message, Toast.LENGTH_SHORT).show()
@@ -160,91 +170,104 @@ class SignatureCaptureFragment : DialogFragment() {
         }
     }
 
-    private fun gerarNovoPdf() {
-        contratoNumero?.let { numero ->
-            viewLifecycleOwner.lifecycleScope.launch {
-                isGeneratingPdf = true
-                LogUtils.debug("SignatureCapture", "Iniciando geração do PDF (isGeneratingPdf = true)")
-                
-                val progressDialog = ProgressDialog(requireContext()).apply {
-                    setMessage("Gerando PDF, aguarde...")
-                    setCancelable(false)
-                    show()
-                }
-                try {
-                    LogUtils.debug("SignatureCapture", "Buscando dados atualizados do contrato #$contratoId")
-                    val result = contratoRepository.getContratoById(contratoId)
-                    if (result is Resource.Success) {
-                        val contrato = result.data
-                        LogUtils.debug("SignatureCapture", "Dados do contrato obtidos com sucesso. Gerando PDF...")
-                        LogUtils.debug("SignatureCapture", "Dados do contrato antes de gerar PDF: id=${contrato.id}, num=${contrato.contratoNum}, assinado=${contrato.isAssinado()}, cliente=${contrato.cliente?.contratante}")
-                        
-                        // Verificar se o contrato tem cliente
-                        if (contrato.cliente == null) {
-                            progressDialog.dismiss()
-                            isGeneratingPdf = false
-                            LogUtils.debug("SignatureCapture", "Finalizando geração do PDF (isGeneratingPdf = false) - Erro: Cliente não encontrado")
-                            val errorMsg = "Erro: Dados do cliente não encontrados"
-                            LogUtils.error("SignatureCapture", errorMsg)
-                            Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                            return@launch
-                        }
+    /**
+     * [FUNÇÃO REMOVIDA] - Não é mais utilizada no novo fluxo
+     * Agora o PDF não é gerado automaticamente após a assinatura
+     */
+    
 
-                        LogUtils.debug("SignatureCapture", "Iniciando chamada para o serviço de PDF na porta 8080")
-                        val pdfResult = PdfService().gerarPdfContrato(contrato, contrato.cliente)
-                        LogUtils.debug("SignatureCapture", "Resposta recebida do serviço de PDF")
-                        
-                        pdfResult.fold(
-                            onSuccess = { pdfResponse ->
-                                progressDialog.dismiss()
-                                isGeneratingPdf = false
-                                LogUtils.debug("SignatureCapture", "Finalizando geração do PDF (isGeneratingPdf = false) - Sucesso")
-                                
-                                if (pdfResponse.success) {
-                                    LogUtils.debug("SignatureCapture", "PDF gerado com sucesso: ${pdfResponse.message}")
-                                    
-                                    // Mostrar o PDF atualizado com navegação limpa
-                                    mostrarPdfAtualizadoComNavegacaoLimpa(pdfResponse, numero)
-                                    
-                                    Toast.makeText(context, "✅ Assinatura salva! PDF atualizado automaticamente", Toast.LENGTH_LONG).show()
-                                } else {
-                                    val errorMsg = "Erro ao gerar PDF: ${pdfResponse.message}"
-                                    LogUtils.error("SignatureCapture", errorMsg)
-                                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
-                                }
-                            },
-                            onFailure = { error ->
-                                progressDialog.dismiss()
-                                isGeneratingPdf = false
-                                LogUtils.debug("SignatureCapture", "Finalizando geração do PDF (isGeneratingPdf = false) - Erro: ${error.message}")
-                                val errorMsg = "Erro ao gerar PDF: ${error.message}"
-                                LogUtils.error("SignatureCapture", errorMsg, error)
-                                Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+    
+    /**
+     * Volta para a página do contrato após assinatura ser salva
+     */
+    private fun voltarParaContratoAtualizado() {
+        LogUtils.debug("SignatureCapture", "🔄 INÍCIO: Voltando para página do contrato após assinatura")
+        LogUtils.debug("SignatureCapture", "📋 Contrato: #$contratoNumero (ID: $contratoId)")
+        
+        // 1. PRIMEIRO: Mostrar mensagem IMEDIATAMENTE enquanto o context ainda existe
+        val mensagem = "✅ Contrato $contratoNumero atualizado! Gere um novo PDF"
+        try {
+            Toast.makeText(
+                requireContext(), 
+                mensagem, 
+                Toast.LENGTH_LONG
+            ).show()
+            LogUtils.debug("SignatureCapture", "💬 PASSO 1: Mensagem exibida IMEDIATAMENTE: $mensagem")
+        } catch (e: Exception) {
+            LogUtils.error("SignatureCapture", "❌ Erro ao exibir mensagem: ${e.message}")
+        }
+        
+        // 2. Notificar o listener ANTES de fechar dialogs para garantir que funcione
+        LogUtils.debug("SignatureCapture", "🔔 PASSO 2: Notificando listener sobre atualização do contrato")
+        LogUtils.debug("SignatureCapture", "🔍 Listener existe? ${onContratoAtualizadoListener != null}")
+        try {
+            onContratoAtualizadoListener?.invoke()
+            LogUtils.debug("SignatureCapture", "📡 Listener invocado - ContratosFragment deve atualizar a lista")
+        } catch (e: Exception) {
+            LogUtils.error("SignatureCapture", "❌ Erro ao invocar listener: ${e.message}")
+        }
+        
+        // 3. Usar lifecycleScope para operações de limpeza
+        viewLifecycleOwner.lifecycleScope.launch {
+            try {
+                // 4. Limpar TODOS os dialogs de forma agressiva
+                LogUtils.debug("SignatureCapture", "🧹 PASSO 3: Limpeza agressiva de dialogs")
+                
+                val currentActivity = activity
+                if (currentActivity != null) {
+                    // Tentar limpar dialogs de todos os fragment managers possíveis
+                    val fragmentManagers = listOf(
+                        parentFragmentManager,
+                        currentActivity.supportFragmentManager,
+                        childFragmentManager
+                    )
+                    
+                    fragmentManagers.forEach { fm ->
+                        val fragmentsToRemove = mutableListOf<DialogFragment>()
+                        fm.fragments.forEach { fragment ->
+                            if (fragment is DialogFragment && fragment != this@SignatureCaptureFragment) {
+                                fragmentsToRemove.add(fragment)
+                                LogUtils.debug("SignatureCapture", "🎯 Marcando dialog para remoção: ${fragment::class.simpleName}")
                             }
-                        )
-                    } else if (result is Resource.Error) {
-                        progressDialog.dismiss()
-                        isGeneratingPdf = false
-                        LogUtils.debug("SignatureCapture", "Finalizando geração do PDF (isGeneratingPdf = false) - Erro ao buscar contrato")
-                        val errorMsg = "Erro ao buscar dados do contrato: ${result.message}"
-                        LogUtils.error("SignatureCapture", errorMsg)
-                        Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                        }
+                        
+                        // Remover todos os dialogs encontrados neste fragment manager
+                        fragmentsToRemove.forEach { fragment ->
+                            try {
+                                fragment.dismissAllowingStateLoss()
+                                LogUtils.debug("SignatureCapture", "✅ Dialog removido: ${fragment::class.simpleName}")
+                            } catch (e: Exception) {
+                                LogUtils.error("SignatureCapture", "❌ Erro ao remover dialog: ${fragment::class.simpleName}", e)
+                            }
+                        }
+                        
+                        LogUtils.debug("SignatureCapture", "📊 Dialogs removidos neste FM: ${fragmentsToRemove.size}")
                     }
-                } catch (e: Exception) {
-                    progressDialog.dismiss()
-                    isGeneratingPdf = false
-                    LogUtils.debug("SignatureCapture", "Finalizando geração do PDF (isGeneratingPdf = false) - Exceção: ${e.message}")
-                    val errorMsg = "Erro ao gerar PDF: ${e.message}"
-                    LogUtils.error("SignatureCapture", errorMsg, e)
-                    Toast.makeText(context, errorMsg, Toast.LENGTH_SHORT).show()
+                }
+                
+                // 5. Aguardar para garantir que a limpeza foi processada
+                kotlinx.coroutines.delay(200)
+                
+                // 6. Fechar este dialog de assinatura
+                LogUtils.debug("SignatureCapture", "🗙 PASSO 4: Fechando dialog de assinatura")
+                dismiss()
+                
+                LogUtils.debug("SignatureCapture", "🏁 FIM: Processo de retorno concluído com sucesso")
+                
+            } catch (e: Exception) {
+                LogUtils.error("SignatureCapture", "❌ Erro durante limpeza: ${e.message}")
+                // Mesmo com erro, tentar fechar o dialog
+                try {
+                    dismiss()
+                } catch (dismissError: Exception) {
+                    LogUtils.error("SignatureCapture", "❌ Erro ao fechar dialog: ${dismissError.message}")
                 }
             }
         }
     }
     
-
-    
     /**
+     * [FUNÇÃO OBSOLETA] - Mantida para referência, mas não mais utilizada
      * Mostra o PDF atualizado com navegação limpa (remove todos os dialogs anteriores)
      */
     private fun mostrarPdfAtualizadoComNavegacaoLimpa(pdfResponse: PdfResponse, contratoNumero: String) {

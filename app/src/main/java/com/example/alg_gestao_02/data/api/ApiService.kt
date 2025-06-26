@@ -8,6 +8,9 @@ import com.example.alg_gestao_02.data.models.EquipamentoContrato
 import com.example.alg_gestao_02.data.models.ContratoResponse
 import com.example.alg_gestao_02.data.models.Devolucao
 import com.example.alg_gestao_02.data.models.DashboardStats
+import com.example.alg_gestao_02.data.models.FinancialMetrics
+import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.TaskMetrics
 import retrofit2.http.Query
 import retrofit2.Response
 import retrofit2.http.Body
@@ -168,7 +171,10 @@ interface ApiService {
      * Excluir um contrato
      */
     @DELETE("api/contratos/{id}")
-    suspend fun deleteContrato(@Path("id") id: Int): Response<Void>
+    suspend fun deleteContrato(
+        @Path("id") id: Int,
+        @Query("force") force: String? = null
+    ): Response<Void>
 
     /**
      * ENDPOINTS DE DEVOLUÇÕES
@@ -226,6 +232,27 @@ interface ApiService {
      */
     @GET("api/dashboard/stats")
     suspend fun getDashboardStats(): Response<DashboardStats>
+
+    /**
+     * Endpoint para obter métricas financeiras
+     * @return Response com dados financeiros do sistema
+     */
+    @GET("api/dashboard/financial-metrics")
+    suspend fun getFinancialMetrics(): Response<FinancialMetrics>
+
+    /**
+     * Endpoint para obter métricas de progresso/metas
+     * @return Response com dados de metas e progresso
+     */
+    @GET("api/dashboard/progress-metrics")
+    suspend fun getProgressMetrics(): Response<ProgressMetrics>
+
+    /**
+     * Endpoint para obter métricas de tarefas pendentes
+     * @return Response com dados de tarefas pendentes
+     */
+    @GET("api/dashboard/task-metrics")
+    suspend fun getTaskMetrics(): Response<TaskMetrics>
 
     /**
      * Classe para requisição de login

@@ -9,6 +9,7 @@ import android.view.inputmethod.EditorInfo
 import android.widget.PopupMenu
 import android.widget.Toast
 import android.widget.ViewFlipper
+
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -21,13 +22,14 @@ import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel
 import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.utils.SessionManager
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 
 /**
  * Fragment para listagem e gestão de contratos
  */
-class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRequestListener {
+class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRequestListener, ContratoDetailsDialogFragment.OnContratoAtualizadoListener {
     
     private lateinit var viewModel: ContratosViewModel
     private lateinit var adapter: ContratosAdapter
@@ -267,12 +269,20 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         LogUtils.debug("ContratosFragment", "Exibindo dialog com contrato completo: ${contratoCompleto.contratoNum}")
         val dialog = ContratoDetailsDialogFragment.newInstance(contratoCompleto)
         dialog.setOnEditRequestListener(this)
+        dialog.setOnContratoAtualizadoListener(this)
         dialog.show(childFragmentManager, "ContratoDetailsDialog")
     }
     
     override fun onEditRequested(contrato: Contrato) {
         LogUtils.debug("ContratosFragment", "Pedido de edição recebido para o contrato: ${contrato.contratoNum}")
         showCadastroContratoDialog(contrato)
+    }
+    
+    override fun onContratoAtualizado() {
+        LogUtils.debug("ContratosFragment", "🔔 CALLBACK RECEBIDO: Contrato foi atualizado, recarregando lista")
+        LogUtils.debug("ContratosFragment", "🔄 Chamando viewModel.loadContratos()")
+        viewModel.loadContratos()
+        LogUtils.debug("ContratosFragment", "✅ Recarga da lista iniciada")
     }
     
     private fun showCadastroContratoDialog(contratoParaEditar: Contrato? = null) {
@@ -311,9 +321,98 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     }
     
     private fun confirmarExclusao(contrato: Contrato) {
-        // Aqui seria ideal ter um diálogo de confirmação
-        // Por simplicidade, vamos excluir diretamente
-        viewModel.excluirContrato(contrato.id)
-        Toast.makeText(context, "Excluindo contrato...", Toast.LENGTH_SHORT).show()
+        // Verificar role do usuário
+        val sessionManager = SessionManager(requireContext())
+        val userRole = sessionManager.getUserRole()
+        val isAdmin = userRole == "admin"
+        
+        LogUtils.debug("ContratosFragment", "👤 Usuário role: $userRole")
+        LogUtils.debug("ContratosFragment", "🔐 É admin: $isAdmin")
+        LogUtils.debug("ContratosFragment", "📋 Status contrato: ${contrato.status_assinatura}")
+        
+        // Verificar se pode excluir
+        val (podeExcluir, mensagem) = contrato.podeExcluir(isAdmin, forcar = isAdmin)
+        
+        if (!podeExcluir && !isAdmin) {
+            LogUtils.warning("ContratosFragment", "❌ Exclusão negada: $mensagem")
+            
+            // Mostrar diálogo informativo para não-admins
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("❌ Exclusão Não Permitida")
+                .setMessage(mensagem)
+                .setPositiveButton("Entendi") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setIcon(R.drawable.ic_error)
+                .show()
+            return
+        }
+        
+        // Configurar mensagem do diálogo baseada no status do contrato
+        val titulo: String
+        val mensagemDialog: String
+        val icone: Int
+        
+        when (contrato.status_assinatura) {
+            "ASSINADO" -> {
+                titulo = "Excluir Contrato Assinado"
+                mensagemDialog = if (isAdmin) {
+                    "Este contrato possui assinatura digital!\n\n" +
+                    "📋 Contrato: #${contrato.contratoNum}\n" +
+                    "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                    "📅 Status: ASSINADO ✍️\n\n" +
+                    "Deseja realmente excluir este contrato assinado?"
+                } else {
+                    "❌ Este contrato possui assinatura digital e não pode ser excluído.\n\n" +
+                    "📞 Entre em contato com o administrador do sistema."
+                }
+                icone = R.drawable.ic_warning
+            }
+            
+            "PENDENTE" -> {
+                titulo = "🔄 Excluir Contrato Pendente"
+                mensagemDialog = "📋 Contrato: #${contrato.contratoNum}\n" +
+                        "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                        "📅 Status: PENDENTE ⏳\n\n" +
+                        "ℹ️ Este contrato está aguardando assinatura.\n\n" +
+                        "❓ Deseja realmente excluir este contrato?"
+                icone = R.drawable.ic_info
+            }
+            
+            else -> {
+                titulo = "🗑️ Excluir Contrato"
+                mensagemDialog = "📋 Contrato: #${contrato.contratoNum}\n" +
+                        "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                        "📅 Status: NÃO ASSINADO 📝\n\n" +
+                        "❓ Deseja realmente excluir este contrato?"
+                icone = R.drawable.ic_delete
+            }
+        }
+        
+        // Mostrar diálogo de confirmação
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(titulo)
+            .setMessage(mensagemDialog)
+            .setPositiveButton(if (contrato.status_assinatura == "ASSINADO") "⚠️ Forçar Exclusão" else "🗑️ Sim, Excluir") { dialog, _ ->
+                dialog.dismiss()
+                
+                // Mostrar mensagem informativa para admin
+                if (isAdmin && contrato.status_assinatura == "ASSINADO") {
+                    LogUtils.info("ContratosFragment", "⚠️ Admin confirmou exclusão de contrato assinado")
+                    Toast.makeText(context, "⚠️ Forçando exclusão de contrato assinado...", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "🗑️ Excluindo contrato...", Toast.LENGTH_SHORT).show()
+                }
+                
+                LogUtils.debug("ContratosFragment", "▶️ Usuário confirmou exclusão do contrato ${contrato.contratoNum}")
+                viewModel.excluirContrato(contrato.id)
+            }
+            .setNegativeButton("🚫 Cancelar") { dialog, _ ->
+                LogUtils.debug("ContratosFragment", "🚫 Usuário cancelou exclusão do contrato ${contrato.contratoNum}")
+                dialog.dismiss()
+            }
+            .setIcon(icone)
+            .setCancelable(true)
+            .show()
     }
 } 

@@ -165,6 +165,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             R.id.nav_devolucoes -> {
                 navController.navigate(R.id.devolucoesFragment)
             }
+            R.id.nav_financial -> {
+                navController.navigate(R.id.financialFragment)
+            }
             R.id.nav_logout -> {
                 LogUtils.info("DashboardActivity", "Usuário solicitou logout")
                 sessionManager.logout()

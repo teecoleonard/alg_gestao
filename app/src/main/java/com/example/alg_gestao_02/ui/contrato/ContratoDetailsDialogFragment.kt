@@ -27,11 +27,17 @@ class ContratoDetailsDialogFragment : DialogFragment() {
 
     private var contrato: Contrato? = null
     private var editRequestListener: OnEditRequestListener? = null
+    private var contratoAtualizadoListener: OnContratoAtualizadoListener? = null
     private var pdfService: PdfService? = null
 
     // Interface para notificar o fragmento pai sobre o pedido de edição
     interface OnEditRequestListener {
         fun onEditRequested(contrato: Contrato)
+    }
+    
+    // Interface para notificar quando o contrato é atualizado (ex: assinatura)
+    interface OnContratoAtualizadoListener {
+        fun onContratoAtualizado()
     }
 
     companion object {
@@ -212,9 +218,14 @@ class ContratoDetailsDialogFragment : DialogFragment() {
         }
     }
 
-    // Método para o Fragment pai registrar o listener
+    // Método para o Fragment pai registrar o listener de edição
     fun setOnEditRequestListener(listener: OnEditRequestListener) {
         this.editRequestListener = listener
+    }
+    
+    // Método para o Fragment pai registrar o listener de atualização
+    fun setOnContratoAtualizadoListener(listener: OnContratoAtualizadoListener) {
+        this.contratoAtualizadoListener = listener
     }
 
     override fun onStart() {
@@ -337,6 +348,16 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                                     htmlUrl = pdfResponse.htmlUrl,
                                     htmlContent = pdfResponse.htmlContent
                                 )
+                                
+                                // Configurar callback para atualizar lista quando contrato for assinado
+                                LogUtils.debug("ContratoDetailsDialog", "🔧 Configurando callback do PdfViewer")
+                                pdfViewer.setOnContratoAtualizadoCallback {
+                                    LogUtils.debug("ContratoDetailsDialog", "🔔 Callback ContratoDetailsDialog recebido - contrato atualizado via assinatura")
+                                    LogUtils.debug("ContratoDetailsDialog", "📞 Chamando contratoAtualizadoListener?.onContratoAtualizado()")
+                                    // Notificar o fragmento pai para que atualize a lista
+                                    contratoAtualizadoListener?.onContratoAtualizado()
+                                    LogUtils.debug("ContratoDetailsDialog", "✅ Callback ContratoDetailsDialog concluído")
+                                }
                                 
                                 // Adicionar logs para verificar o conteúdo
                                 LogUtils.debug("ContratoDetailsDialogFragment", "htmlUrl recebido: ${pdfResponse.htmlUrl}")

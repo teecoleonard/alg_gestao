@@ -2,6 +2,9 @@ package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.data.api.ApiClient
 import com.example.alg_gestao_02.data.models.DashboardStats
+import com.example.alg_gestao_02.data.models.FinancialMetrics
+import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.TaskMetrics
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import kotlinx.coroutines.delay
@@ -118,6 +121,143 @@ class DashboardRepository {
                     LogUtils.error("DashboardRepository", "💡 Verifique a performance da API")
                 }
             }
+            
+            throw e
+        }
+    }
+
+    /**
+     * Busca métricas financeiras do dashboard
+     * @return FinancialMetrics com dados financeiros do sistema
+     */
+    suspend fun getFinancialMetrics(): FinancialMetrics {
+        LogUtils.info("DashboardRepository", "💰 ========== INICIANDO BUSCA DE MÉTRICAS FINANCEIRAS ==========")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/financial-metrics")
+            
+            LogUtils.info("DashboardRepository", "📞 Fazendo requisição para métricas financeiras...")
+            val response = apiService.getFinancialMetrics()
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val metrics = response.body()
+                if (metrics != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== MÉTRICAS FINANCEIRAS OBTIDAS ==========")
+                    LogUtils.info("DashboardRepository", "💰 Valor Total Ativo: R$ ${String.format("%.2f", metrics.valorTotalAtivo)}")
+                    LogUtils.info("DashboardRepository", "📈 Receita Mensal: R$ ${String.format("%.2f", metrics.receitaMensal)}")
+                    LogUtils.info("DashboardRepository", "🎯 Ticket Médio: R$ ${String.format("%.2f", metrics.ticketMedio)}")
+                    
+                    return metrics
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta das métricas financeiras é nula!")
+                    throw Exception("Resposta das métricas financeiras é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR MÉTRICAS FINANCEIRAS ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Busca métricas de progresso/metas do dashboard
+     * @return ProgressMetrics com dados de metas e progresso
+     */
+    suspend fun getProgressMetrics(): ProgressMetrics {
+        LogUtils.info("DashboardRepository", "📊 ========== INICIANDO BUSCA DE MÉTRICAS DE PROGRESSO ==========")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/progress-metrics")
+            
+            LogUtils.info("DashboardRepository", "📞 Fazendo requisição para métricas de progresso...")
+            val response = apiService.getProgressMetrics()
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val metrics = response.body()
+                if (metrics != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== MÉTRICAS DE PROGRESSO OBTIDAS ==========")
+                    LogUtils.info("DashboardRepository", "📊 Contratos: ${metrics.contratosAtual}/${metrics.contratosMeta} (${metrics.contratosPercentual}%)")
+                    LogUtils.info("DashboardRepository", "💰 Receita: R$ ${String.format("%.2f", metrics.receitaAtual)}/R$ ${String.format("%.2f", metrics.receitaMeta)} (${metrics.receitaPercentual}%)")
+                    LogUtils.info("DashboardRepository", "👥 Clientes: ${metrics.clientesAtual}/${metrics.clientesMeta} (${metrics.clientesPercentual}%)")
+                    LogUtils.info("DashboardRepository", "😊 Satisfação: ${metrics.satisfacaoPercentual}%")
+                    
+                    return metrics
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta das métricas de progresso é nula!")
+                    throw Exception("Resposta das métricas de progresso é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR MÉTRICAS DE PROGRESSO ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Busca métricas de tarefas pendentes do dashboard
+     * @return TaskMetrics com dados de tarefas pendentes
+     */
+    suspend fun getTaskMetrics(): TaskMetrics {
+        LogUtils.info("DashboardRepository", "📋 ========== INICIANDO BUSCA DE TAREFAS PENDENTES ==========")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/task-metrics")
+            
+            LogUtils.info("DashboardRepository", "📞 Fazendo requisição para tarefas pendentes...")
+            val response = apiService.getTaskMetrics()
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val metrics = response.body()
+                if (metrics != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== TAREFAS PENDENTES OBTIDAS ==========")
+                    LogUtils.info("DashboardRepository", "📋 Contratos aguardando assinatura: ${metrics.contratosAguardandoAssinatura}")
+                    LogUtils.info("DashboardRepository", "📦 Devoluções em atraso: ${metrics.devolucoesEmAtraso}")
+                    LogUtils.info("DashboardRepository", "⚙️ Equipamentos para manutenção: ${metrics.equipamentosManutencao}")
+                    LogUtils.info("DashboardRepository", "📊 Total de tarefas: ${metrics.totalTarefas}")
+                    
+                    return metrics
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta das tarefas pendentes é nula!")
+                    throw Exception("Resposta das tarefas pendentes é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR TAREFAS PENDENTES ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
             
             throw e
         }

@@ -6,8 +6,11 @@
     android:layout_height="wrap_content"
     android:layout_marginVertical="4dp"
     android:layout_marginHorizontal="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/card_clients_bg"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_clients_accent"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -19,11 +22,13 @@
             android:id="@+id/ivTipoCliente"
             android:layout_width="40dp"
             android:layout_height="40dp"
+            android:background="@drawable/circle_background_primary_light"
             android:contentDescription="Tipo de cliente"
+            android:padding="8dp"
             android:src="@drawable/ic_person"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/primary" />
+            app:tint="@color/card_clients_accent" />
 
         <!-- Nome do Cliente -->
         <TextView
@@ -33,7 +38,7 @@
             android:layout_marginStart="16dp"
             android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/card_clients_accent"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
             app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
@@ -46,8 +51,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
@@ -61,8 +66,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
@@ -76,12 +81,12 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
+            android:ellipsize="end"
+            android:maxLines="2"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="@color/text_secondary"
-            android:maxLines="2"
-            android:ellipsize="end"
             app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
             app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
             app:layout_constraintTop_toBottomOf="@+id/tvRgIeCliente"
@@ -93,8 +98,8 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginStart="16dp"
-            android:layout_marginEnd="8dp"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
@@ -107,12 +112,13 @@
             android:id="@+id/ivMenuCliente"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
+            android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Opções"
             android:padding="8dp"
             android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_secondary" />
+            app:tint="@color/card_clients_accent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView> 

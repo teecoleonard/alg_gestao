@@ -5,6 +5,9 @@ import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.alg_gestao_02.data.models.DashboardStats
+import com.example.alg_gestao_02.data.models.FinancialMetrics
+import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.TaskMetrics
 import com.example.alg_gestao_02.data.repository.DashboardRepository
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
@@ -24,18 +27,30 @@ class DashboardViewModel(private val repository: DashboardRepository = Dashboard
     private val _dashboardStats = MutableLiveData<DashboardStats>()
     val dashboardStats: LiveData<DashboardStats> = _dashboardStats
     
+    // LiveData para as métricas financeiras
+    private val _financialMetrics = MutableLiveData<FinancialMetrics>()
+    val financialMetrics: LiveData<FinancialMetrics> = _financialMetrics
+    
+    // LiveData para as métricas de progresso
+    private val _progressMetrics = MutableLiveData<ProgressMetrics>()
+    val progressMetrics: LiveData<ProgressMetrics> = _progressMetrics
+    
+    // LiveData para as tarefas pendentes
+    private val _taskMetrics = MutableLiveData<TaskMetrics>()
+    val taskMetrics: LiveData<TaskMetrics> = _taskMetrics
+    
     init {
         LogUtils.info("DashboardViewModel", "🚀 ========== INICIALIZANDO DASHBOARD VIEWMODEL ==========")
         LogUtils.debug("DashboardViewModel", "📋 Repository: ${repository.javaClass.simpleName}")
         LogUtils.debug("DashboardViewModel", "📊 LiveData configurado")
         LogUtils.debug("DashboardViewModel", "🔄 Iniciando carregamento automático...")
-        loadDashboardStats()
+        loadDashboardData()
     }
     
     /**
-     * Carrega as estatísticas do dashboard
+     * Carrega todos os dados do dashboard (estatísticas + métricas financeiras)
      */
-    private fun loadDashboardStats() {
+    private fun loadDashboardData() {
         LogUtils.info("DashboardViewModel", "📥 ========== CARREGANDO ESTATÍSTICAS DO DASHBOARD ==========")
         LogUtils.debug("DashboardViewModel", "⏳ Definindo estado como Loading...")
         
@@ -46,7 +61,26 @@ class DashboardViewModel(private val repository: DashboardRepository = Dashboard
                 LogUtils.info("DashboardViewModel", "🔄 Chamando repository para buscar dados...")
                 val startTime = System.currentTimeMillis()
                 
+                // Carregar estatísticas e métricas em paralelo
                 val stats = repository.getDashboardStats()
+                val financialMetrics = try {
+                    repository.getFinancialMetrics()
+                } catch (e: Exception) {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Erro ao carregar métricas financeiras: ${e.message}")
+                    null
+                }
+                val progressMetrics = try {
+                    repository.getProgressMetrics()
+                } catch (e: Exception) {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Erro ao carregar métricas de progresso: ${e.message}")
+                    null
+                }
+                val taskMetrics = try {
+                    repository.getTaskMetrics()
+                } catch (e: Exception) {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Erro ao carregar tarefas pendentes: ${e.message}")
+                    null
+                }
                 
                 val loadTime = System.currentTimeMillis() - startTime
                 LogUtils.info("DashboardViewModel", "⏱️ Tempo total de carregamento: ${loadTime}ms")
@@ -79,6 +113,34 @@ class DashboardViewModel(private val repository: DashboardRepository = Dashboard
                 
                 LogUtils.debug("DashboardViewModel", "📤 Atualizando LiveData com novos dados...")
                 _dashboardStats.value = stats
+                
+                // Atualizar métricas financeiras se disponíveis
+                if (financialMetrics != null) {
+                    LogUtils.info("DashboardViewModel", "💰 Métricas financeiras carregadas com sucesso!")
+                    LogUtils.debug("DashboardViewModel", "💰 Receita Total: R$ ${String.format("%.2f", financialMetrics.valorTotalAtivo)}")
+                    _financialMetrics.value = financialMetrics
+                } else {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Métricas financeiras não disponíveis - usando valores padrão")
+                }
+                
+                // Atualizar métricas de progresso se disponíveis
+                if (progressMetrics != null) {
+                    LogUtils.info("DashboardViewModel", "📊 Métricas de progresso carregadas com sucesso!")
+                    LogUtils.debug("DashboardViewModel", "📊 Progresso contratos: ${progressMetrics.contratosPercentual}%")
+                    _progressMetrics.value = progressMetrics
+                } else {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Métricas de progresso não disponíveis - usando valores padrão")
+                }
+                
+                // Atualizar tarefas pendentes se disponíveis
+                if (taskMetrics != null) {
+                    LogUtils.info("DashboardViewModel", "📋 Tarefas pendentes carregadas com sucesso!")
+                    LogUtils.debug("DashboardViewModel", "📋 Total de tarefas: ${taskMetrics.totalTarefas}")
+                    _taskMetrics.value = taskMetrics
+                } else {
+                    LogUtils.warning("DashboardViewModel", "⚠️ Tarefas pendentes não disponíveis - usando valores padrão")
+                }
+                
                 _uiState.value = UiState.Success(stats)
                 
                 LogUtils.info("DashboardViewModel", "✅ ========== CARREGAMENTO CONCLUÍDO COM SUCESSO ==========")
@@ -123,6 +185,6 @@ class DashboardViewModel(private val repository: DashboardRepository = Dashboard
         LogUtils.info("DashboardViewModel", "🔄 ========== REFRESH SOLICITADO PELO USUÁRIO ==========")
         LogUtils.debug("DashboardViewModel", "🔄 Usuário fez pull-to-refresh ou clicou em atualizar")
         LogUtils.debug("DashboardViewModel", "📥 Iniciando novo carregamento...")
-        loadDashboardStats()
+        loadDashboardData()
     }
 } 

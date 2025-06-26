@@ -5,8 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/card_returns_bg"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_returns_accent"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -19,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/card_returns_accent"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/ivStatusDevolucao"
             app:layout_constraintStart_toStartOf="parent"
@@ -51,7 +54,7 @@
             android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvClienteNome"
-            app:tint="@color/text_secondary" />
+            app:tint="@color/card_returns_accent" />
 
         <!-- Número da devolução -->
         <TextView
@@ -72,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
-            android:background="@color/divider"
+            android:background="@color/border_light"
             app:layout_constraintTop_toBottomOf="@id/tvDevolucaoNumero" />
 
         <!-- Nome do Equipamento -->

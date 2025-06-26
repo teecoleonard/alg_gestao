@@ -24,17 +24,23 @@
     <color name="orange_500">#FF9800</color>
     <color name="red_500">#F44336</color>
     
-    <!-- Cores semânticas -->
-    <color name="success">#4CAF50</color>
+    <!-- Cores semânticas melhoradas -->
+    <color name="success">#2E7D32</color>
     <color name="success_light">#E8F5E8</color>
-    <color name="warning">#FFC107</color>
-    <color name="warning_light">#FFF8E1</color>
-    <color name="error">#F44336</color>
+    <color name="success_dark">#1B5E20</color>
+    <color name="warning">#F57C00</color>
+    <color name="warning_light">#FFF3E0</color>
+    <color name="warning_dark">#E65100</color>
+    <color name="error">#D32F2F</color>
     <color name="error_light">#FFEBEE</color>
-    <color name="info">#2196F3</color>
+    <color name="error_dark">#C62828</color>
+    <color name="info">#1976D2</color>
+    <color name="info_light">#E3F2FD</color>
+    <color name="info_dark">#0D47A1</color>
     
     <!-- Cores de interface -->
     <color name="background">#FAFAFA</color>
+    <color name="background_light">#F8F9FA</color>
     <color name="card_background">#FFFFFF</color>
     <color name="divider">#E0E0E0</color>
     <color name="text_primary">#212121</color>
@@ -60,4 +66,54 @@
     <color name="chip_stroke_color">@color/divider</color>
     
     <color name="price_text">#2E7D32</color>
+    
+    <!-- Cores específicas para cards e estados -->
+    
+    <!-- Cards de estatísticas (baseados na identidade verde/amarelo) -->
+    <color name="card_contracts_bg">#F1F8E9</color>      <!-- Verde muito claro -->
+    <color name="card_contracts_accent">#388E3C</color>   <!-- Verde médio -->
+    <color name="card_equipment_bg">#FFF8E1</color>       <!-- Amarelo muito claro -->
+    <color name="card_equipment_accent">#F57C00</color>   <!-- Laranja/amarelo escuro -->
+    <color name="card_clients_bg">#E8F5E8</color>         <!-- Verde claro -->
+    <color name="card_clients_accent">#2E7D32</color>     <!-- Verde escuro -->
+    <color name="card_returns_bg">#E3F2FD</color>         <!-- Azul claro -->
+    <color name="card_returns_accent">#1976D2</color>     <!-- Azul médio -->
+    
+    <!-- Cards de status específicos -->
+    <color name="card_pending_bg">#FFF3E0</color>         <!-- Laranja muito claro -->
+    <color name="card_pending_accent">#F57C00</color>     <!-- Laranja -->
+    <color name="card_completed_bg">#E8F5E8</color>       <!-- Verde claro -->
+    <color name="card_completed_accent">#2E7D32</color>   <!-- Verde escuro -->
+    <color name="card_issues_bg">#FFEBEE</color>          <!-- Vermelho claro -->
+    <color name="card_issues_accent">#D32F2F</color>      <!-- Vermelho -->
+    <color name="card_signed_bg">#E8F5E8</color>          <!-- Verde claro para assinados -->
+    <color name="card_signed_accent">#2E7D32</color>      <!-- Verde escuro para assinados -->
+    
+    <!-- Gradientes para cards principais (opcionais) -->
+    <color name="gradient_primary_start">#053c1b</color>
+    <color name="gradient_primary_end">#0a5d2b</color>
+    <color name="gradient_accent_start">#FFB800</color>
+    <color name="gradient_accent_end">#FFA000</color>
+    
+    <!-- Cores de overlay para states -->
+    <color name="overlay_hover">#10000000</color>         <!-- Preto 6% -->
+    <color name="overlay_pressed">#20000000</color>       <!-- Preto 12% -->
+    <color name="overlay_selected">#20053c1b</color>      <!-- Primary 12% -->
+    
+    <!-- Borders e separadores -->
+    <color name="border_light">#E0E0E0</color>
+    <color name="border_medium">#BDBDBD</color>
+    <color name="border_primary">#053c1b</color>
+    
+    <!-- Shadows personalizadas -->
+    <color name="shadow_light">#1A000000</color>          <!-- Preto 10% -->
+    <color name="shadow_medium">#33000000</color>         <!-- Preto 20% -->
+    <color name="shadow_dark">#4D000000</color>           <!-- Preto 30% -->
+    
+    <!-- Cores adicionais para o novo dashboard -->
+    <color name="progress_background">#E0E0E0</color>     <!-- Fundo das progress bars -->
+    <color name="circle_background_success_light">#C8E6C9</color>
+    <color name="circle_background_warning_light">#FFE0B2</color>
+    <color name="circle_background_tertiary_light">#F3E5F5</color>
+    <color name="circle_background_primary_light">#E3F2FD</color>
 </resources>

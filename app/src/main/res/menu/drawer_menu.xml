@@ -32,6 +32,11 @@
             android:icon="@drawable/ic_devolucoes"
             android:title="@string/returns"
             android:fontFamily="@font/poppins" />
+        <item
+            android:id="@+id/nav_financial"
+            android:icon="@drawable/ic_money"
+            android:title="Financeiro"
+            android:fontFamily="@font/poppins" />
     </group>
 
     <item android:title="@string/account" android:fontFamily="@font/poppins">

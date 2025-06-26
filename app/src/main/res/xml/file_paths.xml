@@ -15,4 +15,10 @@
     <external-cache-path
         name="external_cache"
         path="." />
+    <external-path
+        name="downloads"
+        path="Download" />
+    <external-path
+        name="documents"
+        path="Documents" />
 </paths> 

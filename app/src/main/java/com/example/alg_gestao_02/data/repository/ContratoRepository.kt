@@ -10,6 +10,7 @@ import com.example.alg_gestao_02.data.models.EquipamentoContratoData
 import com.example.alg_gestao_02.data.models.ContratoResponse
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
+import com.example.alg_gestao_02.utils.SessionManager
 import kotlinx.coroutines.CancellationException
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -300,9 +301,25 @@ class ContratoRepository {
     suspend fun deleteContrato(id: Int): Resource<Boolean> {
         return try {
             LogUtils.debug("ContratoRepository", "Excluindo contrato com ID: $id")
-            val response = apiService.deleteContrato(id)
+            
+            // Verificar se o usuário é admin via SessionManager
+            val sessionManager = SessionManager(ApiClient.getContext())
+            val userRole = sessionManager.getUserRole()
+            val isAdmin = userRole == "admin"
+            
+            LogUtils.debug("ContratoRepository", "Usuário role: $userRole, isAdmin: $isAdmin")
+            
+            // Se for admin, enviar force=true para permitir exclusão de contratos assinados
+            val response = if (isAdmin) {
+                LogUtils.debug("ContratoRepository", "Enviando force=true para admin")
+                apiService.deleteContrato(id, "true")
+            } else {
+                LogUtils.debug("ContratoRepository", "Usuário não é admin, enviando sem force")
+                apiService.deleteContrato(id)
+            }
             
             if (response.isSuccessful) {
+                LogUtils.info("ContratoRepository", "Contrato $id excluído com sucesso")
                 Resource.Success(true)
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao excluir contrato: ${response.code()}")

@@ -1,0 +1,106 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:padding="16dp">
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Selecione o período para análise:"
+        android:textSize="16sp"
+        android:textColor="@color/text_primary"
+        android:fontFamily="@font/poppins"
+        android:layout_marginBottom="16dp" />
+
+    <!-- Data Início -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Data Início:"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins" />
+
+        <Button
+            android:id="@+id/btnDataInicio"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📅 Selecionar"
+            android:textSize="12sp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:fontFamily="@font/poppins" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvDataInicio"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nenhuma data selecionada"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins"
+        android:layout_marginBottom="16dp"
+        android:padding="8dp"
+        android:background="@drawable/bg_input_border" />
+
+    <!-- Data Fim -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="12dp">
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Data Fim:"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:fontFamily="@font/poppins" />
+
+        <Button
+            android:id="@+id/btnDataFim"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="📅 Selecionar"
+            android:textSize="12sp"
+            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+            android:fontFamily="@font/poppins" />
+
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/tvDataFim"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Nenhuma data selecionada"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins"
+        android:layout_marginBottom="16dp"
+        android:padding="8dp"
+        android:background="@drawable/bg_input_border" />
+
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="💡 Dica: Use filtros por período para análises específicas de performance"
+        android:textSize="12sp"
+        android:textColor="@color/text_secondary"
+        android:fontFamily="@font/poppins" />
+
+</LinearLayout> 

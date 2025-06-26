@@ -23,6 +23,7 @@ import javax.net.ssl.HostnameVerifier
 object ApiClient {
     const val BASE_URL = "http://45.10.160.10:3050/"
     private lateinit var sessionManager: SessionManager
+    private lateinit var context: Context
     
     /**
      * Retorna a URL base configurada
@@ -30,9 +31,15 @@ object ApiClient {
     fun getBaseUrl(): String = BASE_URL
     
     /**
+     * Retorna o contexto da aplicação
+     */
+    fun getContext(): Context = context
+    
+    /**
      * Inicializa o cliente com contexto para o SessionManager
      */
     fun init(context: Context) {
+        this.context = context
         sessionManager = SessionManager(context)
         LogUtils.info("ApiClient", "🚀 INICIALIZANDO ApiClient")
         LogUtils.info("ApiClient", "🌐 BASE_URL configurada: $BASE_URL")

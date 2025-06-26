@@ -8,20 +8,21 @@
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Assine o contrato"
-        android:textSize="20sp"
-        android:textStyle="bold"
+        android:layout_marginBottom="8dp"
         android:gravity="center"
-        android:layout_marginBottom="8dp"/>
+        android:text="Assine o contrato"
+        android:textColor="@color/black"
+        android:textSize="20sp"
+        android:textStyle="bold" />
 
     <TextView
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Por favor, vire o dispositivo para o modo paisagem antes de assinar"
-        android:textSize="16sp"
-        android:textColor="@android:color/darker_gray"
+        android:layout_marginBottom="16dp"
         android:gravity="center"
-        android:layout_marginBottom="16dp"/>
+        android:text="Por favor, vire o dispositivo para o modo paisagem antes de assinar"
+        android:textColor="@color/black"
+        android:textSize="16sp" />
 
     <com.example.alg_gestao_02.ui.contrato.SignatureView
         android:id="@+id/signatureView"

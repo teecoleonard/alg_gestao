@@ -86,9 +86,9 @@
         android:layout_margin="16dp"
         android:contentDescription="@string/add_empresa"
         android:src="@android:drawable/ic_input_add"
-        app:backgroundTint="@color/primary"
-        app:tint="@android:color/white"
+        app:backgroundTint="@color/primary_light"
         app:layout_constraintBottom_toBottomOf="parent"
-        app:layout_constraintEnd_toEndOf="parent" />
+        app:layout_constraintEnd_toEndOf="parent"
+        app:tint="@android:color/white" />
 
 </androidx.constraintlayout.widget.ConstraintLayout> 

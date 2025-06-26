@@ -5,14 +5,16 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="8dp"
-    app:cardCornerRadius="8dp"
-    app:cardElevation="2dp">
+    app:cardBackgroundColor="@color/card_contracts_bg"
+    app:cardCornerRadius="12dp"
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_contracts_accent"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp"
-        android:background="@color/input_background">
+        android:padding="16dp">
 
         <!-- Cabeçalho: Nome do Cliente e Menu -->
         <TextView
@@ -20,7 +22,7 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:textAppearance="@style/TextAppearance.AppCompat.Medium"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/card_contracts_accent"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/ivStatusContrato"
             app:layout_constraintStart_toStartOf="parent"
@@ -52,7 +54,7 @@
             android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="@id/tvClienteNome"
-            app:tint="@color/text_secondary" />
+            app:tint="@color/card_contracts_accent" />
 
         <!-- Número do contrato -->
         <TextView
@@ -73,7 +75,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginTop="12dp"
-            android:background="@color/divider"
+            android:background="@color/border_light"
             app:layout_constraintTop_toBottomOf="@id/tvContratoNumero" />
 
         <!-- Valor do contrato -->
@@ -95,7 +97,7 @@
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
             android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-            android:textColor="@color/text_primary"
+            android:textColor="@color/price_text"
             android:textSize="15sp"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"

@@ -4,6 +4,7 @@ import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
 import androidx.core.content.ContextCompat
@@ -16,6 +17,9 @@ import com.example.alg_gestao_02.R
 
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModel
 import com.example.alg_gestao_02.data.models.DashboardStats
+import com.example.alg_gestao_02.data.models.FinancialMetrics
+import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.TaskMetrics
 import com.example.alg_gestao_02.dashboard.fragments.viewmodel.DashboardViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
@@ -29,20 +33,34 @@ class DashboardFragment : Fragment() {
     private lateinit var viewModel: DashboardViewModel
     private lateinit var swipeRefresh: SwipeRefreshLayout
     
-    // TextViews para exibir as contagens
+    // TextViews para exibir as contagens (seção estatísticas rápidas)
     private lateinit var tvContratosCount: TextView
     private lateinit var tvClientesCount: TextView
     private lateinit var tvEquipamentosCount: TextView
     private lateinit var tvDevolucoesCount: TextView
     
-    // TextViews para estatísticas expandidas
-    private lateinit var tvContratosExtras: TextView
-    private lateinit var tvClientesExtras: TextView
-    private lateinit var tvEquipamentosExtras: TextView
-    private lateinit var tvDevolucoesExtras: TextView
+    // TextViews para cards de resumo financeiro
+    private lateinit var tvReceitaTotal: TextView
+    private lateinit var tvContratosAtivos: TextView
     
     // Header elements
     private lateinit var tvCurrentDate: TextView
+    
+    // Progress bars e TextViews para métricas de performance
+    private lateinit var tvContratosProgress: TextView
+    private lateinit var tvReceitaProgress: TextView
+    private lateinit var tvClientesProgress: TextView
+    private lateinit var tvSatisfacaoProgress: TextView
+    private lateinit var progressBarContratos: ProgressBar
+    private lateinit var progressBarReceita: ProgressBar
+    private lateinit var progressBarClientes: ProgressBar
+    private lateinit var progressBarSatisfacao: ProgressBar
+    
+    // TextViews para tarefas pendentes
+    private lateinit var tvTotalTarefas: TextView
+    private lateinit var tvContratosAssinatura: TextView
+    private lateinit var tvDevolucoesAtraso: TextView
+    private lateinit var tvEquipamentosManutencao: TextView
     
 
     
@@ -83,19 +101,35 @@ class DashboardFragment : Fragment() {
     
     private fun initViews(view: View) {
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        tvContratosCount = view.findViewById(R.id.tvWorkersCount)
-        tvClientesCount = view.findViewById(R.id.tvTasksCount)
+        
+        // Estatísticas rápidas (seção de visão geral)
+        tvContratosCount = view.findViewById(R.id.tvContratosCount)
+        tvClientesCount = view.findViewById(R.id.tvClientesCount)
         tvEquipamentosCount = view.findViewById(R.id.tvEquipamentosCount)
         tvDevolucoesCount = view.findViewById(R.id.tvDevolucoesCount)
         
-        // TextViews para estatísticas expandidas
-        tvContratosExtras = view.findViewById(R.id.tvContratosExtras)
-        tvClientesExtras = view.findViewById(R.id.tvClientesExtras)
-        tvEquipamentosExtras = view.findViewById(R.id.tvEquipamentosExtras)
-        tvDevolucoesExtras = view.findViewById(R.id.tvDevolucoesExtras)
+        // Cards de resumo financeiro
+        tvReceitaTotal = view.findViewById(R.id.tvReceitaTotal)
+        tvContratosAtivos = view.findViewById(R.id.tvContratosAtivos)
         
         // Header elements
-        tvCurrentDate = view.findViewById(R.id.tvCurrentDate)
+        tvCurrentDate = view.findViewById(R.id.tvDataAtual)
+        
+        // Progress bars e TextViews para métricas de performance
+        tvContratosProgress = view.findViewById(R.id.tvContratosProgress)
+        tvReceitaProgress = view.findViewById(R.id.tvReceitaProgress)
+        tvClientesProgress = view.findViewById(R.id.tvClientesProgress)
+        tvSatisfacaoProgress = view.findViewById(R.id.tvSatisfacaoProgress)
+        progressBarContratos = view.findViewById(R.id.progressBarContratos)
+        progressBarReceita = view.findViewById(R.id.progressBarReceita)
+        progressBarClientes = view.findViewById(R.id.progressBarClientes)
+        progressBarSatisfacao = view.findViewById(R.id.progressBarSatisfacao)
+        
+        // TextViews para tarefas pendentes
+        tvTotalTarefas = view.findViewById(R.id.tvTotalTarefas)
+        tvContratosAssinatura = view.findViewById(R.id.tvContratosAssinatura)
+        tvDevolucoesAtraso = view.findViewById(R.id.tvDevolucoesAtraso)
+        tvEquipamentosManutencao = view.findViewById(R.id.tvEquipamentosManutencao)
         
         // Setup current date
         setupCurrentDate()
@@ -144,35 +178,44 @@ class DashboardFragment : Fragment() {
             viewModel.refreshDashboard()
         }
         
-
-        
-        // Botão "ver todos" dos insights
-        view.findViewById<View>(R.id.tvViewAll)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Ver todos os insights clicado")
-            Toast.makeText(context, "Ver todos os insights em desenvolvimento", Toast.LENGTH_SHORT).show()
-        }
-        
-        // Card de Equipamentos
-        view.findViewById<View>(R.id.cardEquipamentos)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de equipamentos clicado")
+        // Cards financeiros - navegar para tela financeira
+        view.findViewById<View>(R.id.cardReceitaTotal)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card receita total clicado")
             
-            // Navegar para a página de equipamentos usando o NavController
-            findNavController().navigate(R.id.equipamentosFragment)
+            // Navegar para a página financeira
+            findNavController().navigate(R.id.financialFragment)
             
             // Atualizar item selecionado no menu de navegação
             try {
                 requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
-                    .setCheckedItem(R.id.nav_equipamentos)
+                    .setCheckedItem(R.id.nav_financial)
             } catch (e: Exception) {
                 LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
             }
         }
         
-        // Card de Contratos
-        view.findViewById<View>(R.id.cardWorkers)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de contratos clicado")
+        view.findViewById<View>(R.id.cardContratosAtivos)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card contratos ativos clicado")
             
-            // Navegar para a página de contratos usando o NavController
+            // Navegar para a página financeira
+            findNavController().navigate(R.id.financialFragment)
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_financial)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+
+        
+        // Botões de ação rápida
+        view.findViewById<View>(R.id.btnNovoContrato)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Botão novo contrato clicado")
+            
+            // Navegar para a página de contratos
             findNavController().navigate(R.id.contratosFragment)
             
             // Atualizar item selecionado no menu de navegação
@@ -184,11 +227,10 @@ class DashboardFragment : Fragment() {
             }
         }
         
-        // Card de Clientes
-        view.findViewById<View>(R.id.cardTasks)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de clientes clicado")
+        view.findViewById<View>(R.id.btnNovoCliente)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Botão novo cliente clicado")
             
-            // Navegar para a página de clientes usando o NavController
+            // Navegar para a página de clientes
             findNavController().navigate(R.id.clientesFragment)
             
             // Atualizar item selecionado no menu de navegação
@@ -200,11 +242,56 @@ class DashboardFragment : Fragment() {
             }
         }
         
-        // Card de Devoluções
-        view.findViewById<View>(R.id.cardDevolucoes)?.setOnClickListener {
-            LogUtils.debug("DashboardFragment", "Card de devoluções clicado")
+        // Cards da seção Visão Geral do Negócio
+        view.findViewById<View>(R.id.cardContratosOverview)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card overview de contratos clicado")
             
-            // Navegar para a página de devoluções usando o NavController
+            // Navegar para a página de contratos
+            findNavController().navigate(R.id.contratosFragment)
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_contratos)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+        view.findViewById<View>(R.id.cardClientesOverview)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card overview de clientes clicado")
+            
+            // Navegar para a página de clientes
+            findNavController().navigate(R.id.clientesFragment)
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_clientes)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+        view.findViewById<View>(R.id.cardEquipamentosOverview)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card overview de equipamentos clicado")
+            
+            // Navegar para a página de equipamentos
+            findNavController().navigate(R.id.equipamentosFragment)
+            
+            // Atualizar item selecionado no menu de navegação
+            try {
+                requireActivity().findViewById<com.google.android.material.navigation.NavigationView>(R.id.navView)
+                    .setCheckedItem(R.id.nav_equipamentos)
+            } catch (e: Exception) {
+                LogUtils.error("DashboardFragment", "Erro ao atualizar menu: ${e.message}")
+            }
+        }
+        
+        view.findViewById<View>(R.id.cardDevolucoesOverview)?.setOnClickListener {
+            LogUtils.debug("DashboardFragment", "Card overview de devoluções clicado")
+            
+            // Navegar para a página de devoluções
             findNavController().navigate(R.id.devolucoesFragment)
             
             // Atualizar item selecionado no menu de navegação
@@ -278,14 +365,9 @@ class DashboardFragment : Fragment() {
                 LogUtils.debug("DashboardFragment", "🔄 Atualizando contador de devoluções...")
                 tvDevolucoesCount.text = stats.devolucoes.toString()
                 
-                // Atualizar estatísticas expandidas
-                LogUtils.info("DashboardFragment", "📈 ATUALIZANDO ESTATÍSTICAS DETALHADAS:")
-                LogUtils.info("DashboardFragment", "   📋 Contratos esta semana: ${stats.contratosEstaSemana}")
-                LogUtils.info("DashboardFragment", "   👥 Clientes hoje: ${stats.clientesHoje}")
-                LogUtils.info("DashboardFragment", "   ⚙️ Equipamentos disponíveis: ${stats.equipamentosDisponiveis}")
-                LogUtils.info("DashboardFragment", "   📦 Devoluções pendentes: ${stats.devolucoesPendentes}")
-                
-                updateEstatisticasExpandidas(stats)
+                // Atualizar cards de resumo financeiro
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando contratos ativos...")
+                tvContratosAtivos.text = stats.contratos.toString()
                 
 
                 
@@ -303,71 +385,111 @@ class DashboardFragment : Fragment() {
             }
         }
         
+        // Observar métricas financeiras
+        viewModel.financialMetrics.observe(viewLifecycleOwner) { metrics ->
+            if (metrics != null) {
+                LogUtils.info("DashboardFragment", "💰 ========== ATUALIZANDO MÉTRICAS FINANCEIRAS ==========")
+                LogUtils.info("DashboardFragment", "💰 Receita Total: R$ ${String.format("%.2f", metrics.valorTotalAtivo)}")
+                
+                // Atualizar receita total com dados reais da API
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando receita total com dados da API...")
+                tvReceitaTotal.text = "R$ ${String.format("%.2f", metrics.valorTotalAtivo)}"
+                
+                LogUtils.info("DashboardFragment", "✅ Métricas financeiras atualizadas na interface!")
+        } else {
+                LogUtils.warning("DashboardFragment", "⚠️ Métricas financeiras não disponíveis - usando valor padrão")
+                // Fallback para valor padrão se a API não retornar dados
+                tvReceitaTotal.text = "R$ 45.280,00"
+        }
+        }
+        
+        // Observar métricas de progresso
+        viewModel.progressMetrics.observe(viewLifecycleOwner) { metrics ->
+            if (metrics != null) {
+                LogUtils.info("DashboardFragment", "📊 ========== ATUALIZANDO MÉTRICAS DE PROGRESSO ==========")
+                
+                // Atualizar contratos
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando progresso de contratos...")
+                tvContratosProgress.text = "${metrics.contratosAtual}/${metrics.contratosMeta}"
+                progressBarContratos.progress = metrics.contratosPercentual
+                
+                // Atualizar receita
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando progresso de receita...")
+                val receitaAtualFormatted = if (metrics.receitaAtual >= 1000) {
+                    "${(metrics.receitaAtual / 1000).toInt()}k"
+                } else {
+                    String.format("%.0f", metrics.receitaAtual)
+                }
+                val receitaMetaFormatted = if (metrics.receitaMeta >= 1000) {
+                    "${(metrics.receitaMeta / 1000).toInt()}k"
+                } else {
+                    String.format("%.0f", metrics.receitaMeta)
+                }
+                tvReceitaProgress.text = "$receitaAtualFormatted/$receitaMetaFormatted"
+                progressBarReceita.progress = metrics.receitaPercentual
+                
+                // Atualizar clientes
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando progresso de clientes...")
+                tvClientesProgress.text = "${metrics.clientesAtual}/${metrics.clientesMeta}"
+                progressBarClientes.progress = metrics.clientesPercentual
+                
+                // Atualizar satisfação
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando satisfação...")
+                tvSatisfacaoProgress.text = "${metrics.satisfacaoPercentual}%"
+                progressBarSatisfacao.progress = metrics.satisfacaoPercentual
+                
+                LogUtils.info("DashboardFragment", "✅ Métricas de progresso atualizadas na interface!")
+                LogUtils.debug("DashboardFragment", "📊 Contratos: ${metrics.contratosPercentual}%, Receita: ${metrics.receitaPercentual}%, Clientes: ${metrics.clientesPercentual}%, Satisfação: ${metrics.satisfacaoPercentual}%")
+        } else {
+                LogUtils.warning("DashboardFragment", "⚠️ Métricas de progresso não disponíveis - mantendo valores padrão")
+            }
+        }
+        
+        // Observar tarefas pendentes
+        viewModel.taskMetrics.observe(viewLifecycleOwner) { tasks ->
+            if (tasks != null) {
+                LogUtils.info("DashboardFragment", "📋 ========== ATUALIZANDO TAREFAS PENDENTES ==========")
+                
+                // Atualizar total de tarefas
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando total de tarefas...")
+                tvTotalTarefas.text = tasks.totalTarefas.toString()
+                
+                // Atualizar contratos aguardando assinatura
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando contratos aguardando assinatura...")
+                val contratosText = if (tasks.contratosAguardandoAssinatura == 1) {
+                    "${tasks.contratosAguardandoAssinatura} contrato aguardando assinatura"
+                } else {
+                    "${tasks.contratosAguardandoAssinatura} contratos aguardando assinatura"
+                }
+                tvContratosAssinatura.text = contratosText
+                
+                // Atualizar devoluções em atraso
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando devoluções em atraso...")
+                val devolucoesText = if (tasks.devolucoesEmAtraso == 1) {
+                    "${tasks.devolucoesEmAtraso} devolução em atraso"
+                } else {
+                    "${tasks.devolucoesEmAtraso} devoluções em atraso"
+                }
+                tvDevolucoesAtraso.text = devolucoesText
+                
+                // Atualizar equipamentos para manutenção
+                LogUtils.debug("DashboardFragment", "🔄 Atualizando equipamentos para manutenção...")
+                val equipamentosText = if (tasks.equipamentosManutencao == 1) {
+                    "${tasks.equipamentosManutencao} equipamento para manutenção"
+                } else {
+                    "${tasks.equipamentosManutencao} equipamentos para manutenção"
+                }
+                tvEquipamentosManutencao.text = equipamentosText
+                
+                LogUtils.info("DashboardFragment", "✅ Tarefas pendentes atualizadas na interface!")
+                LogUtils.debug("DashboardFragment", "📋 Total: ${tasks.totalTarefas}, Contratos: ${tasks.contratosAguardandoAssinatura}, Devoluções: ${tasks.devolucoesEmAtraso}, Equipamentos: ${tasks.equipamentosManutencao}")
+        } else {
+                LogUtils.warning("DashboardFragment", "⚠️ Tarefas pendentes não disponíveis - mantendo valores padrão")
+            }
+        }
+        
         LogUtils.info("DashboardFragment", "✅ Observação do ViewModel configurada com sucesso")
     }
     
-    /**
-     * Atualiza as estatísticas expandidas com dados dinâmicos
-     */
-    private fun updateEstatisticasExpandidas(stats: DashboardStats) {
-        LogUtils.debug("DashboardFragment", "🔧 Atualizando estatísticas expandidas...")
-        
-        // Contratos esta semana
-        val textContratosEstaSemana = if (stats.contratosEstaSemana > 0) {
-            "${stats.contratosEstaSemana} novos esta semana"
-        } else {
-            "Nenhum novo esta semana"
-        }
-        tvContratosExtras.text = textContratosEstaSemana
-        tvContratosExtras.setTextColor(
-            if (stats.contratosEstaSemana > 0) 
-                ContextCompat.getColor(requireContext(), R.color.success)
-            else 
-                ContextCompat.getColor(requireContext(), R.color.text_secondary)
-        )
-        LogUtils.debug("DashboardFragment", "   📋 Contratos: '$textContratosEstaSemana'")
-        
-        // Clientes hoje
-        val textClientesHoje = if (stats.clientesHoje > 0) {
-            "${stats.clientesHoje} cadastrados hoje"
-        } else {
-            "Nenhum cadastrado hoje"
-        }
-        tvClientesExtras.text = textClientesHoje
-        tvClientesExtras.setTextColor(
-            if (stats.clientesHoje > 0) 
-                ContextCompat.getColor(requireContext(), R.color.success)
-            else 
-                ContextCompat.getColor(requireContext(), R.color.text_secondary)
-        )
-        LogUtils.debug("DashboardFragment", "   👥 Clientes: '$textClientesHoje'")
-        
-        // Equipamentos disponíveis
-        val textEquipamentosDisponiveis = "${stats.equipamentosDisponiveis} disponíveis"
-        tvEquipamentosExtras.text = textEquipamentosDisponiveis
-        tvEquipamentosExtras.setTextColor(
-            if (stats.equipamentosDisponiveis > 0) 
-                ContextCompat.getColor(requireContext(), R.color.success)
-            else 
-                ContextCompat.getColor(requireContext(), R.color.warning)
-        )
-        LogUtils.debug("DashboardFragment", "   ⚙️ Equipamentos: '$textEquipamentosDisponiveis'")
-        
-        // Devoluções pendentes
-        val textDevolucoesPendentes = if (stats.devolucoesPendentes > 0) {
-            "${stats.devolucoesPendentes} pendentes"
-        } else {
-            "Nenhuma pendente"
-        }
-        tvDevolucoesExtras.text = textDevolucoesPendentes
-        tvDevolucoesExtras.setTextColor(
-            if (stats.devolucoesPendentes > 0) 
-                ContextCompat.getColor(requireContext(), R.color.warning)
-            else 
-                ContextCompat.getColor(requireContext(), R.color.success)
-        )
-        LogUtils.debug("DashboardFragment", "   📦 Devoluções: '$textDevolucoesPendentes'")
-        
-        LogUtils.info("DashboardFragment", "✅ Estatísticas expandidas atualizadas com sucesso!")
-    }
+
 } 

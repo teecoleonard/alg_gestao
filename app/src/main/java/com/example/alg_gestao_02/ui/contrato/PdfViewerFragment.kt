@@ -1,12 +1,6 @@
 package com.example.alg_gestao_02.ui.contrato
 
-import android.Manifest
-import android.content.Context
-import android.content.Intent
-import android.content.pm.PackageManager
-import android.net.Uri
 import android.os.Bundle
-import android.os.Environment
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -23,12 +17,10 @@ import android.widget.LinearLayout
 import android.widget.ProgressBar
 import android.widget.TextView
 import android.widget.Toast
-import androidx.activity.result.contract.ActivityResultContracts
-import androidx.core.content.ContextCompat
-import androidx.core.content.FileProvider
 import androidx.fragment.app.DialogFragment
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.utils.PdfUtils
 import com.example.alg_gestao_02.service.PdfService
 
 import java.io.File
@@ -58,22 +50,16 @@ class PdfViewerFragment : DialogFragment() {
     private var pdfFile: File? = null
     private var contratoNumero: String = ""
     private var contratoId: Int = 0
+    private var onContratoAtualizadoCallback: (() -> Unit)? = null
     
     private val pdfService = PdfService()
     
-    private val requestPermissionLauncher = registerForActivityResult(
-        ActivityResultContracts.RequestPermission()
-    ) { isGranted: Boolean ->
-        if (isGranted) {
-            salvarPdf()
-        } else {
-            Toast.makeText(
-                requireContext(),
-                "Permissão necessária para salvar o PDF",
-                Toast.LENGTH_LONG
-            ).show()
-        }
+    // Método para configurar callback de atualização do contrato
+    fun setOnContratoAtualizadoCallback(callback: () -> Unit) {
+        this.onContratoAtualizadoCallback = callback
     }
+    
+    // requestPermissionLauncher removido - PdfUtils gerencia permissões automaticamente
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -122,18 +108,26 @@ class PdfViewerFragment : DialogFragment() {
         setupWebView()
         setupButtons()
         
-        // Carregar o conteúdo
+        // Carregar o conteúdo - HTML para visualização, mas salvar PDF em background
         when {
             htmlContent != null -> {
-                LogUtils.debug("PdfViewerFragment", "Carregando conteúdo HTML")
+                LogUtils.debug("PdfViewerFragment", "Carregando conteúdo HTML para visualização")
                 carregarHtmlContent(htmlContent)
+                // Salvar PDF em background para download/compartilhamento
+                if (pdfBase64 != null) {
+                    salvarPdfEmBackground(pdfBase64)
+                }
             }
             htmlUrl != null -> {
                 LogUtils.debug("PdfViewerFragment", "Carregando URL HTML: $htmlUrl")
                 carregarHtmlUrl(htmlUrl)
+                // Salvar PDF em background para download/compartilhamento
+                if (pdfBase64 != null) {
+                    salvarPdfEmBackground(pdfBase64)
+                }
             }
             pdfBase64 != null -> {
-                LogUtils.debug("PdfViewerFragment", "Carregando PDF base64")
+                LogUtils.debug("PdfViewerFragment", "Carregando PDF base64 (sem HTML disponível)")
                 carregarPdfBase64(pdfBase64)
             }
             else -> {
@@ -259,6 +253,7 @@ class PdfViewerFragment : DialogFragment() {
 
 
         btnAssinar.setOnClickListener {
+            LogUtils.debug("PdfViewerFragment", "🖊️ Botão assinar clicado")
             val bundle = Bundle().apply {
                 putString("contratoNumero", contratoNumero)
                 putInt("contratoId", contratoId)
@@ -266,12 +261,34 @@ class PdfViewerFragment : DialogFragment() {
             
             val signatureFragment = SignatureCaptureFragment().apply {
                 arguments = bundle
+                setOnContratoAtualizadoListener {
+                    LogUtils.debug("PdfViewerFragment", "🔔 Callback recebido - contrato atualizado")
+                    LogUtils.debug("PdfViewerFragment", "🗙 Fechando PdfViewerFragment")
+                    // Fechar este viewer e voltar para a tela de contratos
+                    dismiss()
+                    LogUtils.debug("PdfViewerFragment", "📞 Chamando callback para ContratosFragment")
+                    // Chamar o callback para atualizar a lista de contratos
+                    onContratoAtualizadoCallback?.invoke()
+                    LogUtils.debug("PdfViewerFragment", "✅ Callback PdfViewer concluído")
+                }
             }
             
+            LogUtils.debug("PdfViewerFragment", "🔓 Abrindo SignatureCaptureFragment")
             signatureFragment.show(parentFragmentManager, "signature_fragment")
         }
     }
     
+    private fun salvarPdfEmBackground(pdfBase64: String) {
+        LogUtils.debug("PdfViewerFragment", "Salvando PDF em background para download/compartilhamento")
+        try {
+            val pdfBytes = android.util.Base64.decode(pdfBase64, android.util.Base64.DEFAULT)
+            this.pdfBytes = pdfBytes
+            LogUtils.debug("PdfViewerFragment", "PDF salvo em background: ${pdfBytes.size} bytes")
+        } catch (e: Exception) {
+            LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF em background", e)
+        }
+    }
+
     private fun carregarPdfBase64(pdfBase64: String) {
         LogUtils.debug("PdfViewerFragment", "Iniciando carregamento do PDF base64 no WebView")
         try {
@@ -283,9 +300,11 @@ class PdfViewerFragment : DialogFragment() {
             FileOutputStream(tempFile).use { it.write(pdfBytes) }
             this.pdfFile = tempFile
             
-            // Carregar no WebView
-            webView.loadUrl("file://${tempFile.absolutePath}")
-            LogUtils.debug("PdfViewerFragment", "PDF carregado no WebView: file://${tempFile.absolutePath}")
+            // Carregar PDF no WebView usando data URL (mais compatível)
+            val base64String = android.util.Base64.encodeToString(pdfBytes, android.util.Base64.NO_WRAP)
+            val dataUrl = "data:application/pdf;base64,$base64String"
+            webView.loadUrl(dataUrl)
+            LogUtils.debug("PdfViewerFragment", "PDF carregado no WebView via data URL")
         } catch (e: Exception) {
             LogUtils.error("PdfViewerFragment", "Erro ao carregar PDF base64", e)
             mostrarErro("Erro ao carregar PDF: ${e.message}")
@@ -323,50 +342,31 @@ class PdfViewerFragment : DialogFragment() {
     }
     
     private fun verificarPermissaoESalvar() {
-        if (verificarPermissaoEscrita()) {
-            salvarPdf()
-        } else {
-            solicitarPermissaoEscrita()
-        }
-    }
-    
-    private fun verificarPermissaoEscrita(): Boolean {
-        return ContextCompat.checkSelfPermission(
-            requireContext(),
-            Manifest.permission.WRITE_EXTERNAL_STORAGE
-        ) == PackageManager.PERMISSION_GRANTED
-    }
-    
-    private fun solicitarPermissaoEscrita() {
-        requestPermissionLauncher.launch(Manifest.permission.WRITE_EXTERNAL_STORAGE)
-    }
-    
-    private fun salvarPdf() {
         pdfBytes?.let { bytes ->
-            try {
-                val timestamp = SimpleDateFormat("yyyyMMdd_HHmmss", Locale.getDefault()).format(Date())
-                val fileName = "contrato_${contratoNumero}_$timestamp.pdf"
-                val file = File(
-                    Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
-                    fileName
-                )
-                
-                FileOutputStream(file).use { it.write(bytes) }
-                this.pdfFile = file
-                
-                Toast.makeText(
-                    requireContext(),
-                    "PDF salvo em: ${file.absolutePath}",
-                    Toast.LENGTH_LONG
-                ).show()
-            } catch (e: IOException) {
-                LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF", e)
-                Toast.makeText(
-                    requireContext(),
-                    "Erro ao salvar PDF: ${e.message}",
-                    Toast.LENGTH_SHORT
-                ).show()
-            }
+            val resultado = PdfUtils.salvarPdfNaPastaDownloads(
+                requireContext(),
+                bytes,
+                "contrato_$contratoNumero"
+            )
+            
+            resultado.fold(
+                onSuccess = { caminho ->
+                    Toast.makeText(
+                        requireContext(),
+                        "✅ PDF salvo com sucesso: $caminho",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    LogUtils.debug("PdfViewerFragment", "PDF salvo em: $caminho")
+                },
+                onFailure = { erro ->
+                    Toast.makeText(
+                        requireContext(),
+                        "❌ Erro ao salvar PDF: ${erro.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
+                    LogUtils.error("PdfViewerFragment", "Erro ao salvar PDF", erro)
+                }
+            )
         } ?: run {
             Toast.makeText(
                 requireContext(),
@@ -376,31 +376,58 @@ class PdfViewerFragment : DialogFragment() {
         }
     }
     
+    // Métodos antigos de salvamento removidos - toda lógica está agora no PdfUtils
+    
     private fun compartilharPdf() {
-        pdfFile?.let { file ->
-            try {
-                val uri = FileProvider.getUriForFile(
-                    requireContext(),
-                    "${requireContext().packageName}.provider",
-                    file
-                )
-                
-                val shareIntent = Intent().apply {
-                    action = Intent.ACTION_SEND
-                    putExtra(Intent.EXTRA_STREAM, uri)
-                    type = "application/pdf"
-                    addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+        pdfBytes?.let { bytes ->
+            val resultadoArquivo = PdfUtils.criarArquivoTemporario(
+                requireContext(),
+                bytes,
+                "contrato_$contratoNumero"
+            )
+            
+            resultadoArquivo.fold(
+                onSuccess = { arquivo ->
+                    val resultadoCompartilhamento = PdfUtils.compartilharPdf(
+                        requireContext(),
+                        arquivo,
+                        "Compartilhar Contrato PDF",
+                        "Contrato #$contratoNumero"
+                    )
+                    
+                    resultadoCompartilhamento.fold(
+                        onSuccess = {
+                            LogUtils.debug("PdfViewerFragment", "Compartilhamento iniciado com sucesso")
+                            // Salvar referência do arquivo para limpeza posterior
+                            this.pdfFile = arquivo
+                        },
+                        onFailure = { erro ->
+                            Toast.makeText(
+                                requireContext(),
+                                "❌ ${erro.message}",
+                                Toast.LENGTH_LONG
+                            ).show()
+                        }
+                    )
+                },
+                onFailure = { erro ->
+                    Toast.makeText(
+                        requireContext(),
+                        "❌ Erro ao preparar arquivo: ${erro.message}",
+                        Toast.LENGTH_LONG
+                    ).show()
                 }
-                
-                startActivity(Intent.createChooser(shareIntent, "Compartilhar PDF"))
-            } catch (e: Exception) {
-                Toast.makeText(requireContext(), "Erro ao compartilhar: ${e.message}", Toast.LENGTH_SHORT).show()
-                LogUtils.error("PdfViewerFragment", "Erro ao compartilhar PDF", e)
-            }
+            )
         } ?: run {
-            Toast.makeText(requireContext(), "PDF não disponível para compartilhar", Toast.LENGTH_SHORT).show()
+            Toast.makeText(
+                requireContext(),
+                "PDF não disponível para compartilhar",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
+    
+    // Método criarArquivoTemporario removido - PdfUtils.criarArquivoTemporario é usado
     
     override fun onDestroyView() {
         super.onDestroyView()

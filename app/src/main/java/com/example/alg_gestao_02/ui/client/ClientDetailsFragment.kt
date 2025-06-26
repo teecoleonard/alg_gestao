@@ -28,6 +28,7 @@ import com.example.alg_gestao_02.ui.contrato.adapter.ContratosAdapter
 import com.example.alg_gestao_02.ui.devolucao.DevolucaoDetailsDialogFragment
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
+import com.example.alg_gestao_02.utils.SessionManager
 import com.example.alg_gestao_02.utils.ViewModelFactory
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import kotlinx.coroutines.launch
@@ -129,7 +130,7 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
                         }
                         R.id.menu_delete -> {
                             LogUtils.debug("ClientDetailsFragment", "Excluir contrato selecionado: ${contrato.contratoNum}")
-                            // Funcionalidade de exclusão (será implementada no futuro)
+                            confirmarExclusao(contrato)
                             true
                         }
                         else -> false
@@ -497,6 +498,149 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         }
         
         LogUtils.info("ClientDetailsFragment", "Filtro definido para devoluções de: ${cliente.contratante}")
+    }
+
+    private fun confirmarExclusao(contrato: Contrato) {
+        // Verificar role do usuário
+        val sessionManager = SessionManager(requireContext())
+        val userRole = sessionManager.getUserRole()
+        val isAdmin = userRole == "admin"
+        
+        LogUtils.debug("ClientDetailsFragment", "👤 Usuário role: $userRole")
+        LogUtils.debug("ClientDetailsFragment", "🔐 É admin: $isAdmin")
+        LogUtils.debug("ClientDetailsFragment", "📋 Status contrato: ${contrato.status_assinatura}")
+        
+        // Verificar se pode excluir
+        val (podeExcluir, mensagem) = contrato.podeExcluir(isAdmin, forcar = isAdmin)
+        
+        if (!podeExcluir && !isAdmin) {
+            LogUtils.warning("ClientDetailsFragment", "❌ Exclusão negada: $mensagem")
+            
+            // Mostrar diálogo informativo para não-admins
+            androidx.appcompat.app.AlertDialog.Builder(requireContext())
+                .setTitle("❌ Exclusão Não Permitida")
+                .setMessage(mensagem)
+                .setPositiveButton("Entendi") { dialog, _ ->
+                    dialog.dismiss()
+                }
+                .setIcon(R.drawable.ic_error)
+                .show()
+            return
+        }
+        
+        // Configurar mensagem do diálogo baseada no status do contrato
+        val titulo: String
+        val mensagemDialog: String
+        val icone: Int
+        
+        when (contrato.status_assinatura) {
+            "ASSINADO" -> {
+                titulo = "Excluir Contrato Assinado"
+                mensagemDialog = if (isAdmin) {
+                    "Este contrato possui assinatura digital!\n\n" +
+                    "📋 Contrato: #${contrato.contratoNum}\n" +
+                    "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                    "📅 Status: ASSINADO ✍️\n\n" +
+                    "Deseja realmente excluir este contrato assinado?"
+                } else {
+                    "❌ Este contrato possui assinatura digital e não pode ser excluído.\n\n" +
+                    "📞 Entre em contato com o administrador do sistema."
+                }
+                icone = R.drawable.ic_warning
+            }
+            
+            "PENDENTE" -> {
+                titulo = "🔄 Excluir Contrato Pendente"
+                mensagemDialog = "📋 Contrato: #${contrato.contratoNum}\n" +
+                        "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                        "📅 Status: PENDENTE ⏳\n\n" +
+                        "ℹ️ Este contrato está aguardando assinatura.\n\n" +
+                        "❓ Deseja realmente excluir este contrato?"
+                icone = R.drawable.ic_info
+            }
+            
+            else -> {
+                titulo = "🗑️ Excluir Contrato"
+                mensagemDialog = "📋 Contrato: #${contrato.contratoNum}\n" +
+                        "👤 Cliente: ${contrato.clienteNome ?: contrato.cliente?.contratante ?: "N/A"}\n" +
+                        "📅 Status: NÃO ASSINADO 📝\n\n" +
+                        "❓ Deseja realmente excluir este contrato?"
+                icone = R.drawable.ic_delete
+            }
+        }
+        
+        // Mostrar diálogo de confirmação
+        androidx.appcompat.app.AlertDialog.Builder(requireContext())
+            .setTitle(titulo)
+            .setMessage(mensagemDialog)
+            .setPositiveButton(if (contrato.status_assinatura == "ASSINADO") "⚠️ Forçar Exclusão" else "🗑️ Sim, Excluir") { dialog, _ ->
+                dialog.dismiss()
+                
+                // Mostrar mensagem informativa para admin
+                if (isAdmin && contrato.status_assinatura == "ASSINADO") {
+                    LogUtils.info("ClientDetailsFragment", "⚠️ Admin confirmou exclusão de contrato assinado")
+                    Toast.makeText(context, "⚠️ Forçando exclusão de contrato assinado...", Toast.LENGTH_LONG).show()
+                } else {
+                    Toast.makeText(context, "🗑️ Excluindo contrato...", Toast.LENGTH_SHORT).show()
+                }
+                
+                LogUtils.debug("ClientDetailsFragment", "▶️ Usuário confirmou exclusão do contrato ${contrato.contratoNum}")
+                excluirContrato(contrato.id)
+            }
+            .setNegativeButton("🚫 Cancelar") { dialog, _ ->
+                LogUtils.debug("ClientDetailsFragment", "🚫 Usuário cancelou exclusão do contrato ${contrato.contratoNum}")
+                dialog.dismiss()
+            }
+            .setIcon(icone)
+            .setCancelable(true)
+            .show()
+    }
+    
+    private fun excluirContrato(contratoId: Int) {
+        // Criar ViewModel de contratos para processar a exclusão
+        viewLifecycleOwner.lifecycleScope.launch {
+            val contratoRepository = ContratoRepository()
+            val contratoViewModelFactory = com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory()
+            val contratoViewModel = ViewModelProvider(this@ClientDetailsFragment, contratoViewModelFactory)[com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel::class.java]
+            
+            // Observar o resultado da exclusão
+            contratoViewModel.operationState.observe(viewLifecycleOwner) { state ->
+                when (state) {
+                    is com.example.alg_gestao_02.ui.state.UiState.Loading -> {
+                        LogUtils.debug("ClientDetailsFragment", "🔄 Excluindo contrato...")
+                    }
+                    
+                    is com.example.alg_gestao_02.ui.state.UiState.Success -> {
+                        LogUtils.info("ClientDetailsFragment", "✅ Contrato excluído com sucesso!")
+                        Toast.makeText(requireContext(), "Contrato excluído com sucesso", Toast.LENGTH_SHORT).show()
+                        
+                        // Limpar observer e recarregar dados do cliente
+                        contratoViewModel.operationState.removeObservers(viewLifecycleOwner)
+                        contratoViewModel.resetOperationState()
+                        
+                        // Recarregar dados do cliente para atualizar lista de contratos
+                        viewModel.carregarDetalhesCliente(clienteId)
+                    }
+                    
+                    is com.example.alg_gestao_02.ui.state.UiState.Error -> {
+                        LogUtils.error("ClientDetailsFragment", "❌ Erro na exclusão: ${state.message}")
+                        Toast.makeText(requireContext(), "Erro: ${state.message}", Toast.LENGTH_LONG).show()
+                        
+                        // Limpar observer
+                        contratoViewModel.operationState.removeObservers(viewLifecycleOwner)
+                        contratoViewModel.resetOperationState()
+                    }
+                    
+                    else -> {
+                        // Estado null ou outros
+                    }
+                }
+            }
+            
+            // Executar a exclusão
+            LogUtils.info("ClientDetailsFragment", "Chamando contratoViewModel.excluirContrato...")
+            contratoViewModel.excluirContrato(contratoId)
+        }
     }
 
     override fun onDestroyView() {

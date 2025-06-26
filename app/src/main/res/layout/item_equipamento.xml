@@ -5,9 +5,11 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:layout_marginBottom="12dp"
-    app:cardBackgroundColor="@color/card_background"
+    app:cardBackgroundColor="@color/card_equipment_bg"
     app:cardCornerRadius="12dp"
-    app:cardElevation="0dp">
+    app:cardElevation="2dp"
+    app:strokeColor="@color/card_equipment_accent"
+    app:strokeWidth="1dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -23,7 +25,9 @@
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="@style/TextAppearance.ALG.Title"
+            android:textColor="@color/card_equipment_accent"
             android:textSize="16sp"
+            android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/ivMenuEquipamento"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
@@ -39,7 +43,7 @@
             android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
-            app:tint="@color/text_secondary" />
+            app:tint="@color/card_equipment_accent" />
 
         <!-- Código do equipamento -->
         <TextView
@@ -77,11 +81,12 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp"
-            android:background="@drawable/bg_price_tag"
+            android:background="@drawable/bg_status_active"
+            android:backgroundTint="@color/card_equipment_accent"
             android:paddingHorizontal="12dp"
             android:paddingVertical="6dp"
             android:textAppearance="@style/TextAppearance.ALG.Body"
-            android:textColor="@color/price_text"
+            android:textColor="@color/white"
             android:textStyle="bold"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvQuantidadeEquipamento"

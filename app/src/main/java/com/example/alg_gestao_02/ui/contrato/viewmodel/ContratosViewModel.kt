@@ -17,6 +17,9 @@ import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
+import java.util.Date
+import java.util.Locale
 
 /**
  * ViewModel para gerenciar a tela de listagem e CRUD de contratos
@@ -67,6 +70,41 @@ class ContratosViewModel(
     }
     
     /**
+     * Ordena os contratos por data de emissão, colocando os mais recentes primeiro
+     */
+    private fun ordenarContratosPorDataEmissao(contratos: List<Contrato>): List<Contrato> {
+        val formatoData = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+        val formatoDataSimples = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        
+        return contratos.sortedByDescending { contrato ->
+            try {
+                val dataString = contrato.dataHoraEmissao
+                if (dataString.isNullOrEmpty()) {
+                    // Se não tem data, coloca no final da lista (data mais antiga possível)
+                    Date(0)
+                } else {
+                    // Tenta primeiro o formato completo com hora
+                    try {
+                        formatoData.parse(dataString)
+                    } catch (e: Exception) {
+                        // Se falhar, tenta formato apenas data
+                        try {
+                            formatoDataSimples.parse(dataString)
+                        } catch (e2: Exception) {
+                            LogUtils.debug("ContratosViewModel", "Não foi possível parsear data de emissão: $dataString")
+                            // Se não conseguiu parsear, coloca no final
+                            Date(0)
+                        }
+                    }
+                }
+            } catch (e: Exception) {
+                LogUtils.debug("ContratosViewModel", "Erro ao processar data de emissão do contrato ${contrato.id}")
+                Date(0)
+            }
+        }
+    }
+    
+    /**
      * Carrega a lista de contratos
      */
     fun loadContratos() {
@@ -80,7 +118,9 @@ class ContratosViewModel(
                     val contratos = result.data
                     if (contratos.isNotEmpty()) {
                         LogUtils.info("ContratosViewModel", "Contratos carregados com sucesso: ${contratos.size}")
-                        allContratos = contratos
+                        // Ordenar contratos por data de emissão (mais recentes primeiro)
+                        allContratos = ordenarContratosPorDataEmissao(contratos)
+                        LogUtils.debug("ContratosViewModel", "Contratos ordenados por data de emissão")
                         applySearchFilter(_searchTerm.value ?: "")
                     } else {
                         LogUtils.info("ContratosViewModel", "Nenhum contrato encontrado")
@@ -331,6 +371,7 @@ class ContratosViewModel(
         }
         
         if (term.isEmpty()) {
+            // Manter ordenação por data mesmo sem filtro
             _uiState.value = UiState.Success(allContratos)
             return
         }
@@ -343,7 +384,9 @@ class ContratosViewModel(
         if (filteredList.isEmpty()) {
             _uiState.value = UiState.Empty()
         } else {
-            _uiState.value = UiState.Success(filteredList)
+            // Manter ordenação por data mesmo após filtrar
+            val sortedFilteredList = ordenarContratosPorDataEmissao(filteredList)
+            _uiState.value = UiState.Success(sortedFilteredList)
         }
     }
     
