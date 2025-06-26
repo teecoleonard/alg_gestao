@@ -13,7 +13,6 @@
 ### 🎨 **Interface & UX**
 - **Splash Screen** animado com transições suaves
 - **Design Material 3** com tipografia Poppins
-- **Tema**: Azul primário (#3843FF) e Verde secundário (#4CD080)
 - **Animações** fluidas em toda a aplicação
 - **Navigation Drawer** com menu lateral completo
 - **Dark/Light Theme** support (futuro)
