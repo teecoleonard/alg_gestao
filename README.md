@@ -168,7 +168,7 @@
 
 ### **1. Clone o Repositório**
 ```bash
-git clone https://github.com/seu-usuario/alg_gestao.git
+git clone https://github.com/teecoleonard/alg_gestao.git
 cd alg_gestao
 ```
 
