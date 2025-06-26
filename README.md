@@ -10,7 +10,7 @@
 ![ALG Gestão Banner](screenshots/banner.png)
 
 ---
-
+ 
 ## 🚀 Funcionalidades Principais
 
 ### 🎨 **Interface & UX**
