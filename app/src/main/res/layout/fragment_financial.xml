@@ -2,9 +2,11 @@
 <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
     xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/swipeRefresh"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent"
+    tools:context=".ui.financial.FinancialFragment">
 
     <androidx.core.widget.NestedScrollView
         android:layout_width="match_parent"
@@ -23,7 +25,7 @@
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:gravity="center_vertical"
-                android:layout_marginBottom="20dp">
+                android:layout_marginBottom="12dp">
 
                 <TextView
                     android:layout_width="0dp"
@@ -36,6 +38,66 @@
                     android:fontFamily="@font/poppins_medium" />
 
             </LinearLayout>
+
+            <!-- Notificação Explicativa -->
+            <androidx.cardview.widget.CardView
+                android:id="@+id/cardNotificacaoFinancial"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="20dp"
+                android:visibility="gone"
+                app:cardBackgroundColor="@color/info"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical"
+                    android:padding="16dp">
+
+                    <!-- Header com título e botão fechar -->
+                    <LinearLayout
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:gravity="center_vertical"
+                        android:layout_marginBottom="8dp">
+
+                        <TextView
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:text="ℹ️ Sobre os Valores"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/poppins_medium" />
+
+                        <ImageButton
+                            android:id="@+id/btnFecharNotificacaoFinancial"
+                            android:layout_width="32dp"
+                            android:layout_height="32dp"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:src="@drawable/ic_close"
+                            android:tint="@color/white"
+                            android:contentDescription="Fechar notificação"
+                            android:padding="6dp" />
+
+                    </LinearLayout>
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="• Valor Total Ativo: Soma direta de todos os contratos assinados (valor bruto)\n• Receita Mensal: Contratos assinados neste mês específico\n• Para receita real por períodos, use 'Ver Receita por Cliente'"
+                        android:textSize="13sp"
+                        android:textColor="@color/white"
+                        android:fontFamily="@font/poppins"
+                        android:lineSpacingExtra="2dp" />
+
+                </LinearLayout>
+
+            </androidx.cardview.widget.CardView>
 
             <!-- Cards de Métricas Principais -->
             <LinearLayout
@@ -404,18 +466,42 @@
                     </LinearLayout>
 
                     <!-- Segunda linha de botões -->
-                    <Button
-                        android:id="@+id/btnExportarRelatorio"
+                    <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:text="📊 Exportar Relatório"
-                        android:textColor="@color/white"
-                        android:backgroundTint="@color/success"
-                        android:fontFamily="@font/poppins_medium"
-                        app:cornerRadius="12dp" />
+                        android:orientation="horizontal"
+                        android:layout_marginBottom="12dp">
+
+                        <Button
+                            android:id="@+id/btnExportarRelatorio"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginEnd="8dp"
+                            android:text="📊 Exportar"
+                            android:textColor="@color/white"
+                            android:backgroundTint="@color/success"
+                            android:fontFamily="@font/poppins_medium"
+                            app:cornerRadius="12dp" />
+
+                        <Button
+                            android:id="@+id/btnVerReceitaCliente"
+                            android:layout_width="0dp"
+                            android:layout_height="wrap_content"
+                            android:layout_weight="1"
+                            android:layout_marginStart="8dp"
+                            android:text="👥 Clientes"
+                            android:textColor="@color/white"
+                            android:backgroundTint="@color/warning"
+                            android:fontFamily="@font/poppins_medium"
+                            app:cornerRadius="12dp" />
+
+                    </LinearLayout>
 
                 </LinearLayout>
             </androidx.cardview.widget.CardView>
+
+
 
             <!-- Margem inferior -->
             <View

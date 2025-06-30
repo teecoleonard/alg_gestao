@@ -53,7 +53,8 @@ data class ProdutoPdfDTO(
     val nome: String,
     val descricao: String? = null,
     val valor: Double,
-    val quantidade: Int
+    val quantidade: Int,
+    val valorFrete: Double = 0.0
 )
 
 /**
@@ -303,9 +304,10 @@ class PdfService {
         return ProdutoPdfDTO(
             id = equipamento.id,
             nome = equipamento.nomeEquipamentoExibicao,
-            descricao = "Quantidade: ${equipamento.quantidadeEquip}, Valor Unitário: R$ ${String.format("%.2f", equipamento.valorUnitario)}",
+            descricao = "Quantidade: ${equipamento.quantidadeEquip}, Valor Unitário: R$ ${String.format("%.2f", equipamento.valorUnitario)}, Frete: R$ ${String.format("%.2f", equipamento.valorFrete)}",
             valor = equipamento.valorUnitario,
-            quantidade = equipamento.quantidadeEquip
+            quantidade = equipamento.quantidadeEquip,
+            valorFrete = equipamento.valorFrete
         )
     }
 

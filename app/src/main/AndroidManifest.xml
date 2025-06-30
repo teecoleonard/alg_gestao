@@ -73,6 +73,14 @@
                 android:name="android.support.FILE_PROVIDER_PATHS"
                 android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- Tela de resumo mensal do cliente -->
+        <activity
+            android:name=".ui.financial.ResumoMensalClienteActivity"
+            android:exported="false"
+            android:screenOrientation="portrait"
+            android:parentActivityName=".dashboard.DashboardActivity"
+            android:theme="@style/Theme.ALG_Gestao_02" />
     </application>
 
 </manifest>

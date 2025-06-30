@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/action_gerar_pdf"
+        android:title="Gerar PDF"
+        android:icon="@drawable/ic_file_pdf"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_compartilhar"
+        android:title="Compartilhar"
+        android:icon="@drawable/ic_share"
+        app:showAsAction="ifRoom" />
+
+    <item
+        android:id="@+id/action_selecionar_mes"
+        android:title="Selecionar Mês"
+        android:icon="@drawable/ic_calendar"
+        app:showAsAction="never" />
+
+    <item
+        android:id="@+id/action_atualizar"
+        android:title="Atualizar"
+        android:icon="@drawable/ic_refresh"
+        app:showAsAction="never" />
+
+</menu> 

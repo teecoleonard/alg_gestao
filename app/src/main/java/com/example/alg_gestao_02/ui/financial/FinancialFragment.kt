@@ -1,6 +1,7 @@
 package com.example.alg_gestao_02.ui.financial
 
 import android.app.DatePickerDialog
+import android.content.Context
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,10 +11,13 @@ import androidx.cardview.widget.CardView
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.lifecycleScope
+import androidx.navigation.fragment.findNavController
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.FinancialMetrics
 import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.ReceitaClienteResponse
+import com.example.alg_gestao_02.data.models.ReceitaCliente
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.service.ReportService
@@ -51,6 +55,13 @@ class FinancialFragment : Fragment() {
     private lateinit var btnDefinirMeta: Button
     private lateinit var btnFiltrarPeriodo: Button
     private lateinit var btnExportarRelatorio: Button
+    private lateinit var btnVerReceitaCliente: Button
+    
+    // Notificação explicativa
+    private lateinit var cardNotificacaoFinancial: CardView
+    private lateinit var btnFecharNotificacaoFinancial: ImageButton
+    
+
     
     // Período selecionado
     private var dataInicio: Date? = null
@@ -101,6 +112,14 @@ class FinancialFragment : Fragment() {
         btnDefinirMeta = view.findViewById(R.id.btnDefinirMeta)
         btnFiltrarPeriodo = view.findViewById(R.id.btnFiltrarPeriodo)
         btnExportarRelatorio = view.findViewById(R.id.btnExportarRelatorio)
+        btnVerReceitaCliente = view.findViewById(R.id.btnVerReceitaCliente)
+        
+        // Notificação explicativa
+        cardNotificacaoFinancial = view.findViewById(R.id.cardNotificacaoFinancial)
+        btnFecharNotificacaoFinancial = view.findViewById(R.id.btnFecharNotificacaoFinancial)
+        
+        // Verificar se deve mostrar a notificação
+        verificarNotificacaoFinancial()
     }
 
     private fun setupViewModel() {
@@ -152,6 +171,16 @@ class FinancialFragment : Fragment() {
         btnExportarRelatorio.setOnClickListener {
             exportarRelatorio()
         }
+        
+        // Botão ver receita por clientes
+        btnVerReceitaCliente.setOnClickListener {
+            navegarParaReceitaClientes()
+        }
+        
+        // Botão fechar notificação
+        btnFecharNotificacaoFinancial.setOnClickListener {
+            fecharNotificacaoFinancial()
+        }
     }
 
     private fun observeViewModel() {
@@ -188,6 +217,21 @@ class FinancialFragment : Fragment() {
         viewModel.progressMetrics.observe(viewLifecycleOwner) { progress ->
             if (progress != null) {
                 updateProgressMetrics(progress)
+            }
+        }
+        
+        // Observar receita por cliente (dados disponíveis para o novo fragmento)
+        viewModel.receitaPorCliente.observe(viewLifecycleOwner) { receitaResponse ->
+            if (receitaResponse != null) {
+                LogUtils.info("FinancialFragment", "💰 Receita por cliente atualizada: ${receitaResponse.clientes.size} clientes")
+            }
+        }
+
+        // Observer para PDF gerado
+        viewModel.pdfGerado.observe(viewLifecycleOwner) { pdfResponse ->
+            if (pdfResponse.sucesso && !pdfResponse.urlDownload.isNullOrEmpty()) {
+                Toast.makeText(requireContext(), "PDF gerado: ${pdfResponse.nomeArquivo}", Toast.LENGTH_LONG).show()
+                // Aqui você pode implementar o download ou compartilhamento do PDF
             }
         }
     }
@@ -495,4 +539,66 @@ class FinancialFragment : Fragment() {
             }
             .show()
     }
+    
+
+    
+    /**
+     * Navega para o fragmento de receita por cliente
+     */
+    private fun navegarParaReceitaClientes() {
+        LogUtils.info("FinancialFragment", "📊 Navegando para receita por cliente...")
+        
+        try {
+            // Usar NavController para navegação
+            val navController = findNavController()
+            navController.navigate(R.id.action_financialFragment_to_receitaClientesFragment)
+                
+            LogUtils.debug("FinancialFragment", "✅ Navegação iniciada para ReceitaClientesFragment")
+        } catch (e: Exception) {
+            LogUtils.error("FinancialFragment", "❌ Erro na navegação: ${e.message}", e)
+            Toast.makeText(context, "Erro ao navegar para receita por cliente", Toast.LENGTH_SHORT).show()
+        }
+    }
+    
+    /**
+     * Verifica se deve mostrar a notificação explicativa
+     */
+    private fun verificarNotificacaoFinancial() {
+        val sharedPrefs = requireContext().getSharedPreferences("alg_gestao_notifications", Context.MODE_PRIVATE)
+        val notificacaoFechada = sharedPrefs.getBoolean("financial_explanation_closed", false)
+        
+        if (!notificacaoFechada) {
+            LogUtils.debug("FinancialFragment", "📢 Mostrando notificação explicativa")
+            cardNotificacaoFinancial.visibility = View.VISIBLE
+        } else {
+            LogUtils.debug("FinancialFragment", "🔕 Notificação já foi fechada pelo usuário")
+            cardNotificacaoFinancial.visibility = View.GONE
+        }
+    }
+    
+    /**
+     * Fecha a notificação explicativa com animação
+     */
+    private fun fecharNotificacaoFinancial() {
+        LogUtils.info("FinancialFragment", "🔕 Fechando notificação explicativa")
+        
+        // Animação de fade out
+        val fadeOut = android.view.animation.AnimationUtils.loadAnimation(requireContext(), android.R.anim.fade_out)
+        fadeOut.setAnimationListener(object : android.view.animation.Animation.AnimationListener {
+            override fun onAnimationStart(animation: android.view.animation.Animation?) {}
+            override fun onAnimationRepeat(animation: android.view.animation.Animation?) {}
+            override fun onAnimationEnd(animation: android.view.animation.Animation?) {
+                cardNotificacaoFinancial.visibility = View.GONE
+            }
+        })
+        
+        cardNotificacaoFinancial.startAnimation(fadeOut)
+        
+        // Salvar no SharedPreferences que foi fechada
+        val sharedPrefs = requireContext().getSharedPreferences("alg_gestao_notifications", Context.MODE_PRIVATE)
+        sharedPrefs.edit().putBoolean("financial_explanation_closed", true).apply()
+        
+        LogUtils.info("FinancialFragment", "✅ Notificação marcada como fechada permanentemente")
+    }
+
 } 

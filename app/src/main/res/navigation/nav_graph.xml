@@ -67,6 +67,16 @@
         android:id="@+id/financialFragment"
         android:name="com.example.alg_gestao_02.ui.financial.FinancialFragment"
         android:label="Financeiro"
-        tools:layout="@layout/fragment_financial" />
+        tools:layout="@layout/fragment_financial">
+        <action
+            android:id="@+id/action_financialFragment_to_receitaClientesFragment"
+            app:destination="@id/receitaClientesFragment" />
+    </fragment>
+
+    <fragment
+        android:id="@+id/receitaClientesFragment"
+        android:name="com.example.alg_gestao_02.ui.financial.ReceitaClientesFragment"
+        android:label="Receita por Cliente"
+        tools:layout="@layout/fragment_receita_clientes" />
 
 </navigation>

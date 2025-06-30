@@ -5,6 +5,12 @@ import com.example.alg_gestao_02.data.models.DashboardStats
 import com.example.alg_gestao_02.data.models.FinancialMetrics
 import com.example.alg_gestao_02.data.models.ProgressMetrics
 import com.example.alg_gestao_02.data.models.TaskMetrics
+import com.example.alg_gestao_02.data.models.ReceitaClienteResponse
+import com.example.alg_gestao_02.data.models.ResumoMensalCliente
+import com.example.alg_gestao_02.data.models.ConfirmarPagamentoRequest
+import com.example.alg_gestao_02.data.models.ConfirmarPagamentoResponse
+import com.example.alg_gestao_02.data.models.GerarPdfResumoRequest
+import com.example.alg_gestao_02.data.models.PdfResumoResponse
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import kotlinx.coroutines.delay
@@ -256,6 +262,202 @@ class DashboardRepository {
         } catch (e: Exception) {
             val totalTime = System.currentTimeMillis() - startTime
             LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR TAREFAS PENDENTES ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Busca receita mensal por cliente
+     * @return ReceitaClienteResponse com lista de receita por cliente
+     */
+    suspend fun getReceitaPorCliente(): ReceitaClienteResponse {
+        LogUtils.info("DashboardRepository", "💰 ========== INICIANDO BUSCA DE RECEITA POR CLIENTE ==========")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/receita-por-cliente")
+            
+            LogUtils.info("DashboardRepository", "📞 Fazendo requisição para receita por cliente...")
+            val response = apiService.getReceitaPorCliente()
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val receitaResponse = response.body()
+                if (receitaResponse != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== RECEITA POR CLIENTE OBTIDA ==========")
+                    LogUtils.info("DashboardRepository", "👥 Total de clientes: ${receitaResponse.totalClientes}")
+                    LogUtils.info("DashboardRepository", "💰 Total geral: R$ ${String.format("%.2f", receitaResponse.totalGeral)}")
+                    
+                    // Log dos top 5 clientes por receita
+                    val topClientes = receitaResponse.clientes.take(5)
+                    LogUtils.info("DashboardRepository", "🏆 TOP 5 CLIENTES POR RECEITA:")
+                    topClientes.forEachIndexed { index, cliente ->
+                        LogUtils.info("DashboardRepository", "   ${index + 1}. ${cliente.clienteNome}: ${cliente.getValorMensalFormatado()}")
+                    }
+                    
+                    return receitaResponse
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta da receita por cliente é nula!")
+                    throw Exception("Resposta da receita por cliente é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR RECEITA POR CLIENTE ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Busca resumo mensal detalhado de um cliente específico
+     * @param clienteId ID do cliente
+     * @param mesReferencia Mês de referência (formato: yyyy-MM)
+     * @return ResumoMensalCliente com dados detalhados
+     */
+    suspend fun getResumoMensalCliente(clienteId: Int, mesReferencia: String): ResumoMensalCliente {
+        LogUtils.info("DashboardRepository", "📊 ========== INICIANDO BUSCA DE RESUMO MENSAL ==========")
+        LogUtils.info("DashboardRepository", "👤 Cliente ID: $clienteId")
+        LogUtils.info("DashboardRepository", "📅 Mês: $mesReferencia")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/resumo-mensal-cliente/$clienteId?mes=$mesReferencia")
+            
+            val response = apiService.getResumoMensalCliente(clienteId, mesReferencia)
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val resumo = response.body()
+                if (resumo != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== RESUMO MENSAL OBTIDO ==========")
+                    LogUtils.info("DashboardRepository", "👤 Cliente: ${resumo.clienteNome}")
+                    LogUtils.info("DashboardRepository", "💰 Valor mensal: ${resumo.getValorMensalFormatado()}")
+                    LogUtils.info("DashboardRepository", "💳 Status pagamento: ${resumo.statusPagamento}")
+                    LogUtils.info("DashboardRepository", "📋 Contratos ativos: ${resumo.contratosAtivos}")
+                    LogUtils.info("DashboardRepository", "📦 Devoluções no mês: ${resumo.devolucoesMes}")
+                    
+                    return resumo
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta do resumo mensal é nula!")
+                    throw Exception("Resposta do resumo mensal é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO BUSCAR RESUMO MENSAL ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Confirma pagamento de um cliente
+     * @param request Dados da confirmação de pagamento
+     * @return ConfirmarPagamentoResponse com resultado da operação
+     */
+    suspend fun confirmarPagamento(request: ConfirmarPagamentoRequest): ConfirmarPagamentoResponse {
+        LogUtils.info("DashboardRepository", "💳 ========== CONFIRMANDO PAGAMENTO ==========")
+        LogUtils.info("DashboardRepository", "👤 Cliente ID: ${request.clienteId}")
+        LogUtils.info("DashboardRepository", "📅 Mês: ${request.mesReferencia}")
+        LogUtils.info("DashboardRepository", "💰 Valor: R$ ${String.format("%.2f", request.valorPago)}")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/confirmar-pagamento")
+            
+            val response = apiService.confirmarPagamento(request)
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val confirmacao = response.body()
+                if (confirmacao != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== PAGAMENTO CONFIRMADO ==========")
+                    LogUtils.info("DashboardRepository", "✅ Sucesso: ${confirmacao.sucesso}")
+                    LogUtils.info("DashboardRepository", "📝 Mensagem: ${confirmacao.mensagem}")
+                    
+                    return confirmacao
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta da confirmação é nula!")
+                    throw Exception("Resposta da confirmação é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO CONFIRMAR PAGAMENTO ==========")
+            LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
+            LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
+            
+            throw e
+        }
+    }
+
+    /**
+     * Gera PDF de resumo mensal
+     * @param request Parâmetros para geração do PDF
+     * @return PdfResumoResponse com informações do PDF gerado
+     */
+    suspend fun gerarPdfResumoMensal(request: GerarPdfResumoRequest): PdfResumoResponse {
+        LogUtils.info("DashboardRepository", "📄 ========== GERANDO PDF RESUMO MENSAL ==========")
+        LogUtils.info("DashboardRepository", "📅 Mês: ${request.mesReferencia}")
+        LogUtils.info("DashboardRepository", "👥 Clientes: ${request.clienteIds?.size ?: "todos"}")
+        LogUtils.info("DashboardRepository", "📋 Tipo: ${request.tipoRelatorio}")
+        
+        val startTime = System.currentTimeMillis()
+        
+        try {
+            LogUtils.debug("DashboardRepository", "📡 Endpoint: ${ApiClient.getBaseUrl()}api/dashboard/gerar-pdf-resumo-mensal")
+            
+            val response = apiService.gerarPdfResumoMensal(request)
+            
+            val requestTime = System.currentTimeMillis() - startTime
+            LogUtils.info("DashboardRepository", "⏱️ Tempo de resposta: ${requestTime}ms")
+            
+            if (response.isSuccessful) {
+                val pdfResponse = response.body()
+                if (pdfResponse != null) {
+                    LogUtils.info("DashboardRepository", "✅ ========== PDF GERADO COM SUCESSO ==========")
+                    LogUtils.info("DashboardRepository", "📄 Arquivo: ${pdfResponse.nomeArquivo}")
+                    LogUtils.info("DashboardRepository", "💾 Tamanho: ${pdfResponse.tamanhoArquivo} bytes")
+                    LogUtils.info("DashboardRepository", "🔗 URL: ${pdfResponse.urlDownload}")
+                    
+                    return pdfResponse
+                } else {
+                    LogUtils.error("DashboardRepository", "❌ ERRO: Resposta da geração de PDF é nula!")
+                    throw Exception("Resposta da geração de PDF é nula")
+                }
+            } else {
+                LogUtils.error("DashboardRepository", "❌ Erro HTTP ${response.code()}: ${response.message()}")
+                throw Exception("Erro HTTP ${response.code()}: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            val totalTime = System.currentTimeMillis() - startTime
+            LogUtils.error("DashboardRepository", "❌ ========== ERRO AO GERAR PDF ==========")
             LogUtils.error("DashboardRepository", "⏱️ Tempo total: ${totalTime}ms")
             LogUtils.error("DashboardRepository", "📝 Mensagem: ${e.message}")
             

@@ -32,6 +32,7 @@ class DashboardFragment : Fragment() {
     
     private lateinit var viewModel: DashboardViewModel
     private lateinit var swipeRefresh: SwipeRefreshLayout
+    private lateinit var loadingOverlay: View
     
     // TextViews para exibir as contagens (seção estatísticas rápidas)
     private lateinit var tvContratosCount: TextView
@@ -101,6 +102,9 @@ class DashboardFragment : Fragment() {
     
     private fun initViews(view: View) {
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
+        
+        // Inicializar loading overlay
+        loadingOverlay = requireActivity().findViewById(R.id.loadingOverlay)
         
         // Estatísticas rápidas (seção de visão geral)
         tvContratosCount = view.findViewById(R.id.tvContratosCount)
@@ -314,11 +318,13 @@ class DashboardFragment : Fragment() {
             when (state) {
                 is UiState.Loading -> {
                     LogUtils.info("DashboardFragment", "⏳ CARREGANDO dados do dashboard...")
-                    LogUtils.debug("DashboardFragment", "📱 Mantendo indicador de carregamento visível")
+                    LogUtils.debug("DashboardFragment", "📱 Exibindo loading overlay...")
+                    loadingOverlay.visibility = View.VISIBLE
                 }
                 
                 is UiState.Success -> {
                     LogUtils.info("DashboardFragment", "✅ SUCESSO: Dados do dashboard carregados!")
+                    loadingOverlay.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
                     LogUtils.debug("DashboardFragment", "🔄 SwipeRefresh desabilitado")
                     LogUtils.debug("DashboardFragment", "📊 Dados recebidos: ${state.data}")
@@ -327,6 +333,7 @@ class DashboardFragment : Fragment() {
                 is UiState.Error -> {
                     LogUtils.error("DashboardFragment", "❌ ERRO ao carregar dashboard:")
                     LogUtils.error("DashboardFragment", "📝 Mensagem de erro: ${state.message}")
+                    loadingOverlay.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
                     LogUtils.debug("DashboardFragment", "🔄 SwipeRefresh desabilitado")
                     LogUtils.debug("DashboardFragment", "🚨 Exibindo toast de erro para o usuário")
@@ -335,6 +342,7 @@ class DashboardFragment : Fragment() {
                 
                 else -> {
                     LogUtils.debug("DashboardFragment", "❓ Estado desconhecido: ${state}")
+                    loadingOverlay.visibility = View.GONE
                     swipeRefresh.isRefreshing = false
                 }
             }

@@ -21,6 +21,8 @@ import retrofit2.http.PUT
 import retrofit2.http.Path
 import com.google.gson.annotations.SerializedName
 import com.example.alg_gestao_02.data.models.Assinatura
+import com.example.alg_gestao_02.data.models.GerarPdfResumoRequest
+import com.example.alg_gestao_02.data.models.PdfResumoResponse
 
 data class AssinaturaApiRequest(
     val base64Data: String,
@@ -253,6 +255,46 @@ interface ApiService {
      */
     @GET("api/dashboard/task-metrics")
     suspend fun getTaskMetrics(): Response<TaskMetrics>
+
+    /**
+     * Endpoint para obter receita mensal por cliente
+     * @return Response com lista de receita por cliente
+     */
+    @GET("api/dashboard/receita-por-cliente")
+    suspend fun getReceitaPorCliente(): Response<com.example.alg_gestao_02.data.models.ReceitaClienteResponse>
+
+    /**
+     * Endpoint para obter resumo mensal detalhado de um cliente específico
+     * @param clienteId ID do cliente
+     * @param mesReferencia Mês de referência (formato: yyyy-MM)
+     * @return Response com resumo mensal detalhado
+     */
+    @GET("api/dashboard/resumo-mensal-cliente/{clienteId}")
+    suspend fun getResumoMensalCliente(
+        @Path("clienteId") clienteId: Int,
+        @Query("mes") mesReferencia: String
+    ): Response<com.example.alg_gestao_02.data.models.ResumoMensalCliente>
+
+    /**
+     * Endpoint para confirmar pagamento de um cliente
+     * @param request Dados da confirmação de pagamento
+     * @return Response com confirmação
+     */
+    @POST("api/dashboard/confirmar-pagamento")
+    suspend fun confirmarPagamento(
+        @Body request: com.example.alg_gestao_02.data.models.ConfirmarPagamentoRequest
+    ): Response<com.example.alg_gestao_02.data.models.ConfirmarPagamentoResponse>
+
+    /**
+     * Endpoint para gerar PDF de relatório mensal por cliente
+     * @param mesReferencia Mês de referência (formato: yyyy-MM)
+     * @param clienteIds IDs dos clientes (opcional - se não fornecido, inclui todos)
+     * @return Response com dados do PDF gerado
+     */
+    @POST("api/dashboard/gerar-pdf-resumo-mensal")
+    suspend fun gerarPdfResumoMensal(
+        @Body request: GerarPdfResumoRequest
+    ): Response<PdfResumoResponse>
 
     /**
      * Classe para requisição de login

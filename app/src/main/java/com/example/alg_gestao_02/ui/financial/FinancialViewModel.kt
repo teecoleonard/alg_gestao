@@ -6,10 +6,17 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.alg_gestao_02.data.models.FinancialMetrics
 import com.example.alg_gestao_02.data.models.ProgressMetrics
+import com.example.alg_gestao_02.data.models.ReceitaClienteResponse
+import com.example.alg_gestao_02.data.models.ResumoMensalCliente
+import com.example.alg_gestao_02.data.models.ConfirmarPagamentoRequest
+import com.example.alg_gestao_02.data.models.ConfirmarPagamentoResponse
+import com.example.alg_gestao_02.data.models.GerarPdfResumoRequest
+import com.example.alg_gestao_02.data.models.PdfResumoResponse
 import com.example.alg_gestao_02.data.repository.DashboardRepository
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.launch
+import java.text.SimpleDateFormat
 import java.util.*
 
 /**
@@ -28,6 +35,22 @@ class FinancialViewModel(private val repository: DashboardRepository = Dashboard
     // LiveData para métricas de progresso
     private val _progressMetrics = MutableLiveData<ProgressMetrics>()
     val progressMetrics: LiveData<ProgressMetrics> = _progressMetrics
+    
+    // LiveData para receita por cliente
+    private val _receitaPorCliente = MutableLiveData<ReceitaClienteResponse>()
+    val receitaPorCliente: LiveData<ReceitaClienteResponse> = _receitaPorCliente
+    
+    // LiveData para resumo mensal de cliente específico
+    private val _resumoMensalCliente = MutableLiveData<ResumoMensalCliente>()
+    val resumoMensalCliente: LiveData<ResumoMensalCliente> = _resumoMensalCliente
+    
+    // LiveData para confirmação de pagamento
+    private val _confirmacaoPagamento = MutableLiveData<ConfirmarPagamentoResponse>()
+    val confirmacaoPagamento: LiveData<ConfirmarPagamentoResponse> = _confirmacaoPagamento
+    
+    // LiveData para geração de PDF
+    private val _pdfGerado = MutableLiveData<PdfResumoResponse>()
+    val pdfGerado: LiveData<PdfResumoResponse> = _pdfGerado
     
     // Meta personalizada (em produção, seria salva no servidor)
     private var metaPersonalizada: Double? = null
@@ -74,6 +97,14 @@ class FinancialViewModel(private val repository: DashboardRepository = Dashboard
                     null
                 }
                 
+                // Carregar receita por cliente
+                val receitaCliente = try {
+                    repository.getReceitaPorCliente()
+                } catch (e: Exception) {
+                    LogUtils.warning("FinancialViewModel", "⚠️ Erro ao carregar receita por cliente: ${e.message}")
+                    null
+                }
+                
                 val loadTime = System.currentTimeMillis() - startTime
                 LogUtils.info("FinancialViewModel", "⏱️ Tempo total de carregamento: ${loadTime}ms")
                 
@@ -86,6 +117,11 @@ class FinancialViewModel(private val repository: DashboardRepository = Dashboard
                 if (progressMetrics != null) {
                     LogUtils.info("FinancialViewModel", "📊 Métricas de progresso carregadas com sucesso!")
                     _progressMetrics.value = progressMetrics
+                }
+                
+                if (receitaCliente != null) {
+                    LogUtils.info("FinancialViewModel", "👥 Receita por cliente carregada com sucesso!")
+                    _receitaPorCliente.value = receitaCliente
                 }
                 
                 _uiState.value = UiState.Success("Dados carregados com sucesso")
@@ -232,5 +268,123 @@ class FinancialViewModel(private val repository: DashboardRepository = Dashboard
         } else {
             0.0
         }
+    }
+    
+    /**
+     * Busca resumo mensal detalhado de um cliente
+     */
+    fun buscarResumoMensalCliente(clienteId: Int, mesReferencia: String? = null) {
+        LogUtils.info("FinancialViewModel", "📊 ========== BUSCANDO RESUMO MENSAL DO CLIENTE ==========")
+        LogUtils.info("FinancialViewModel", "👤 Cliente ID: $clienteId")
+        
+        val mes = mesReferencia ?: SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+        LogUtils.info("FinancialViewModel", "📅 Mês: $mes")
+        
+        _uiState.value = UiState.Loading()
+        
+        viewModelScope.launch {
+            try {
+                val resumo = repository.getResumoMensalCliente(clienteId, mes)
+                
+                LogUtils.info("FinancialViewModel", "✅ Resumo mensal carregado com sucesso!")
+                _resumoMensalCliente.value = resumo
+                _uiState.value = UiState.Success("Resumo carregado com sucesso")
+                
+            } catch (e: Exception) {
+                LogUtils.error("FinancialViewModel", "❌ Erro ao buscar resumo mensal: ${e.message}")
+                _uiState.value = UiState.Error("Erro ao carregar resumo: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Confirma pagamento de um cliente
+     */
+    fun confirmarPagamento(
+        clienteId: Int,
+        mesReferencia: String,
+        valorPago: Double,
+        observacoes: String? = null
+    ) {
+        LogUtils.info("FinancialViewModel", "💳 ========== CONFIRMANDO PAGAMENTO ==========")
+        LogUtils.info("FinancialViewModel", "👤 Cliente ID: $clienteId")
+        LogUtils.info("FinancialViewModel", "💰 Valor: R$ ${String.format("%.2f", valorPago)}")
+        
+        _uiState.value = UiState.Loading()
+        
+        viewModelScope.launch {
+            try {
+                val request = ConfirmarPagamentoRequest(
+                    clienteId = clienteId,
+                    mesReferencia = mesReferencia,
+                    valorPago = valorPago,
+                    dataPagamento = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()),
+                    observacoes = observacoes
+                )
+                
+                val response = repository.confirmarPagamento(request)
+                
+                LogUtils.info("FinancialViewModel", "✅ Pagamento confirmado com sucesso!")
+                _confirmacaoPagamento.value = response
+                
+                // Atualizar resumo do cliente se disponível
+                if (response.resumoAtualizado != null) {
+                    _resumoMensalCliente.value = response.resumoAtualizado
+                }
+                
+                _uiState.value = UiState.Success("Pagamento confirmado")
+                
+            } catch (e: Exception) {
+                LogUtils.error("FinancialViewModel", "❌ Erro ao confirmar pagamento: ${e.message}")
+                _uiState.value = UiState.Error("Erro ao confirmar pagamento: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Gera PDF de resumo mensal
+     */
+    fun gerarPdfResumoMensal(
+        mesReferencia: String? = null,
+        clienteIds: List<Int>? = null,
+        tipoRelatorio: String = "COMPLETO"
+    ) {
+        LogUtils.info("FinancialViewModel", "📄 ========== GERANDO PDF RESUMO MENSAL ==========")
+        
+        val mes = mesReferencia ?: SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
+        LogUtils.info("FinancialViewModel", "📅 Mês: $mes")
+        LogUtils.info("FinancialViewModel", "👥 Clientes: ${clienteIds?.size ?: "todos"}")
+        
+        _uiState.value = UiState.Loading()
+        
+        viewModelScope.launch {
+            try {
+                val request = GerarPdfResumoRequest(
+                    mesReferencia = mes,
+                    clienteIds = clienteIds,
+                    incluirDetalhes = true,
+                    tipoRelatorio = tipoRelatorio
+                )
+                
+                val response = repository.gerarPdfResumoMensal(request)
+                
+                LogUtils.info("FinancialViewModel", "✅ PDF gerado com sucesso!")
+                LogUtils.info("FinancialViewModel", "📄 Arquivo: ${response.nomeArquivo}")
+                
+                _pdfGerado.value = response
+                _uiState.value = UiState.Success("PDF gerado com sucesso")
+                
+            } catch (e: Exception) {
+                LogUtils.error("FinancialViewModel", "❌ Erro ao gerar PDF: ${e.message}")
+                _uiState.value = UiState.Error("Erro ao gerar PDF: ${e.message}")
+            }
+        }
+    }
+
+    /**
+     * Limpa o resumo mensal atual
+     */
+    fun limparResumoMensal() {
+        _resumoMensalCliente.value = null
     }
 } 

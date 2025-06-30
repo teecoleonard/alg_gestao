@@ -143,6 +143,12 @@
             app:defaultNavHost="true"
             app:navGraph="@navigation/nav_graph" />
 
+        <!-- Loading Overlay -->
+        <include
+            android:id="@+id/loadingOverlay"
+            layout="@layout/loading_overlay"
+            android:visibility="gone" />
+
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 
     <com.google.android.material.navigation.NavigationView
