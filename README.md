@@ -91,6 +91,8 @@
 
 ### 💰 **Módulo Financeiro**
 - Dashboard com métricas em tempo real
+- Receita por cliente com filtros avançados (nome, status de pagamento)
+- Notificações educativas para diferenças entre valor bruto vs receita real
 - Relatórios detalhados e análise de tendências
 - Geração de PDFs e exportação de dados
 
@@ -107,6 +109,7 @@
 
 ### 🔔 **Notificações**
 - Sistema inteligente para eventos importantes
+- Notificações educativas não intrusivas para explicar funcionalidades
 - Painel no drawer com contadores e histórico
 - Controle individual e em lote
 
@@ -119,7 +122,7 @@
 - **Arquitetura**: MVVM (Model-View-ViewModel)
 - **Interface**: Material 3 Design + View Binding
 - **Banco Local**: Room Database com TypeConverters
-- **API**: Retrofit + OkHttp + Gson
+- **API**: Retrofit + OkHttp + Gson com tratamento robusto de erros
 - **Navegação**: Navigation Component + Safe Args
 
 ### **Libraries & Components**
@@ -244,6 +247,7 @@ app/src/main/java/com.example.alg_gestao_02/
 │   │
 │   ├── 💰 financial/                       # Módulo financeiro
 │   │   ├── FinancialFragment.kt             # Dashboard financeiro
+│   │   ├── ReceitaClientesFragment.kt       # Receita por cliente com filtros
 │   │   ├── ReportFragment.kt                # Relatórios
 │   │   └── viewmodel/                       # ViewModels financeiros
 │   │
@@ -395,5 +399,5 @@ Este projeto está licenciado sob a **MIT License** - veja o arquivo [LICENSE](L
   <p><em>Transformando a gestão de equipamentos com tecnologia moderna</em></p>
   
   [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/teecoleonard/alg_gestao)
-  [![Version](https://img.shields.io/badge/Version-0.0.0-blue.svg)](https://github.com/teecoleonard/alg_gestao/releases)
+  [![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](https://github.com/teecoleonard/alg_gestao/releases)
 </div>
