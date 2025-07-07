@@ -1,4 +1,4 @@
-﻿# 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
+# 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
 
 [![Android](https://img.shields.io/badge/Android-7.0%2B-green.svg)](https://developer.android.com/about/versions/nougat/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
@@ -76,13 +76,13 @@ Nova interface para escolha de período antes de abrir relatórios:
 ### **Interface Principal do Sistema**
 
 <div align="center">
-  <img src="screenshots/dashboard.jpg" width="300" alt="Dashboard Principal"/>
-  <img src="screenshots/gestao_financeira.jpg" width="300" alt="Gestão Financeira"/>
+  <img src="screenshots/dashboard.jpg" width="300" alt="Dashboard Principal" style="margin: 10px;"/>
+  <img src="screenshots/gestao_financeira.jpg" width="300" alt="Gestão Financeira" style="margin: 10px;"/>
 </div>
 
 <div align="center">
-  <img src="screenshots/detalhes_cliente.jpg" width="300" alt="Detalhes do Cliente"/>
-  <img src="screenshots/visualizador_pdf.jpg" width="300" alt="Visualizador de PDF"/>
+  <img src="screenshots/detalhes_cliente.jpg" width="300" alt="Detalhes do Cliente" style="margin: 10px;"/>
+  <img src="screenshots/visualizador_pdf.jpg" width="300" alt="Visualizador de PDF" style="margin: 10px;"/>
 </div>
 
 ### **Funcionalidades em Destaque**
