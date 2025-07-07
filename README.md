@@ -1,4 +1,4 @@
-﻿# 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
+# 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
 
 [![Android](https://img.shields.io/badge/Android-7.0%2B-green.svg)](https://developer.android.com/about/versions/nougat/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
@@ -75,21 +75,30 @@ Nova interface para escolha de período antes de abrir relatórios:
 
 ### **Interface Principal do Sistema**
 
-<div align="center">
-  <img src="screenshots/dashboard.png" width="300" alt="Dashboard Principal"/>
-  <img src="screenshots/gestao_financeira.png" width="300" alt="Gestão Financeira"/>
-</div>
-
-<div align="center">
-  <img src="screenshots/detalhes_cliente.png" width="300" alt="Detalhes do Cliente"/>
-  <img src="screenshots/visualizador_pdf.png" width="300" alt="Visualizador de PDF"/>
-</div>
-
-### **Funcionalidades em Destaque**
-- **📊 Dashboard**: Visão completa com métricas em tempo real
-- **💰 Gestão Financeira**: Filtros por período e análises detalhadas  
-- **👤 Detalhes do Cliente**: Histórico completo e contratos associados
-- **📄 Visualizador PDF**: Contratos e relatórios integrados
+<table>
+  <tr>
+    <td align="center" width="25%">
+      <h4>📊 Dashboard</h4>
+      <img src="screenshots/dashboard.jpg" width="200" alt="Dashboard Principal"/>
+      <p><em>Visão completa com métricas em tempo real</em></p>
+    </td>
+    <td align="center" width="25%">
+      <h4>💰 Gestão Financeira</h4>
+      <img src="screenshots/gestao_financeira.jpg" width="200" alt="Gestão Financeira"/>
+      <p><em>Filtros por período e análises detalhadas</em></p>
+    </td>
+    <td align="center" width="25%">
+      <h4>👤 Detalhes do Cliente</h4>
+      <img src="screenshots/detalhes_cliente.jpg" width="200" alt="Detalhes do Cliente"/>
+      <p><em>Histórico completo e contratos associados</em></p>
+    </td>
+    <td align="center" width="25%">
+      <h4>📄 Visualizador PDF</h4>
+      <img src="screenshots/visualizador_pdf.jpg" width="200" alt="Visualizador de PDF"/>
+      <p><em>Contratos e relatórios integrados</em></p>
+    </td>
+  </tr>
+</table>
 
 ---
 
