@@ -209,8 +209,3 @@ Este projeto está licenciado sob a **MIT License** - veja [LICENSE](LICENSE) pa
 💼 [LinkedIn](https://www.linkedin.com/in/leonardohenriquedejesussilva/)
 
 ---
-
-<div align="center">  
-  [![Build Status](https://img.shields.io/badge/Build-Passing-brightgreen.svg)](https://github.com/teecoleonard/alg_gestao)
-  [![Status](https://img.shields.io/badge/Status-Em%20Produção-success.svg)](#)
-</div>
