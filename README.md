@@ -1,4 +1,9 @@
 # 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
+<div align="center">  
+<img src="https://github.com/user-attachments/assets/5a1e1c17-e49e-42a2-ac19-b44cd879509a" alt="Logo ALG"/>
+</div>
+
+---
 
 [![Android](https://img.shields.io/badge/Android-7.0%2B-green.svg)](https://developer.android.com/about/versions/nougat/)
 [![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
