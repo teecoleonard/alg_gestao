@@ -181,4 +181,4 @@ e este projeto adere ao [Semantic Versioning](https://semver.org/lang/pt-BR/).
 ---
 
 **Última atualização**: 07 de Julho de 2025  
-**Próxima release planejada**: 2.2.0 (Novembro 2025) 
+**Próxima release planejada**: 2.2.0 (Outubro 2025) 
