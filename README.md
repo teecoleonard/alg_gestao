@@ -173,7 +173,7 @@ Este projeto está licenciado sob a **MIT License** - veja [LICENSE](LICENSE) pa
 ## 👨‍💻 Autor
 
 **Leonardo Henrique**  
-📧 [leonardo4q@example.com](mailto:leonardo4q@example.com)  
+📧 [leonardo4q@example.com](mailto:leonardo4q@gmail.com)  
 🐙 [@teecoleonard](https://github.com/teecoleonard)  
 💼 [LinkedIn](https://www.linkedin.com/in/leonardohenriquedejesussilva/)
 
