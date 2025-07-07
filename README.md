@@ -1,5 +1,5 @@
 # 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
-<div align="center">  
+<div align="left">  
 <img src="https://github.com/user-attachments/assets/5a1e1c17-e49e-42a2-ac19-b44cd879509a" alt="Logo ALG"/>
 </div>
 
