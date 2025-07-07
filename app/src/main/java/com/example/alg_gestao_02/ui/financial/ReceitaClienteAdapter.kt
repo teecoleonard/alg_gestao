@@ -1,19 +1,19 @@
 package com.example.alg_gestao_02.ui.financial
 
-import android.content.Intent
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.TextView
+import androidx.core.content.ContextCompat
 import androidx.recyclerview.widget.RecyclerView
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.ReceitaCliente
 import com.example.alg_gestao_02.utils.LogUtils
-import com.google.android.material.button.MaterialButton
 
 class ReceitaClienteAdapter(
     private var receitaClientes: List<ReceitaCliente> = emptyList(),
-    private val onItemClick: ((ReceitaCliente) -> Unit)? = null
+    private var mesReferencia: String? = null,
+    private var onClienteClicked: ((ReceitaCliente) -> Unit)? = null
 ) : RecyclerView.Adapter<ReceitaClienteAdapter.ReceitaClienteViewHolder>() {
 
     class ReceitaClienteViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
@@ -22,7 +22,6 @@ class ReceitaClienteAdapter(
         val tvContratosAtivos: TextView = itemView.findViewById(R.id.tvContratosAtivos)
         val tvTicketMedio: TextView = itemView.findViewById(R.id.tvTicketMedio)
         val tvParticipacao: TextView = itemView.findViewById(R.id.tvParticipacao)
-        val btnVerDetalhes: MaterialButton = itemView.findViewById(R.id.btnVerDetalhes)
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ReceitaClienteViewHolder {
@@ -44,25 +43,26 @@ class ReceitaClienteAdapter(
         val participacao = receita.calcularParticipacao(totalGeral)
         holder.tvParticipacao.text = "${String.format("%.1f", participacao)}% do total"
         
-        // Click listener para o card inteiro (dialog de detalhes)
+        // Click listener para o card inteiro - chama callback ou abre resumo
         holder.itemView.setOnClickListener {
-            LogUtils.debug("ReceitaClienteAdapter", "Card clicado: ${receita.clienteNome}")
-            onItemClick?.invoke(receita)
-        }
-        
-        // Click listener para o botão "Ver Resumo Detalhado"
-        holder.btnVerDetalhes.setOnClickListener {
-            LogUtils.debug("ReceitaClienteAdapter", "Botão Ver Detalhes clicado: ${receita.clienteNome}")
+            LogUtils.debug("ReceitaClienteAdapter", "Card clicado: ${receita.clienteNome} - verificando callback")
             
-            // Navegar para ResumoMensalClienteActivity
-            val context = holder.itemView.context
-            val intent = ResumoMensalClienteActivity.newIntent(
-                context = context,
-                clienteId = receita.clienteId,
-                mesReferencia = null, // Usar mês atual
-                clienteNome = receita.clienteNome
-            )
-            context.startActivity(intent)
+            if (onClienteClicked != null) {
+                // Usar callback se disponível (novo fluxo com dialog)
+                LogUtils.debug("ReceitaClienteAdapter", "Usando callback - dialog será mostrado")
+                onClienteClicked?.invoke(receita)
+            } else {
+                // Fallback para comportamento antigo (compatibilidade)
+                LogUtils.debug("ReceitaClienteAdapter", "Fallback - navegação direta")
+                val context = holder.itemView.context
+                val intent = ResumoMensalClienteActivity.newIntent(
+                    context = context,
+                    clienteId = receita.clienteId,
+                    mesReferencia = null,
+                    clienteNome = receita.clienteNome
+                )
+                context.startActivity(intent)
+            }
         }
     }
 
@@ -72,5 +72,16 @@ class ReceitaClienteAdapter(
         LogUtils.debug("ReceitaClienteAdapter", "Atualizando lista de receitas: ${newReceitas.size} itens")
         receitaClientes = newReceitas
         notifyDataSetChanged()
+    }
+    
+    fun updatePeriodo(novoMesReferencia: String?) {
+        LogUtils.debug("ReceitaClienteAdapter", "Atualizando período de referência: $novoMesReferencia")
+        mesReferencia = novoMesReferencia
+        // Não precisa notifyDataSetChanged aqui pois não afeta a UI visível
+    }
+    
+    fun setOnClienteClickListener(listener: (ReceitaCliente) -> Unit) {
+        LogUtils.debug("ReceitaClienteAdapter", "Configurando listener de clique do cliente")
+        onClienteClicked = listener
     }
 } 

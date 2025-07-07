@@ -5,6 +5,7 @@ import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.View
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -13,10 +14,8 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.ResumoMensalCliente
 import com.example.alg_gestao_02.databinding.ActivityResumoMensalClienteBinding
-import com.example.alg_gestao_02.databinding.DialogConfirmarPagamentoBinding
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
-import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -36,6 +35,9 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
     private var clienteId: Int = 0
     private var mesReferencia: String = ""
     private var resumoAtual: ResumoMensalCliente? = null
+    
+    // Controle de filtros
+    private var filtroExpandido: Boolean = false
 
     companion object {
         const val EXTRA_CLIENTE_ID = "cliente_id"
@@ -43,9 +45,11 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         const val EXTRA_CLIENTE_NOME = "cliente_nome"
 
         fun newIntent(context: Context, clienteId: Int, mesReferencia: String? = null, clienteNome: String? = null): Intent {
+            // Se mesReferencia é null, usar mês atual como padrão
+            val mesDefault = mesReferencia ?: SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date())
             return Intent(context, ResumoMensalClienteActivity::class.java).apply {
                 putExtra(EXTRA_CLIENTE_ID, clienteId)
-                putExtra(EXTRA_MES_REFERENCIA, mesReferencia ?: SimpleDateFormat("yyyy-MM", Locale.getDefault()).format(Date()))
+                putExtra(EXTRA_MES_REFERENCIA, mesDefault)
                 putExtra(EXTRA_CLIENTE_NOME, clienteNome)
             }
         }
@@ -65,6 +69,7 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         setupViewModel()
         setupToolbar()
         setupRecyclerViews()
+        setupPeriodSelectors()
         setupClickListeners()
         setupObservers()
         
@@ -123,6 +128,21 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
     }
 
     private fun setupClickListeners() {
+        // Expandir/Contrair filtro
+        binding.layoutHeaderFiltro.setOnClickListener {
+            toggleFiltroExpansao()
+        }
+        
+        // Aplicar filtro
+        binding.btnAplicarFiltro.setOnClickListener {
+            aplicarFiltroPeriodo()
+        }
+        
+        // Mês atual
+        binding.btnMesAtual.setOnClickListener {
+            irParaMesAtual()
+        }
+        
         // Expandir/Contrair contratos
         binding.cardContratos.setOnClickListener {
             toggleVisibilidade(binding.rvContratos, binding.ivExpandContratos)
@@ -131,13 +151,6 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         // Expandir/Contrair devoluções
         binding.cardDevolucoes.setOnClickListener {
             toggleVisibilidade(binding.rvDevolucoes, binding.ivExpandDevolucoes)
-        }
-        
-        // Confirmar pagamento
-        binding.btnConfirmarPagamento.setOnClickListener {
-            resumoAtual?.let { resumo ->
-                mostrarDialogConfirmarPagamento(resumo)
-            }
         }
         
         // Gerar PDF
@@ -182,14 +195,7 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
             atualizarInterface(resumo)
         }
         
-        // Observer para confirmação de pagamento
-        viewModel.confirmacaoPagamento.observe(this) { confirmacao ->
-            LogUtils.info("ResumoMensalClienteActivity", "💳 Pagamento confirmado: ${confirmacao.sucesso}")
-            if (confirmacao.sucesso) {
-                // Recarregar dados
-                carregarResumoMensal()
-            }
-        }
+
         
         // Observer para PDF gerado
         viewModel.pdfGerado.observe(this) { pdfResponse ->
@@ -209,24 +215,23 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         LogUtils.info("ResumoMensalClienteActivity", "🏷️ Definindo nome inicial: '$nomeInicial'")
         binding.tvNomeCliente.text = nomeInicial
         
-        // Definir mês de referência formatado
+        // Definir mês de referência formatado (usar formatação consistente)
         try {
-            val formato = SimpleDateFormat("yyyy-MM", Locale.getDefault())
+            val localeBR = Locale("pt", "BR")
+            val formato = SimpleDateFormat("yyyy-MM", localeBR)
             val data = formato.parse(mesReferencia)
-            val formatoExibicao = SimpleDateFormat("MMMM/yyyy", Locale("pt", "BR"))
-            binding.tvMesReferencia.text = data?.let { formatoExibicao.format(it) } ?: mesReferencia
+            val formatoExibicao = SimpleDateFormat("MMMM/yyyy", localeBR)
+            val mesFormatado = data?.let { formatoExibicao.format(it) } ?: mesReferencia
+            binding.tvMesReferencia.text = mesFormatado
+            LogUtils.debug("ResumoMensalClienteActivity", "🗓️ Mês inicial formatado: '$mesReferencia' → '$mesFormatado'")
         } catch (e: Exception) {
+            LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao formatar mês inicial: ${e.message}")
             binding.tvMesReferencia.text = mesReferencia
         }
         
         // Definir valores padrão enquanto carrega (sem texto "Carregando")
         binding.tvValorMensal.text = "R$ --,--"
         binding.tvValorDevolucoes.text = "R$ --,--"
-        binding.tvValorTotal.text = "R$ --,--"
-        
-        // Status padrão
-        binding.chipStatusPagamento.text = "AGUARDE"
-        binding.chipStatusPagamento.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.text_secondary)
     }
 
     private fun carregarResumoMensal() {
@@ -241,6 +246,7 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         }
 
         LogUtils.info("ResumoMensalClienteActivity", "🔄 Atualizando interface...")
+        LogUtils.info("ResumoMensalClienteActivity", "🔍 Filtro aplicado: '$mesReferencia' | API retornou: '${resumo.mesReferencia}'")
 
         // Header do cliente - usar nome dos extras como fallback
         val nomeClienteExtra = intent.getStringExtra(EXTRA_CLIENTE_NOME)
@@ -253,51 +259,190 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
         LogUtils.info("ResumoMensalClienteActivity", "👤 Nome do cliente: API='${resumo.clienteNome}', Extra='$nomeClienteExtra', Final='$nomeCliente'")
         
         binding.tvNomeCliente.text = nomeCliente
-        binding.tvMesReferencia.text = resumo.getMesReferenciaFormatado()
         
-        // Valores principais
-        binding.tvValorMensal.text = resumo.getValorMensalFormatado()
-        binding.tvValorDevolucoes.text = resumo.getValorDevolucoesFormatado()
-        binding.tvValorTotal.text = resumo.getValorTotalPagarFormatado()
+        // Usar sempre o mês de referência aplicado pelo filtro (não o da API)
+        val mesFormatadoFiltro = formatarMesReferencia(mesReferencia)
+        LogUtils.info("ResumoMensalClienteActivity", "📅 Forçando exibição do mês filtrado: '$mesReferencia' → '$mesFormatadoFiltro'")
+        binding.tvMesReferencia.text = mesFormatadoFiltro
         
-        // Status de pagamento
-        setupStatusPagamento(resumo)
+        // VALIDAÇÃO: Verificar se os dados são realmente do período solicitado
+        val dadosValidados = validarEFiltrarDadosPorPeriodo(resumo, mesReferencia)
         
-        // Estatísticas do mês
-        binding.tvContratosAtivos.text = resumo.contratosAtivos.toString()
-        binding.tvNovoContratos.text = resumo.contratosMes.toString()
-        binding.tvDevolucoesMes.text = resumo.devolucoesMes.toString()
-        binding.tvTicketMedio.text = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(resumo.ticketMedio)
+        if (dadosValidados.isEmpty) {
+            // Mostrar estado vazio para o período
+            exibirEstadoVazio(mesFormatadoFiltro)
+            return
+        }
         
-        // Listas
-        contratosAdapter.submitList(resumo.contratosDetalhes)
-        devolucoesAdapter.submitList(resumo.devolucoesDetalhes)
+        // Exibir dados filtrados do período correto
+        binding.tvValorMensal.text = dadosValidados.getValorMensalFormatado()
+        binding.tvValorDevolucoes.text = dadosValidados.getValorDevolucoesFormatado()
         
-        // Visibilidade dos cards baseada no conteúdo
-        binding.cardContratos.visibility = if (resumo.contratosDetalhes.isNotEmpty()) View.VISIBLE else View.GONE
-        binding.cardDevolucoes.visibility = if (resumo.devolucoesDetalhes.isNotEmpty()) View.VISIBLE else View.GONE
+        // Estatísticas do mês filtrado
+        binding.tvContratosAtivos.text = dadosValidados.contratosAtivos.toString()
+        binding.tvNovoContratos.text = dadosValidados.contratosMes.toString()
+        binding.tvDevolucoesMes.text = dadosValidados.devolucoesMes.toString()
+        binding.tvTicketMedio.text = NumberFormat.getCurrencyInstance(Locale("pt", "BR")).format(dadosValidados.ticketMedio)
+        
+        // Listas filtradas
+        contratosAdapter.submitList(dadosValidados.contratosDetalhes)
+        devolucoesAdapter.submitList(dadosValidados.devolucoesDetalhes)
+        
+        // Visibilidade dos cards baseada no conteúdo filtrado
+        binding.cardContratos.visibility = if (dadosValidados.contratosDetalhes.isNotEmpty()) View.VISIBLE else View.GONE
+        binding.cardDevolucoes.visibility = if (dadosValidados.devolucoesDetalhes.isNotEmpty()) View.VISIBLE else View.GONE
+        
+        LogUtils.info("ResumoMensalClienteActivity", "✅ Interface atualizada com dados do período: $mesFormatadoFiltro")
     }
-
-    private fun setupStatusPagamento(resumo: ResumoMensalCliente) {
-        val chip = binding.chipStatusPagamento
+    
+    /**
+     * Formatar mês de referência localmente (independente da API)
+     */
+    private fun formatarMesReferencia(mesRef: String): String {
+        return try {
+            val localeBR = Locale("pt", "BR")
+            val formato = SimpleDateFormat("yyyy-MM", localeBR)
+            val formatoSaida = SimpleDateFormat("MMMM/yyyy", localeBR)
+            val data = formato.parse(mesRef)
+            data?.let { formatoSaida.format(it) } ?: mesRef
+        } catch (e: Exception) {
+            LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao formatar mês '$mesRef': ${e.message}")
+            mesRef
+        }
+    }
+    
+    /**
+     * Validar e filtrar dados para mostrar apenas do período solicitado
+     */
+    private fun validarEFiltrarDadosPorPeriodo(resumo: ResumoMensalCliente, periodoFiltro: String): ResumoMensalCliente {
+        LogUtils.info("ResumoMensalClienteActivity", "🔍 Validando dados para período: $periodoFiltro")
         
-        when (resumo.statusPagamento) {
-            "PAGO" -> {
-                chip.text = "✅ PAGO"
-                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.success)
-                binding.btnConfirmarPagamento.visibility = View.GONE
-            }
-            "ATRASADO" -> {
-                chip.text = "❌ ATRASADO"
-                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.error)
-                binding.btnConfirmarPagamento.visibility = View.VISIBLE
-            }
-            else -> {
-                chip.text = "⏰ PENDENTE"
-                chip.chipBackgroundColor = ContextCompat.getColorStateList(this, R.color.warning)
-                binding.btnConfirmarPagamento.visibility = View.VISIBLE
+        // Extrair ano e mês do filtro
+        val (anoFiltro, mesFiltro) = try {
+            val partes = periodoFiltro.split("-")
+            Pair(partes[0].toInt(), partes[1].toInt())
+        } catch (e: Exception) {
+            LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao parsear período: $periodoFiltro")
+            return resumo.copy(
+                contratosDetalhes = emptyList(),
+                devolucoesDetalhes = emptyList(),
+                valorMensal = 0.0,
+                valorDevolucoes = 0.0,
+                contratosAtivos = 0,
+                contratosMes = 0,
+                devolucoesMes = 0,
+                ticketMedio = 0.0,
+                statusPagamento = resumo.statusPagamento ?: "PENDENTE"
+            )
+        }
+        
+        // Filtrar contratos que pertencem ao período
+        val contratosDoMes = resumo.contratosDetalhes.filter { contrato ->
+            contrato.dataAssinatura?.let { dataStr ->
+                try {
+                    val formato = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
+                    val data = formato.parse(dataStr)
+                    if (data != null) {
+                        val calendar = Calendar.getInstance()
+                        calendar.time = data
+                        val anoContrato = calendar.get(Calendar.YEAR)
+                        val mesContrato = calendar.get(Calendar.MONTH) + 1
+                        val pertence = (anoContrato == anoFiltro && mesContrato == mesFiltro)
+                        LogUtils.debug("ResumoMensalClienteActivity", "📋 Contrato ${contrato.contratoNum}: $anoContrato-$mesContrato → Filtro: $anoFiltro-$mesFiltro → Pertence: $pertence")
+                        pertence
+                    } else false
+                } catch (e: Exception) {
+                    LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao parsear data do contrato: $dataStr")
+                    false
+                }
+            } ?: false
+        }
+        
+        // Filtrar devoluções que pertencem ao período
+        val devolucoesDoMes = resumo.devolucoesDetalhes.filter { devolucao ->
+            try {
+                val formato = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                val data = formato.parse(devolucao.dataDevolucao)
+                if (data != null) {
+                    val calendar = Calendar.getInstance()
+                    calendar.time = data
+                    val anoDevolucao = calendar.get(Calendar.YEAR)
+                    val mesDevolucao = calendar.get(Calendar.MONTH) + 1
+                    val pertence = (anoDevolucao == anoFiltro && mesDevolucao == mesFiltro)
+                    LogUtils.debug("ResumoMensalClienteActivity", "📦 Devolução ${devolucao.numeroDevolucao}: $anoDevolucao-$mesDevolucao → Filtro: $anoFiltro-$mesFiltro → Pertence: $pertence")
+                    pertence
+                } else false
+            } catch (e: Exception) {
+                LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao parsear data da devolução: ${devolucao.dataDevolucao}")
+                false
             }
         }
+        
+        // Calcular valores baseados apenas nos dados filtrados
+        val valorMensalFiltrado = contratosDoMes.sumOf { it.valorMensal }
+        val valorDevolucoesFiltrado = devolucoesDoMes.sumOf { it.valorMulta }
+        val contratosAtivosFiltrado = contratosDoMes.size
+        val contratosMesFiltrado = contratosDoMes.size // Todos os contratos filtrados são "do mês"
+        val devolucoesMesFiltrado = devolucoesDoMes.size
+        val ticketMedioFiltrado = if (contratosAtivosFiltrado > 0) valorMensalFiltrado / contratosAtivosFiltrado else 0.0
+        
+        LogUtils.info("ResumoMensalClienteActivity", "📊 Dados filtrados para $periodoFiltro:")
+        LogUtils.info("ResumoMensalClienteActivity", "   💰 Valor mensal: R$ ${String.format("%.2f", valorMensalFiltrado)}")
+        LogUtils.info("ResumoMensalClienteActivity", "   📋 Contratos: $contratosAtivosFiltrado")
+        LogUtils.info("ResumoMensalClienteActivity", "   📦 Devoluções: $devolucoesMesFiltrado")
+        
+        return resumo.copy(
+            mesReferencia = periodoFiltro,
+            valorMensal = valorMensalFiltrado,
+            valorDevolucoes = valorDevolucoesFiltrado,
+            valorTotalPagar = valorMensalFiltrado + valorDevolucoesFiltrado,
+            contratosAtivos = contratosAtivosFiltrado,
+            contratosMes = contratosMesFiltrado,
+            devolucoesMes = devolucoesMesFiltrado,
+            ticketMedio = ticketMedioFiltrado,
+            contratosDetalhes = contratosDoMes,
+            devolucoesDetalhes = devolucoesDoMes,
+            statusPagamento = resumo.statusPagamento ?: "PENDENTE"
+        ).apply {
+            // Adicionar propriedade para indicar se está vazio
+            val isEmpty = contratosDoMes.isEmpty() && devolucoesDoMes.isEmpty() && valorMensalFiltrado == 0.0
+        }
+    }
+    
+    /**
+     * Extensão para verificar se o resumo está vazio
+     */
+    private val ResumoMensalCliente.isEmpty: Boolean
+        get() = contratosDetalhes.isEmpty() && devolucoesDetalhes.isEmpty() && valorMensal == 0.0
+    
+    /**
+     * Exibir estado vazio quando não há dados para o período
+     */
+    private fun exibirEstadoVazio(mesFormatado: String) {
+        LogUtils.info("ResumoMensalClienteActivity", "📭 Exibindo estado vazio para: $mesFormatado")
+        
+        // Valores zerados
+        binding.tvValorMensal.text = "R$ 0,00"
+        binding.tvValorDevolucoes.text = "R$ 0,00"
+        
+        // Estatísticas zeradas
+        binding.tvContratosAtivos.text = "0"
+        binding.tvNovoContratos.text = "0"
+        binding.tvDevolucoesMes.text = "0"
+        binding.tvTicketMedio.text = "R$ 0,00"
+        
+        // Listas vazias
+        contratosAdapter.submitList(emptyList())
+        devolucoesAdapter.submitList(emptyList())
+        
+        // Ocultar cards
+        binding.cardContratos.visibility = View.GONE
+        binding.cardDevolucoes.visibility = View.GONE
+        
+        // Mostrar toast informativo
+        Toast.makeText(this, "Nenhum dado encontrado para $mesFormatado", Toast.LENGTH_LONG).show()
+        
+        LogUtils.info("ResumoMensalClienteActivity", "✅ Estado vazio configurado")
     }
 
     private fun toggleVisibilidade(view: View, iconView: View) {
@@ -308,61 +453,6 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
             view.visibility = View.VISIBLE
             iconView.rotation = 180f
         }
-    }
-
-    private fun mostrarDialogConfirmarPagamento(resumo: ResumoMensalCliente) {
-        val dialogBinding = DialogConfirmarPagamentoBinding.inflate(layoutInflater)
-        
-        // Preencher dados
-        dialogBinding.tvClienteNomeDialog.text = resumo.clienteNome
-        dialogBinding.tvMesReferenciaDialog.text = resumo.getMesReferenciaFormatado()
-        dialogBinding.tvValorMensalDialog.text = resumo.getValorMensalFormatado()
-        dialogBinding.tvValorDevolucoesDialog.text = resumo.getValorDevolucoesFormatado()
-        dialogBinding.tvValorTotalDialog.text = resumo.getValorTotalPagarFormatado()
-        
-        // Valor padrão
-        dialogBinding.etValorPago.setText(resumo.valorTotalPagar.toString())
-        
-        val dialog = MaterialAlertDialogBuilder(this)
-            .setView(dialogBinding.root)
-            .setCancelable(false)
-            .create()
-        
-        dialogBinding.btnCancelar.setOnClickListener {
-            dialog.dismiss()
-        }
-        
-        dialogBinding.btnConfirmar.setOnClickListener {
-            val valorPagoStr = dialogBinding.etValorPago.text.toString().trim()
-            val observacoes = dialogBinding.etObservacoes.text.toString().trim()
-            
-            if (valorPagoStr.isEmpty()) {
-                dialogBinding.etValorPago.error = "Informe o valor pago"
-                return@setOnClickListener
-            }
-            
-            try {
-                val valorPago = valorPagoStr.toDouble()
-                if (valorPago <= 0) {
-                    dialogBinding.etValorPago.error = "Valor deve ser maior que zero"
-                    return@setOnClickListener
-                }
-                
-                viewModel.confirmarPagamento(
-                    clienteId = resumo.clienteId,
-                    mesReferencia = resumo.mesReferencia,
-                    valorPago = valorPago,
-                    observacoes = observacoes.ifEmpty { null }
-                )
-                
-                dialog.dismiss()
-                
-            } catch (e: NumberFormatException) {
-                dialogBinding.etValorPago.error = "Valor inválido"
-            }
-        }
-        
-        dialog.show()
     }
 
     private fun gerarPdfCliente() {
@@ -382,13 +472,10 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
                 
                 💰 Valor Mensal: ${resumo.getValorMensalFormatado()}
                 📦 Devoluções: ${resumo.getValorDevolucoesFormatado()}
-                💳 Total a Pagar: ${resumo.getValorTotalPagarFormatado()}
                 
                 📋 Contratos Ativos: ${resumo.contratosAtivos}
                 📈 Novos no Mês: ${resumo.contratosMes}
                 📉 Devoluções: ${resumo.devolucoesMes}
-                
-                Status: ${resumo.statusPagamento}
             """.trimIndent()
             
             val intent = Intent(Intent.ACTION_SEND).apply {
@@ -399,5 +486,105 @@ class ResumoMensalClienteActivity : AppCompatActivity() {
             
             startActivity(Intent.createChooser(intent, "Compartilhar Resumo"))
         }
+    }
+
+    private fun setupPeriodSelectors() {
+        // Configurar seletor de mês
+        val meses = arrayOf(
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        )
+        val mesAdapter = ArrayAdapter(this, R.layout.dropdown_menu_popup_item, meses)
+        binding.actvMes.setAdapter(mesAdapter)
+        
+        // Configurar seletor de ano
+        val anoAtual = Calendar.getInstance().get(Calendar.YEAR)
+        val anos = (2020..anoAtual + 1).map { it.toString() }.toTypedArray()
+        val anoAdapter = ArrayAdapter(this, R.layout.dropdown_menu_popup_item, anos)
+        binding.actvAno.setAdapter(anoAdapter)
+        
+        LogUtils.debug("ResumoMensalClienteActivity", "📅 Seletores de período configurados")
+    }
+
+    private fun toggleFiltroExpansao() {
+        filtroExpandido = !filtroExpandido
+        
+        if (filtroExpandido) {
+            // Expandir filtro
+            binding.layoutConteudoFiltro.visibility = View.VISIBLE
+            binding.ivExpandirFiltro.animate().rotation(180f).setDuration(200).start()
+            LogUtils.debug("ResumoMensalClienteActivity", "📤 Filtro expandido")
+        } else {
+            // Contrair filtro
+            binding.layoutConteudoFiltro.visibility = View.GONE
+            binding.ivExpandirFiltro.animate().rotation(0f).setDuration(200).start()
+            LogUtils.debug("ResumoMensalClienteActivity", "📥 Filtro contraído")
+        }
+    }
+
+    private fun aplicarFiltroPeriodo() {
+        val mesTexto = binding.actvMes.text.toString()
+        val anoTexto = binding.actvAno.text.toString()
+        
+        if (mesTexto.isEmpty() || anoTexto.isEmpty()) {
+            Toast.makeText(this, "Selecione mês e ano para filtrar", Toast.LENGTH_SHORT).show()
+            return
+        }
+        
+        try {
+            val meses = arrayOf(
+                "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+                "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+            )
+            
+            val mesIndex = meses.indexOf(mesTexto)
+            if (mesIndex == -1) {
+                Toast.makeText(this, "Mês inválido", Toast.LENGTH_SHORT).show()
+                return
+            }
+            
+            val mes = mesIndex + 1 // API espera 1-12
+            val ano = anoTexto.toInt()
+            
+            // Atualizar mês de referência
+            mesReferencia = String.format("%04d-%02d", ano, mes)
+            
+            LogUtils.info("ResumoMensalClienteActivity", "📅 Aplicando filtro: $mesReferencia")
+            
+            // Contrair filtro após aplicar
+            if (filtroExpandido) {
+                toggleFiltroExpansao()
+            }
+            
+            // Recarregar dados com novo período
+            carregarResumoMensal()
+            
+        } catch (e: Exception) {
+            LogUtils.error("ResumoMensalClienteActivity", "❌ Erro ao aplicar filtro: ${e.message}")
+            Toast.makeText(this, "Erro ao aplicar filtro", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun irParaMesAtual() {
+        // Definir mês atual
+        val calendar = Calendar.getInstance()
+        val ano = calendar.get(Calendar.YEAR)
+        val mes = calendar.get(Calendar.MONTH) + 1 // Calendar usa 0-11
+        
+        mesReferencia = String.format("%04d-%02d", ano, mes)
+        
+        LogUtils.info("ResumoMensalClienteActivity", "📅 Indo para mês atual: $mesReferencia")
+        
+        // Limpar campos de filtro 
+        binding.actvMes.setText("", false)
+        binding.actvAno.setText("", false)
+        
+        // Contrair filtro
+        if (filtroExpandido) {
+            toggleFiltroExpansao()
+        }
+        
+        // Recarregar dados
+        carregarResumoMensal()
     }
 } 

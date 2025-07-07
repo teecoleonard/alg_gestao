@@ -49,6 +49,49 @@ data class ReceitaCliente(
 }
 
 /**
+ * Modelo de dados para o período de filtro
+ */
+data class PeriodoFiltro(
+    @SerializedName("mes")
+    val mes: Int,
+    
+    @SerializedName("ano")
+    val ano: Int
+) {
+    /**
+     * Retorna o período formatado como "Janeiro/2024"
+     */
+    fun getFormatado(): String {
+        val nomesMeses = arrayOf(
+            "Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho",
+            "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"
+        )
+        
+        return if (mes in 1..12) {
+            "${nomesMeses[mes - 1]}/$ano"
+        } else {
+            "$mes/$ano"
+        }
+    }
+    
+    /**
+     * Retorna o período formatado de forma abreviada como "Jan/24"
+     */
+    fun getFormatadoAbreviado(): String {
+        val nomesMesesAbrev = arrayOf(
+            "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+            "Jul", "Ago", "Set", "Out", "Nov", "Dez"
+        )
+        
+        return if (mes in 1..12) {
+            "${nomesMesesAbrev[mes - 1]}/${ano.toString().takeLast(2)}"
+        } else {
+            "$mes/${ano.toString().takeLast(2)}"
+        }
+    }
+}
+
+/**
  * Modelo de resposta da API para receita por cliente
  */
 data class ReceitaClienteResponse(
@@ -59,5 +102,26 @@ data class ReceitaClienteResponse(
     val totalGeral: Double,
     
     @SerializedName("total_clientes")
-    val totalClientes: Int
-) 
+    val totalClientes: Int,
+    
+    @SerializedName("periodo")
+    val periodo: PeriodoFiltro? = null
+) {
+    /**
+     * Verifica se os dados estão filtrados por um período específico
+     */
+    fun isFiltradoPorPeriodo(): Boolean {
+        return periodo != null
+    }
+    
+    /**
+     * Retorna o texto do período para exibição
+     */
+    fun getTextoPeriodo(): String {
+        return if (periodo != null) {
+            "Receita de ${periodo.getFormatado()}"
+        } else {
+            "Receita Total"
+        }
+    }
+} 

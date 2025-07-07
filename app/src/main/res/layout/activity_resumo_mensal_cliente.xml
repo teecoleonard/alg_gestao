@@ -53,34 +53,15 @@
                     android:orientation="vertical"
                     android:padding="20dp">
 
-                    <!-- Nome do Cliente e Status -->
-                    <LinearLayout
+                    <!-- Nome do Cliente -->
+                    <TextView
+                        android:id="@+id/tvNomeCliente"
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
-                        android:orientation="horizontal"
-                        android:gravity="center_vertical">
-
-                        <TextView
-                            android:id="@+id/tvNomeCliente"
-                            android:layout_width="0dp"
-                            android:layout_height="wrap_content"
-                            android:layout_weight="1"
-                            android:text="Nome do Cliente"
-                            android:textSize="20sp"
-                            android:textStyle="bold"
-                            android:textColor="@color/text_primary" />
-
-                        <com.google.android.material.chip.Chip
-                            android:id="@+id/chipStatusPagamento"
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="PENDENTE"
-                            app:chipBackgroundColor="@color/warning"
-                            app:chipIconTint="@color/white"
-                            android:textColor="@color/white"
-                            android:textStyle="bold" />
-
-                    </LinearLayout>
+                        android:text="Nome do Cliente"
+                        android:textSize="20sp"
+                        android:textStyle="bold"
+                        android:textColor="@color/text_primary" />
 
                     <!-- Mês de Referência -->
                     <TextView
@@ -156,46 +137,155 @@
 
                         </LinearLayout>
 
-                        <!-- Total a Pagar -->
-                        <LinearLayout
+
+
+                    </LinearLayout>
+
+                </LinearLayout>
+
+            </com.google.android.material.card.MaterialCardView>
+
+            <!-- Card de Filtros por Período -->
+            <com.google.android.material.card.MaterialCardView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginBottom="16dp"
+                app:cardCornerRadius="12dp"
+                app:cardElevation="4dp"
+                app:strokeWidth="1dp"
+                app:strokeColor="@color/border_light">
+
+                <LinearLayout
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:orientation="vertical">
+
+                    <!-- Header do Filtro (sempre visível e clicável) -->
+                    <LinearLayout
+                        android:id="@+id/layoutHeaderFiltro"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="horizontal"
+                        android:padding="20dp"
+                        android:gravity="center_vertical"
+                        android:background="?android:attr/selectableItemBackground"
+                        android:clickable="true"
+                        android:focusable="true">
+
+                        <TextView
                             android:layout_width="0dp"
                             android:layout_height="wrap_content"
                             android:layout_weight="1"
-                            android:orientation="vertical"
-                            android:gravity="center">
+                            android:text="📅 Alterar Período de Análise"
+                            android:textSize="16sp"
+                            android:textStyle="bold"
+                            android:textColor="@color/text_primary"
+                            android:fontFamily="@font/poppins_medium" />
 
-                            <TextView
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Total a Pagar"
-                                android:textSize="12sp"
-                                android:textColor="@color/text_secondary" />
+                        <ImageView
+                            android:id="@+id/ivExpandirFiltro"
+                            android:layout_width="24dp"
+                            android:layout_height="24dp"
+                            android:src="@drawable/ic_expand_more"
+                            android:tint="@color/text_secondary"
+                            android:background="?android:attr/selectableItemBackgroundBorderless"
+                            android:padding="4dp" />
 
-                            <TextView
-                                android:id="@+id/tvValorTotal"
-                                android:layout_width="wrap_content"
+                    </LinearLayout>
+
+                    <!-- Conteúdo do Filtro (inicialmente oculto) -->
+                    <LinearLayout
+                        android:id="@+id/layoutConteudoFiltro"
+                        android:layout_width="match_parent"
+                        android:layout_height="wrap_content"
+                        android:orientation="vertical"
+                        android:paddingStart="20dp"
+                        android:paddingEnd="20dp"
+                        android:paddingBottom="20dp"
+                        android:visibility="gone">
+
+                        <!-- Seletor de Período -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal"
+                            android:layout_marginBottom="16dp">
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
                                 android:layout_height="wrap_content"
-                                android:text="R$ 0,00"
-                                android:textSize="18sp"
-                                android:textStyle="bold"
-                                android:textColor="@color/text_primary" />
+                                android:layout_weight="1"
+                                android:layout_marginEnd="8dp"
+                                app:startIconDrawable="@drawable/ic_calendar_month"
+                                app:hintTextColor="@color/text_secondary"
+                                app:boxStrokeColor="@color/primary"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/actvMes"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Mês"
+                                    android:inputType="none"
+                                    android:focusable="false"
+                                    android:fontFamily="@font/poppins" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                            <com.google.android.material.textfield.TextInputLayout
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                app:startIconDrawable="@drawable/ic_calendar_month"
+                                app:hintTextColor="@color/text_secondary"
+                                app:boxStrokeColor="@color/primary"
+                                style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox.ExposedDropdownMenu">
+
+                                <AutoCompleteTextView
+                                    android:id="@+id/actvAno"
+                                    android:layout_width="match_parent"
+                                    android:layout_height="wrap_content"
+                                    android:hint="Ano"
+                                    android:inputType="none"
+                                    android:focusable="false"
+                                    android:fontFamily="@font/poppins" />
+
+                            </com.google.android.material.textfield.TextInputLayout>
+
+                        </LinearLayout>
+
+                        <!-- Botões de Filtro -->
+                        <LinearLayout
+                            android:layout_width="match_parent"
+                            android:layout_height="wrap_content"
+                            android:orientation="horizontal">
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnAplicarFiltro"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginEnd="8dp"
+                                android:text="📊 Ver Período"
+                                android:textSize="14sp"
+                                android:textAllCaps="false"
+                                style="@style/Widget.MaterialComponents.Button" />
+
+                            <com.google.android.material.button.MaterialButton
+                                android:id="@+id/btnMesAtual"
+                                android:layout_width="0dp"
+                                android:layout_height="wrap_content"
+                                android:layout_weight="1"
+                                android:layout_marginStart="8dp"
+                                android:text="📅 Mês Atual"
+                                android:textSize="14sp"
+                                android:textAllCaps="false"
+                                style="@style/Widget.MaterialComponents.Button.OutlinedButton" />
 
                         </LinearLayout>
 
                     </LinearLayout>
-
-                    <!-- Botão de Confirmar Pagamento -->
-                    <com.google.android.material.button.MaterialButton
-                        android:id="@+id/btnConfirmarPagamento"
-                        style="@style/Widget.MaterialComponents.Button"
-                        android:layout_width="match_parent"
-                        android:layout_height="48dp"
-                        android:layout_marginTop="8dp"
-                        android:text="Confirmar Pagamento"
-                        android:textAllCaps="false"
-                        android:textStyle="normal"
-                        app:icon="@drawable/ic_check"
-                        app:iconGravity="textStart" />
 
                 </LinearLayout>
 

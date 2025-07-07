@@ -19,7 +19,7 @@
             android:layout_width="match_parent"
             android:layout_height="?attr/actionBarSize"
             android:background="@color/primary"
-            app:title="💰 Receita por Cliente"
+            app:title="👥 Lista de Clientes"
             app:titleTextColor="@color/white"
             app:navigationIcon="@drawable/ic_arrow_back"
             app:navigationIconTint="@color/white" />
@@ -42,116 +42,39 @@
                 android:orientation="vertical"
                 android:padding="16dp">
 
-                <!-- Card de Filtros -->
+                <!-- Card de Informações (sem filtros) -->
                 <androidx.cardview.widget.CardView
                     android:layout_width="match_parent"
                     android:layout_height="wrap_content"
                     android:layout_marginBottom="16dp"
-                    app:cardBackgroundColor="@color/white"
+                    app:cardBackgroundColor="@color/primary"
                     app:cardCornerRadius="12dp"
-                    app:cardElevation="4dp"
-                    app:strokeColor="@color/border_light"
-                    app:strokeWidth="1dp">
+                    app:cardElevation="4dp">
 
                     <LinearLayout
                         android:layout_width="match_parent"
                         android:layout_height="wrap_content"
                         android:orientation="vertical"
-                        android:padding="16dp">
+                        android:padding="20dp">
 
                         <TextView
                             android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            android:text="🔍 Filtros"
-                            android:textSize="16sp"
+                            android:text="📊 Receita Geral por Cliente"
+                            android:textSize="18sp"
                             android:textStyle="bold"
-                            android:textColor="@color/text_primary"
+                            android:textColor="@color/white"
                             android:fontFamily="@font/poppins_medium"
-                            android:layout_marginBottom="12dp" />
-
-                        <!-- Campo de busca por nome -->
-                        <com.google.android.material.textfield.TextInputLayout
-                            android:layout_width="match_parent"
-                            android:layout_height="wrap_content"
-                            android:layout_marginBottom="12dp"
-                            app:startIconDrawable="@drawable/ic_search"
-                            app:hintTextColor="@color/text_secondary"
-                            app:boxStrokeColor="@color/primary"
-                            style="@style/Widget.MaterialComponents.TextInputLayout.OutlinedBox">
-
-                            <com.google.android.material.textfield.TextInputEditText
-                                android:id="@+id/etBuscarCliente"
-                                android:layout_width="match_parent"
-                                android:layout_height="wrap_content"
-                                android:hint="Buscar por nome do cliente..."
-                                android:inputType="textPersonName"
-                                android:fontFamily="@font/poppins" />
-
-                        </com.google.android.material.textfield.TextInputLayout>
-
-                        <!-- Chips de filtro de status -->
-                        <TextView
-                            android:layout_width="wrap_content"
-                            android:layout_height="wrap_content"
-                            android:text="Status de Pagamento:"
-                            android:textSize="14sp"
-                            android:textColor="@color/text_primary"
-                            android:fontFamily="@font/poppins"
                             android:layout_marginBottom="8dp" />
 
-                        <com.google.android.material.chip.ChipGroup
-                            android:id="@+id/chipGroupStatus"
-                            android:layout_width="match_parent"
+                        <TextView
+                            android:layout_width="wrap_content"
                             android:layout_height="wrap_content"
-                            app:singleSelection="false"
-                            app:chipSpacingHorizontal="8dp">
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipTodos"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="Todos"
-                                android:checked="true"
-                                android:textColor="@color/chip_text_color_selector"
-                                app:chipBackgroundColor="@color/chip_background_color_selector"
-                                app:chipStrokeColor="@color/primary"
-                                app:chipStrokeWidth="1dp"
-                                style="@style/Widget.MaterialComponents.Chip.Filter" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipPagos"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="✅ Pagos"
-                                android:textColor="@color/chip_text_color_selector"
-                                app:chipBackgroundColor="@color/chip_background_color_selector"
-                                app:chipStrokeColor="@color/success"
-                                app:chipStrokeWidth="1dp"
-                                style="@style/Widget.MaterialComponents.Chip.Filter" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipDevendo"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="⏰ Pendente"
-                                android:textColor="@color/chip_text_color_selector"
-                                app:chipBackgroundColor="@color/chip_background_color_selector"
-                                app:chipStrokeColor="@color/warning"
-                                app:chipStrokeWidth="1dp" />
-
-                            <com.google.android.material.chip.Chip
-                                android:id="@+id/chipVencidos"
-                                style="@style/Widget.MaterialComponents.Chip.Filter"
-                                android:layout_width="wrap_content"
-                                android:layout_height="wrap_content"
-                                android:text="🚨 Vencidos"
-                                android:textColor="@color/chip_text_color_selector"
-                                app:chipBackgroundColor="@color/chip_background_color_selector"
-                                app:chipStrokeColor="@color/error"
-                                app:chipStrokeWidth="1dp" />
-
-                        </com.google.android.material.chip.ChipGroup>
+                            android:text="Clique em um cliente para ver relatórios mensais detalhados"
+                            android:textSize="14sp"
+                            android:textColor="@color/white"
+                            android:fontFamily="@font/poppins"
+                            android:alpha="0.9" />
 
                     </LinearLayout>
 
@@ -296,7 +219,7 @@
                                 <TextView
                                     android:layout_width="wrap_content"
                                     android:layout_height="wrap_content"
-                                    android:text="Receita Mensal Real"
+                                    android:text="Receita Total Geral"
                                     android:textSize="12sp"
                                     android:textColor="@color/text_secondary"
                                     android:fontFamily="@font/poppins" />
@@ -308,6 +231,8 @@
                     </LinearLayout>
 
                 </androidx.cardview.widget.CardView>
+
+
 
                 <!-- Lista de Clientes -->
                 <androidx.cardview.widget.CardView
@@ -346,20 +271,35 @@
                             android:visibility="gone">
 
                             <TextView
+                                android:id="@+id/tvIconeVazio"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                                android:text="🔍"
+                                android:text="📅"
                                 android:textSize="48sp"
                                 android:layout_marginBottom="16dp" />
 
                             <TextView
+                                android:id="@+id/tvMensagemVazia"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
                                 android:text="Nenhum cliente encontrado"
                                 android:textSize="16sp"
+                                android:textStyle="bold"
+                                android:textColor="@color/text_primary"
+                                android:fontFamily="@font/poppins_medium"
+                                android:textAlignment="center"
+                                android:layout_marginBottom="8dp" />
+
+                            <TextView
+                                android:id="@+id/tvSubtituloVazio"
+                                android:layout_width="wrap_content"
+                                android:layout_height="wrap_content"
+                                android:text="Tente selecionar outro período ou verificar os filtros aplicados"
+                                android:textSize="14sp"
                                 android:textColor="@color/text_secondary"
                                 android:fontFamily="@font/poppins"
-                                android:textAlignment="center" />
+                                android:textAlignment="center"
+                                android:visibility="gone" />
 
                         </LinearLayout>
 

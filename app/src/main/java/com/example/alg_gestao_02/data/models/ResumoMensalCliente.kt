@@ -1,5 +1,6 @@
 package com.example.alg_gestao_02.data.models
 
+import com.example.alg_gestao_02.utils.LogUtils
 import com.google.gson.annotations.SerializedName
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -40,7 +41,7 @@ data class ResumoMensalCliente(
     val valorTotalPagar: Double, // Valor mensal + devoluções
     
     @SerializedName("status_pagamento")
-    val statusPagamento: String, // "PENDENTE", "PAGO", "ATRASADO"
+    val statusPagamento: String?, // "PENDENTE", "PAGO", "ATRASADO"
     
     @SerializedName("data_vencimento")
     val dataVencimento: String?, // Data de vencimento do pagamento
@@ -89,11 +90,24 @@ data class ResumoMensalCliente(
      */
     fun getMesReferenciaFormatado(): String {
         return try {
-            val formato = SimpleDateFormat("yyyy-MM", Locale.getDefault())
-            val formatoSaida = SimpleDateFormat("MMMM/yyyy", Locale("pt", "BR"))
+            LogUtils.debug("ResumoMensalCliente", "🗓️ Formatando mês de referência: '$mesReferencia'")
+            
+            // Usar locale PT-BR consistente para parsing e formatação
+            val localeBR = Locale("pt", "BR")
+            val formato = SimpleDateFormat("yyyy-MM", localeBR)
+            val formatoSaida = SimpleDateFormat("MMMM/yyyy", localeBR)
+            
             val data = formato.parse(mesReferencia)
-            formatoSaida.format(data ?: Date())
+            if (data != null) {
+                val resultado = formatoSaida.format(data)
+                LogUtils.debug("ResumoMensalCliente", "✅ Resultado formatado: '$resultado'")
+                resultado
+            } else {
+                LogUtils.error("ResumoMensalCliente", "❌ Parse retornou null para: '$mesReferencia'")
+                mesReferencia
+            }
         } catch (e: Exception) {
+            LogUtils.error("ResumoMensalCliente", "❌ Erro ao formatar mês '$mesReferencia': ${e.message}")
             mesReferencia
         }
     }
@@ -120,6 +134,7 @@ data class ResumoMensalCliente(
         return when {
             statusPagamento == "PAGO" -> "#4CAF50" // Verde
             isPagamentoAtrasado() -> "#F44336" // Vermelho
+            statusPagamento == null -> "#9E9E9E" // Cinza para status indefinido
             else -> "#FF9800" // Laranja
         }
     }
@@ -131,6 +146,7 @@ data class ResumoMensalCliente(
         return when {
             statusPagamento == "PAGO" -> "✅"
             isPagamentoAtrasado() -> "❌"
+            statusPagamento == null -> "❓" // Interrogação para status indefinido
             else -> "⏰"
         }
     }

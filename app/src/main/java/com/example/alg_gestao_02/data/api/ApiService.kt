@@ -264,6 +264,18 @@ interface ApiService {
     suspend fun getReceitaPorCliente(): Response<com.example.alg_gestao_02.data.models.ReceitaClienteResponse>
 
     /**
+     * Endpoint para obter receita mensal por cliente com filtro por período
+     * @param mes Mês para filtrar (1-12)
+     * @param ano Ano para filtrar
+     * @return Response com lista de receita por cliente filtrada por período
+     */
+    @GET("api/dashboard/receita-por-cliente")
+    suspend fun getReceitaPorClienteComFiltro(
+        @Query("mes") mes: Int,
+        @Query("ano") ano: Int
+    ): Response<com.example.alg_gestao_02.data.models.ReceitaClienteResponse>
+
+    /**
      * Endpoint para obter resumo mensal detalhado de um cliente específico
      * @param clienteId ID do cliente
      * @param mesReferencia Mês de referência (formato: yyyy-MM)

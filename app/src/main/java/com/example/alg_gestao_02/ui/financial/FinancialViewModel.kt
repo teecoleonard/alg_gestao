@@ -153,6 +153,69 @@ class FinancialViewModel(private val repository: DashboardRepository = Dashboard
     }
     
     /**
+     * Atualiza os dados financeiros com filtro por período
+     */
+    fun refreshFinancialDataComFiltro(mes: Int, ano: Int) {
+        LogUtils.info("FinancialViewModel", "🔄 ========== REFRESH COM FILTRO SOLICITADO ==========")
+        LogUtils.info("FinancialViewModel", "📅 Período: $mes/$ano")
+        loadFinancialDataComFiltro(mes, ano)
+    }
+    
+    /**
+     * Carrega dados financeiros com filtro por período
+     */
+    private fun loadFinancialDataComFiltro(mes: Int, ano: Int) {
+        LogUtils.info("FinancialViewModel", "📥 ========== CARREGANDO DADOS FINANCEIROS COM FILTRO ==========")
+        LogUtils.info("FinancialViewModel", "📅 Filtro: $mes/$ano")
+        
+        _uiState.value = UiState.Loading()
+        
+        viewModelScope.launch {
+            try {
+                LogUtils.info("FinancialViewModel", "🔄 Carregando receita por cliente filtrada...")
+                val startTime = System.currentTimeMillis()
+                
+                // Carregar receita por cliente com filtro
+                val receitaCliente = try {
+                    repository.getReceitaPorCliente(mes, ano)
+                } catch (e: Exception) {
+                    LogUtils.warning("FinancialViewModel", "⚠️ Erro ao carregar receita por cliente filtrada: ${e.message}")
+                    null
+                }
+                
+                val loadTime = System.currentTimeMillis() - startTime
+                LogUtils.info("FinancialViewModel", "⏱️ Tempo total de carregamento: ${loadTime}ms")
+                
+                // Atualizar LiveData
+                if (receitaCliente != null) {
+                    LogUtils.info("FinancialViewModel", "👥 Receita por cliente filtrada carregada com sucesso!")
+                    LogUtils.info("FinancialViewModel", "📅 Período: ${receitaCliente.getTextoPeriodo()}")
+                    LogUtils.info("FinancialViewModel", "👥 Clientes: ${receitaCliente.totalClientes}")
+                    LogUtils.info("FinancialViewModel", "💰 Total: R$ ${String.format("%.2f", receitaCliente.totalGeral)}")
+                    _receitaPorCliente.value = receitaCliente
+                }
+                
+                _uiState.value = UiState.Success("Dados filtrados carregados com sucesso")
+                LogUtils.info("FinancialViewModel", "✅ ========== CARREGAMENTO FILTRADO CONCLUÍDO ==========")
+                
+            } catch (e: Exception) {
+                LogUtils.error("FinancialViewModel", "❌ ========== ERRO NO CARREGAMENTO FILTRADO ==========")
+                LogUtils.error("FinancialViewModel", "📝 Mensagem: ${e.message}")
+                LogUtils.error("FinancialViewModel", "📚 Stack trace:", e)
+                
+                val errorMessage = when (e) {
+                    is java.net.UnknownHostException -> "Sem conexão com a internet"
+                    is java.net.ConnectException -> "Servidor indisponível"
+                    is java.net.SocketTimeoutException -> "Tempo limite excedido"
+                    else -> "Erro ao carregar dados filtrados: ${e.message ?: "Erro desconhecido"}"
+                }
+                
+                _uiState.value = UiState.Error(errorMessage)
+            }
+        }
+    }
+    
+    /**
      * Define uma nova meta de receita
      */
     fun definirMeta(novaMeta: Double) {

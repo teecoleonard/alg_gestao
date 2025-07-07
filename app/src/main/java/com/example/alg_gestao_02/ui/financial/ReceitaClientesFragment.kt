@@ -1,11 +1,10 @@
 package com.example.alg_gestao_02.ui.financial
 
 import android.os.Bundle
-import android.text.Editable
-import android.text.TextWatcher
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
+import android.widget.ArrayAdapter
 import android.widget.Toast
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
@@ -17,14 +16,13 @@ import com.example.alg_gestao_02.data.models.ReceitaCliente
 import com.example.alg_gestao_02.databinding.FragmentReceitaClientesBinding
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
-import com.google.android.material.chip.Chip
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
 
-class ReceitaClientesFragment : Fragment() {
+class ReceitaClientesFragment : Fragment(), SelecionarPeriodoDialogFragment.OnPeriodoSelecionadoListener {
 
     private var _binding: FragmentReceitaClientesBinding? = null
     private val binding get() = _binding!!
@@ -36,20 +34,11 @@ class ReceitaClientesFragment : Fragment() {
     private var dadosOriginais: List<ReceitaCliente> = emptyList()
     private var dadosFiltrados: List<ReceitaCliente> = emptyList()
 
-    // Controle de busca com debounce
-    private var searchJob: Job? = null
-    
     // Controle de timeout de carregamento
     private var loadingTimeoutJob: Job? = null
     private var swipeTimeoutJob: Job? = null
 
-    // Status dos filtros
-    private var filtroTexto: String = ""
-    private var filtroStatus: StatusPagamento = StatusPagamento.TODOS
-
-    enum class StatusPagamento {
-        TODOS, PAGOS, DEVENDO, VENCIDOS
-    }
+    // Removidos filtros de período - sempre mostra dados gerais
 
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -68,7 +57,6 @@ class ReceitaClientesFragment : Fragment() {
         setupViewModel()
         setupToolbar()
         setupRecyclerView()
-        setupFilters()
         setupObservers()
         setupSwipeRefresh()
         setupNotificacao()
@@ -114,9 +102,12 @@ class ReceitaClientesFragment : Fragment() {
     }
 
     private fun setupRecyclerView() {
-        adapter = ReceitaClienteAdapter { cliente ->
-            LogUtils.debug("ReceitaClientesFragment", "Cliente selecionado: ${cliente.clienteNome}")
-            // TODO: Implementar ação quando cliente for selecionado (dialog de detalhes)
+        adapter = ReceitaClienteAdapter()
+        
+        // Configurar callback para clique no cliente - mostra dialog de seleção de período
+        adapter.setOnClienteClickListener { cliente ->
+            LogUtils.info("ReceitaClientesFragment", "📅 Cliente selecionado: ${cliente.clienteNome} - abrindo dialog de período")
+            mostrarDialogSelecaoPeriodo(cliente)
         }
 
         binding.recyclerClientes.apply {
@@ -125,37 +116,9 @@ class ReceitaClientesFragment : Fragment() {
         }
     }
 
-    private fun setupFilters() {
-        // Filtro de texto com debounce
-        binding.etBuscarCliente.addTextChangedListener(object : TextWatcher {
-            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
-            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
-            override fun afterTextChanged(s: Editable?) {
-                searchJob?.cancel()
-                searchJob = lifecycleScope.launch {
-                    delay(300) // Debounce de 300ms
-                    filtroTexto = s.toString().trim()
-                    aplicarFiltros()
-                }
-            }
-        })
 
-        // Filtros de status (chips)
-        binding.chipGroupStatus.setOnCheckedStateChangeListener { _, checkedIds ->
-            when {
-                binding.chipTodos.isChecked -> filtroStatus = StatusPagamento.TODOS
-                binding.chipPagos.isChecked -> filtroStatus = StatusPagamento.PAGOS
-                binding.chipDevendo.isChecked -> filtroStatus = StatusPagamento.DEVENDO
-                binding.chipVencidos.isChecked -> filtroStatus = StatusPagamento.VENCIDOS
-                else -> {
-                    // Se nenhum chip está selecionado, selecionar "Todos"
-                    binding.chipTodos.isChecked = true
-                    filtroStatus = StatusPagamento.TODOS
-                }
-            }
-            aplicarFiltros()
-        }
-    }
+
+
 
     private fun setupObservers() {
         // Observer para receita por cliente - ESTE É O PRINCIPAL!
@@ -173,6 +136,10 @@ class ReceitaClientesFragment : Fragment() {
             binding.swipeRefresh.isRefreshing = false
             mostrarLoading(false)
             LogUtils.info("ReceitaClientesFragment", "🛑 Loading parado - dados recebidos")
+            
+            // Sempre usar período null (sem filtro específico) para dados gerais
+            adapter.updatePeriodo(null)
+            LogUtils.debug("ReceitaClientesFragment", "📅 Adapter configurado para dados gerais (sem período específico)")
             
             // Atualizar estatísticas
             atualizarEstatisticas(response.clientes, response.totalGeral)
@@ -229,7 +196,7 @@ class ReceitaClientesFragment : Fragment() {
             dadosFiltrados = emptyList()
             adapter.updateReceitas(emptyList())
             
-            // Carregar dados novamente
+            // Sempre recarregar dados gerais (sem filtro)
             viewModel.refreshFinancialData()
             
             // Timeout de segurança para SwipeRefresh
@@ -252,9 +219,9 @@ class ReceitaClientesFragment : Fragment() {
         )
     }
 
-
     
     private fun usarDadosSimulados() {
+        // Sempre usar dados gerais (sem filtro) na lista de clientes
         val dadosSimulados = listOf(
             ReceitaCliente(
                 clienteId = 1,
@@ -287,10 +254,16 @@ class ReceitaClientesFragment : Fragment() {
         dadosOriginais = dadosSimulados
         dadosFiltrados = dadosOriginais
         
+        // Sempre usar período null para dados gerais
+        adapter.updatePeriodo(null)
+        LogUtils.debug("ReceitaClientesFragment", "📅 Dados simulados configurados (sem período específico)")
+        
         // ========== PARAR LOADING COMPLETAMENTE ==========
         binding.swipeRefresh.isRefreshing = false
         mostrarLoading(false)
         LogUtils.info("ReceitaClientesFragment", "🛑 Loading parado - dados simulados carregados")
+        
+        // Não há filtros nesta tela - sempre dados gerais
         
         // Atualizar estatísticas
         val totalSimulado = dadosSimulados.sumOf { it.valorMensal }
@@ -299,48 +272,49 @@ class ReceitaClientesFragment : Fragment() {
         // Aplicar filtros
         aplicarFiltros()
         
-        Toast.makeText(requireContext(), "Dados simulados carregados (API indisponível)", Toast.LENGTH_SHORT).show()
+        val mensagemToast = if (dadosSimulados.isEmpty()) {
+            "API indisponível - Nenhum cliente encontrado"
+        } else {
+            "Dados simulados carregados (API indisponível)"
+        }
+        Toast.makeText(requireContext(), mensagemToast, Toast.LENGTH_SHORT).show()
     }
 
     private fun aplicarFiltros() {
-        LogUtils.debug("ReceitaClientesFragment", "🔍 Aplicando filtros: texto='$filtroTexto', status=$filtroStatus")
+        LogUtils.debug("ReceitaClientesFragment", "🔍 Aplicando filtros")
         
-        var listaFiltrada = dadosOriginais
-
-        // Filtro por texto (nome do cliente)
-        if (filtroTexto.isNotEmpty()) {
-            listaFiltrada = listaFiltrada.filter { cliente ->
-                cliente.clienteNome.contains(filtroTexto, ignoreCase = true)
-            }
-        }
-
-        // Filtro por status de pagamento
-        listaFiltrada = when (filtroStatus) {
-            StatusPagamento.TODOS -> listaFiltrada
-            StatusPagamento.PAGOS -> listaFiltrada.filter { simularStatusPagamento(it) == "PAGO" }
-            StatusPagamento.DEVENDO -> listaFiltrada.filter { simularStatusPagamento(it) == "DEVENDO" }
-            StatusPagamento.VENCIDOS -> listaFiltrada.filter { simularStatusPagamento(it) == "VENCIDO" }
-        }
-
-        dadosFiltrados = listaFiltrada
+        // Por enquanto, apenas copia os dados originais (sem filtros)
+        dadosFiltrados = dadosOriginais
         
         // Atualizar adapter
         adapter.updateReceitas(dadosFiltrados)
         
-        // Mostrar/esconder estado vazio
-        if (dadosFiltrados.isEmpty()) {
-            binding.layoutEmpty.visibility = View.VISIBLE
-            binding.recyclerClientes.visibility = View.GONE
-        } else {
-            binding.layoutEmpty.visibility = View.GONE
-            binding.recyclerClientes.visibility = View.VISIBLE
-        }
+        // Mostrar/esconder estado vazio com mensagem contextual
+        atualizarEstadoVazio()
 
         // Atualizar estatísticas com dados filtrados
         val totalFiltrado = dadosFiltrados.sumOf { it.valorMensal }
         atualizarEstatisticas(dadosFiltrados, totalFiltrado)
         
         LogUtils.debug("ReceitaClientesFragment", "📊 Filtros aplicados: ${dadosFiltrados.size} clientes")
+    }
+
+    private fun atualizarEstadoVazio() {
+        if (dadosFiltrados.isEmpty()) {
+            binding.layoutEmpty.visibility = View.VISIBLE
+            binding.recyclerClientes.visibility = View.GONE
+            
+            // Sempre mostrar mensagem de lista geral vazia
+            binding.tvIconeVazio.text = "👥"
+            binding.tvMensagemVazia.text = "Nenhum cliente encontrado"
+            binding.tvSubtituloVazio.text = "Não há clientes com receita cadastrados no sistema. Clique em um cliente para ver relatórios mensais detalhados."
+            binding.tvSubtituloVazio.visibility = View.VISIBLE
+            
+            LogUtils.info("ReceitaClientesFragment", "📭 Nenhum cliente encontrado na lista geral")
+        } else {
+            binding.layoutEmpty.visibility = View.GONE
+            binding.recyclerClientes.visibility = View.VISIBLE
+        }
     }
 
     private fun atualizarEstatisticas(clientes: List<ReceitaCliente>, totalReceita: Double) {
@@ -366,16 +340,7 @@ class ReceitaClientesFragment : Fragment() {
         }
     }
 
-    // Função temporária para simular status de pagamento
-    // TODO: Implementar lógica real baseada em dados do servidor
-    private fun simularStatusPagamento(cliente: ReceitaCliente): String {
-        // Por enquanto, vou simular baseado no ID do cliente
-        return when {
-            cliente.clienteId % 3 == 0 -> "PAGO"
-            cliente.clienteId % 3 == 1 -> "DEVENDO"
-            else -> "VENCIDO"
-        }
-    }
+
 
     /**
      * Configura a notificação explicativa
@@ -431,9 +396,52 @@ class ReceitaClientesFragment : Fragment() {
         LogUtils.info("ReceitaClientesFragment", "✅ Notificação marcada como fechada permanentemente")
     }
 
+    /**
+     * Mostra o dialog de seleção de período para o cliente
+     */
+    private fun mostrarDialogSelecaoPeriodo(cliente: ReceitaCliente) {
+        LogUtils.info("ReceitaClientesFragment", "📅 ========== ABRINDO DIALOG DE SELEÇÃO ==========")
+        LogUtils.info("ReceitaClientesFragment", "👤 Cliente: ${cliente.clienteNome} (ID: ${cliente.clienteId})")
+        
+        val dialog = SelecionarPeriodoDialogFragment.newInstance(
+            clienteId = cliente.clienteId,
+            clienteNome = cliente.clienteNome
+        )
+        
+        try {
+            dialog.show(childFragmentManager, "SelecionarPeriodoDialog")
+            LogUtils.debug("ReceitaClientesFragment", "✅ Dialog de seleção exibido")
+        } catch (e: Exception) {
+            LogUtils.error("ReceitaClientesFragment", "❌ Erro ao exibir dialog: ${e.message}")
+            // Fallback: navegar direto para o mês atual
+            val calendar = Calendar.getInstance()
+            val mesAtual = String.format("%04d-%02d", 
+                calendar.get(Calendar.YEAR), 
+                calendar.get(Calendar.MONTH) + 1)
+            onPeriodoSelecionado(cliente.clienteId, cliente.clienteNome, mesAtual)
+        }
+    }
+
+    /**
+     * Implementação da interface OnPeriodoSelecionadoListener
+     * Chamado quando o usuário seleciona um período no dialog
+     */
+    override fun onPeriodoSelecionado(clienteId: Int, clienteNome: String, mesReferencia: String) {
+        LogUtils.info("ReceitaClientesFragment", "🎯 Período selecionado para cliente $clienteNome: $mesReferencia")
+        
+        // Navegar para ResumoMensalClienteActivity com o período selecionado
+        val context = requireContext()
+        val intent = ResumoMensalClienteActivity.newIntent(
+            context = context,
+            clienteId = clienteId,
+            mesReferencia = mesReferencia,
+            clienteNome = clienteNome
+        )
+        context.startActivity(intent)
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
-        searchJob?.cancel()
         loadingTimeoutJob?.cancel()
         swipeTimeoutJob?.cancel()
         _binding = null
