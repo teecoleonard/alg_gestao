@@ -200,12 +200,6 @@ Veja [CHANGELOG.md](CHANGELOG.md) para histórico completo de mudanças.
 
 ---
 
-## 📄 Licença
-
-Este projeto está licenciado sob a **MIT License** - veja [LICENSE](LICENSE) para detalhes.
-
----
-
 ## 👨‍💻 Autor
 
 **Leonardo Henrique**  
