@@ -22,7 +22,7 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
 
-class ReceitaClientesFragment : Fragment(), SelecionarPeriodoDialogFragment.OnPeriodoSelecionadoListener {
+class ReceitaClientesFragment : Fragment() {
 
     private var _binding: FragmentReceitaClientesBinding? = null
     private val binding get() = _binding!!
@@ -103,12 +103,6 @@ class ReceitaClientesFragment : Fragment(), SelecionarPeriodoDialogFragment.OnPe
 
     private fun setupRecyclerView() {
         adapter = ReceitaClienteAdapter()
-        
-        // Configurar callback para clique no cliente - mostra dialog de seleção de período
-        adapter.setOnClienteClickListener { cliente ->
-            LogUtils.info("ReceitaClientesFragment", "📅 Cliente selecionado: ${cliente.clienteNome} - abrindo dialog de período")
-            mostrarDialogSelecaoPeriodo(cliente)
-        }
 
         binding.recyclerClientes.apply {
             layoutManager = LinearLayoutManager(requireContext())
@@ -394,50 +388,6 @@ class ReceitaClientesFragment : Fragment(), SelecionarPeriodoDialogFragment.OnPe
         sharedPrefs.edit().putBoolean("receita_explanation_closed", true).apply()
         
         LogUtils.info("ReceitaClientesFragment", "✅ Notificação marcada como fechada permanentemente")
-    }
-
-    /**
-     * Mostra o dialog de seleção de período para o cliente
-     */
-    private fun mostrarDialogSelecaoPeriodo(cliente: ReceitaCliente) {
-        LogUtils.info("ReceitaClientesFragment", "📅 ========== ABRINDO DIALOG DE SELEÇÃO ==========")
-        LogUtils.info("ReceitaClientesFragment", "👤 Cliente: ${cliente.clienteNome} (ID: ${cliente.clienteId})")
-        
-        val dialog = SelecionarPeriodoDialogFragment.newInstance(
-            clienteId = cliente.clienteId,
-            clienteNome = cliente.clienteNome
-        )
-        
-        try {
-            dialog.show(childFragmentManager, "SelecionarPeriodoDialog")
-            LogUtils.debug("ReceitaClientesFragment", "✅ Dialog de seleção exibido")
-        } catch (e: Exception) {
-            LogUtils.error("ReceitaClientesFragment", "❌ Erro ao exibir dialog: ${e.message}")
-            // Fallback: navegar direto para o mês atual
-            val calendar = Calendar.getInstance()
-            val mesAtual = String.format("%04d-%02d", 
-                calendar.get(Calendar.YEAR), 
-                calendar.get(Calendar.MONTH) + 1)
-            onPeriodoSelecionado(cliente.clienteId, cliente.clienteNome, mesAtual)
-        }
-    }
-
-    /**
-     * Implementação da interface OnPeriodoSelecionadoListener
-     * Chamado quando o usuário seleciona um período no dialog
-     */
-    override fun onPeriodoSelecionado(clienteId: Int, clienteNome: String, mesReferencia: String) {
-        LogUtils.info("ReceitaClientesFragment", "🎯 Período selecionado para cliente $clienteNome: $mesReferencia")
-        
-        // Navegar para ResumoMensalClienteActivity com o período selecionado
-        val context = requireContext()
-        val intent = ResumoMensalClienteActivity.newIntent(
-            context = context,
-            clienteId = clienteId,
-            mesReferencia = mesReferencia,
-            clienteNome = clienteNome
-        )
-        context.startActivity(intent)
     }
 
     override fun onDestroyView() {
