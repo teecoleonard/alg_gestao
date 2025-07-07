@@ -71,6 +71,28 @@ Nova interface para escolha de período antes de abrir relatórios:
 
 ---
 
+## 📸 Screenshots
+
+### **Interface Principal do Sistema**
+
+<div align="center">
+  <img src="screenshots/dashboard.png" width="300" alt="Dashboard Principal"/>
+  <img src="screenshots/gestao_financeira.png" width="300" alt="Gestão Financeira"/>
+</div>
+
+<div align="center">
+  <img src="screenshots/detalhes_cliente.png" width="300" alt="Detalhes do Cliente"/>
+  <img src="screenshots/visualizador_pdf.png" width="300" alt="Visualizador de PDF"/>
+</div>
+
+### **Funcionalidades em Destaque**
+- **📊 Dashboard**: Visão completa com métricas em tempo real
+- **💰 Gestão Financeira**: Filtros por período e análises detalhadas  
+- **👤 Detalhes do Cliente**: Histórico completo e contratos associados
+- **📄 Visualizador PDF**: Contratos e relatórios integrados
+
+---
+
 ## 🛠️ Tecnologias
 
 ### **Stack Principal**
