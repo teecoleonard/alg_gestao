@@ -76,13 +76,13 @@ Nova interface para escolha de período antes de abrir relatórios:
 ### **Interface Principal do Sistema**
 
 <div align="center">
-  <img src="screenshots/dashboard.png" width="300" alt="Dashboard Principal"/>
-  <img src="screenshots/gestao_financeira.png" width="300" alt="Gestão Financeira"/>
+  <img src="screenshots/dashboard.jpg" width="300" alt="Dashboard Principal"/>
+  <img src="screenshots/gestao_financeira.jpg" width="300" alt="Gestão Financeira"/>
 </div>
 
 <div align="center">
-  <img src="screenshots/detalhes_cliente.png" width="300" alt="Detalhes do Cliente"/>
-  <img src="screenshots/visualizador_pdf.png" width="300" alt="Visualizador de PDF"/>
+  <img src="screenshots/detalhes_cliente.jpg" width="300" alt="Detalhes do Cliente"/>
+  <img src="screenshots/visualizador_pdf.jpg" width="300" alt="Visualizador de PDF"/>
 </div>
 
 ### **Funcionalidades em Destaque**
