@@ -50,6 +50,7 @@
     
     <!-- Cores do aplicativo (baseadas no Figma) -->
     <color name="primary">#053c1b</color>
+    <color name="primary_color">#053c1b</color>  <!-- Alias para primary -->
     <color name="primary_dark">#031b0d</color>
     <color name="primary_light">#FFB800</color>
     <color name="secondary">#4CD080</color>

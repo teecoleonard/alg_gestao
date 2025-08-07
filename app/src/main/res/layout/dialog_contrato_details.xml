@@ -264,26 +264,48 @@
                 tools:text="R$ 15.500,00" />
         </LinearLayout>
 
-        <!-- Botões -->
-
+        <!-- Botões de Ação -->
         <LinearLayout
-            android:layout_width="150dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_gravity="end"
-            android:layout_marginTop="8dp">
-        <Button
-            android:id="@+id/btnGerarPdf"
-            style="@style/Widget.MaterialComponents.Button.OutlinedButton"
-            android:layout_width="0dp"
-            android:layout_height="match_parent"
-            android:layout_marginStart="4dp"
-            android:layout_marginEnd="4dp"
-            android:layout_weight="1"
-            android:text="Gerar PDF"
-            android:textColor="@color/red_500"
-            app:strokeColor="@color/red_500"
-            app:strokeWidth="1dp" />
-    </LinearLayout>
+            android:layout_marginTop="16dp"
+            android:orientation="horizontal">
+
+            <!-- Botão Assinar Contrato -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAssinarContrato"
+                style="@style/Widget.MaterialComponents.Button"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="8dp"
+                android:layout_weight="1"
+                android:text="✍️ Assinar"
+                android:textSize="14sp"
+                app:backgroundTint="@color/primary"
+                app:icon="@android:drawable/ic_menu_edit"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="18dp" />
+
+            <!-- Botão Gerar PDF -->
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnGerarPdf"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginStart="8dp"
+                android:layout_weight="1"
+                android:text="📄 Gerar PDF"
+                android:textSize="14sp"
+                android:textColor="@color/red_500"
+                app:strokeColor="@color/red_500"
+                app:strokeWidth="1dp"
+                app:icon="@android:drawable/ic_menu_view"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="18dp" />
+
+        </LinearLayout>
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"

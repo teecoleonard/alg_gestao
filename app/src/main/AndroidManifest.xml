@@ -56,7 +56,8 @@
             android:name=".dashboard.DashboardActivity"
             android:exported="false"
             android:launchMode="singleTop"
-            android:windowSoftInputMode="adjustPan" />
+            android:windowSoftInputMode="adjustPan"
+            android:configChanges="orientation|screenSize|keyboardHidden" />
             
         <!-- MainActivity: (Não será utilizada inicialmente) -->
         <activity

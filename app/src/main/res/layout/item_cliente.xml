@@ -4,121 +4,125 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="4dp"
+    android:layout_marginVertical="2dp"
     android:layout_marginHorizontal="8dp"
     app:cardBackgroundColor="@color/card_clients_bg"
-    app:cardCornerRadius="12dp"
-    app:cardElevation="2dp"
+    app:cardCornerRadius="8dp"
+    app:cardElevation="1dp"
     app:strokeColor="@color/card_clients_accent"
-    app:strokeWidth="1dp">
+    app:strokeWidth="0.5dp">
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:padding="16dp">
+        android:padding="12dp">
 
-        <!-- Ícone do tipo de cliente (PF ou PJ) -->
+        <!-- Ícone do tipo de cliente (PF ou PJ) - Compacto -->
         <ImageView
             android:id="@+id/ivTipoCliente"
-            android:layout_width="40dp"
-            android:layout_height="40dp"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
             android:background="@drawable/circle_background_primary_light"
             android:contentDescription="Tipo de cliente"
-            android:padding="8dp"
+            android:padding="6dp"
             android:src="@drawable/ic_person"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:tint="@color/card_clients_accent" />
 
-        <!-- Nome do Cliente -->
-        <TextView
-            android:id="@+id/tvNomeCliente"
+        <!-- Informações principais em linha única -->
+        <LinearLayout
+            android:id="@+id/llInfoPrincipal"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
+            android:layout_marginStart="12dp"
             android:layout_marginEnd="8dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Subtitle1"
-            android:textColor="@color/card_clients_accent"
-            android:textStyle="bold"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
+            android:orientation="vertical"
             app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
+            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
             app:layout_constraintTop_toTopOf="parent"
-            tools:text="Nome do Cliente" />
+            app:layout_constraintBottom_toBottomOf="parent">
 
-        <!-- Documento (CPF/CNPJ) -->
-        <TextView
-            android:id="@+id/tvDocumentoCliente"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
-            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
-            app:layout_constraintTop_toBottomOf="@+id/tvNomeCliente"
-            tools:text="CPF: 123.456.789-00" />
+            <!-- Nome do Cliente -->
+            <TextView
+                android:id="@+id/tvNomeCliente"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.MaterialComponents.Body1"
+                android:textColor="@color/card_clients_accent"
+                android:textStyle="bold"
+                android:textSize="14sp"
+                android:maxLines="1"
+                android:ellipsize="end"
+                tools:text="Nome do Cliente" />
 
-        <!-- RG/IE -->
-        <TextView
-            android:id="@+id/tvRgIeCliente"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
-            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
-            app:layout_constraintTop_toBottomOf="@+id/tvDocumentoCliente"
-            tools:text="RG: 12.345.678-9" />
+            <!-- Documento e informações secundárias em uma linha -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="2dp"
+                android:orientation="horizontal">
 
-        <!-- Endereço -->
-        <TextView
-            android:id="@+id/tvEnderecoCliente"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:ellipsize="end"
-            android:maxLines="2"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
-            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
-            app:layout_constraintTop_toBottomOf="@+id/tvRgIeCliente"
-            tools:text="Rua Exemplo, 123, Bairro, Cidade/UF" />
+                <!-- Documento (CPF/CNPJ) -->
+                <TextView
+                    android:id="@+id/tvDocumentoCliente"
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="CPF: 123.456.789-00" />
 
-        <!-- Telefone (se disponível) -->
-        <TextView
-            android:id="@+id/tvTelefoneCliente"
-            android:layout_width="0dp"
-            android:layout_height="wrap_content"
-            android:layout_marginStart="16dp"
-            android:layout_marginTop="4dp"
-            android:layout_marginEnd="8dp"
-            android:textAppearance="@style/TextAppearance.MaterialComponents.Body2"
-            android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuCliente"
-            app:layout_constraintStart_toEndOf="@+id/ivTipoCliente"
-            app:layout_constraintTop_toBottomOf="@+id/tvEnderecoCliente"
-            tools:text="Telefone: (11) 98765-4321" />
+                <!-- Telefone (mais importante que RG/endereço) -->
+                <TextView
+                    android:id="@+id/tvTelefoneCliente"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:textAppearance="@style/TextAppearance.MaterialComponents.Caption"
+                    android:textColor="@color/text_secondary"
+                    android:textSize="12sp"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="(11) 98765-4321" />
 
-        <!-- Menu de opções -->
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Menu de opções - Compacto -->
         <ImageView
             android:id="@+id/ivMenuCliente"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
             android:background="?attr/selectableItemBackgroundBorderless"
             android:contentDescription="Opções"
-            android:padding="8dp"
+            android:padding="4dp"
             android:src="@drawable/ic_more_vert"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="parent"
             app:tint="@color/card_clients_accent" />
+
+        <!-- Campos ocultos para compatibilidade (altura 0dp = invisíveis) -->
+        <TextView
+            android:id="@+id/tvRgIeCliente"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            tools:text="RG: 12.345.678-9" />
+
+        <TextView
+            android:id="@+id/tvEnderecoCliente"
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:visibility="gone"
+            tools:text="Rua Exemplo, 123, Bairro, Cidade/UF" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </androidx.cardview.widget.CardView> 

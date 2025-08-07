@@ -93,6 +93,7 @@ class ContratoDetailsDialogFragment : DialogFragment() {
         val tvNomeEquipamento: TextView = view.findViewById(R.id.tvNomeEquipamento)
         val btnFechar: Button = view.findViewById(R.id.btnFecharDetalhesContrato)
         val btnEditar: Button = view.findViewById(R.id.btnEditarContrato)
+        val btnAssinarContrato: Button = view.findViewById(R.id.btnAssinarContrato)
         val btnGerarPdf: Button = view.findViewById(R.id.btnGerarPdf)
 
         // Formatter de moeda para o valor
@@ -145,6 +146,10 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                 else -> "Não assinado"
             }
             tvAssinatura.text = statusAssinatura
+            
+            // Configurar visibilidade dos botões baseada no status de assinatura
+            val jaAssinado = c.status_assinatura == "ASSINADO"
+            configurarBotoesAssinatura(btnAssinarContrato, btnGerarPdf, jaAssinado)
             
             // Soma total das quantidades de todos os equipamentos
             val somaQuantidade = c.equipamentosParaExibicao.sumOf { it.quantidadeEquip }
@@ -212,9 +217,20 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             dismiss() 
         }
         
+        // Configurar o botão Assinar Contrato
+        btnAssinarContrato.setOnClickListener {
+            contrato?.let { contratoNaoNulo ->
+                abrirAssinatura(contratoNaoNulo)
+            }
+        }
+        
         // Configurar o botão de gerar PDF
         btnGerarPdf.setOnClickListener {
-            gerarPdfContrato()
+            if (btnGerarPdf.isEnabled) {
+                gerarPdfContrato()
+            } else {
+                Toast.makeText(requireContext(), "É necessário assinar o contrato primeiro!", Toast.LENGTH_SHORT).show()
+            }
         }
     }
 
@@ -403,5 +419,148 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                 Toast.LENGTH_LONG
             ).show()
         }
+    }
+    
+    /**
+     * Atualiza a UI do dialog após a assinatura ser feita
+     */
+    private fun atualizarUIAposAssinatura(contratoAtualizado: Contrato) {
+        try {
+            // Buscar as views novamente para garantir que ainda existem
+            val view = this.view ?: return
+            
+            val tvAssinatura: TextView? = view.findViewById(R.id.tvDetalhesContratoAssinatura)
+            val btnAssinarContrato: Button? = view.findViewById(R.id.btnAssinarContrato) 
+            val btnGerarPdf: Button? = view.findViewById(R.id.btnGerarPdf)
+            
+            // Atualizar status da assinatura
+            tvAssinatura?.text = "Assinado em ${contratoAtualizado.data_assinatura}"
+            
+            // Reconfigurar botões para o novo estado com animação sutil
+            if (btnAssinarContrato != null && btnGerarPdf != null) {
+                // Animação sutil para indicar mudança
+                btnAssinarContrato.animate()
+                    .scaleX(1.1f)
+                    .scaleY(1.1f)
+                    .setDuration(150)
+                    .withEndAction {
+                        btnAssinarContrato.animate()
+                            .scaleX(1.0f)
+                            .scaleY(1.0f)
+                            .setDuration(150)
+                            .start()
+                    }
+                    .start()
+                
+                configurarBotoesAssinatura(btnAssinarContrato, btnGerarPdf, true)
+            }
+            
+            LogUtils.debug("ContratoDetailsDialog", "✅ UI atualizada após assinatura - dialog mantido aberto")
+            
+        } catch (e: Exception) {
+            LogUtils.error("ContratoDetailsDialog", "Erro ao atualizar UI após assinatura", e)
+        }
+    }
+
+    /**
+     * Configura o estado visual dos botões baseado no status de assinatura
+     */
+    private fun configurarBotoesAssinatura(btnAssinar: Button, btnGerarPdf: Button, jaAssinado: Boolean) {
+        if (jaAssinado) {
+            // Estado: Já assinado - permitir alterar assinatura
+            btnAssinar.isEnabled = true
+            btnAssinar.text = "Já assinado"
+            
+            // Usar Material Button se possível para melhor aparência - cor verde para "sucesso"
+            if (btnAssinar is com.google.android.material.button.MaterialButton) {
+                btnAssinar.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                    requireContext().getColor(R.color.success)
+                )
+                btnAssinar.setTextColor(requireContext().getColor(R.color.white))
+            } else {
+                btnAssinar.setBackgroundColor(requireContext().getColor(R.color.success))
+                btnAssinar.setTextColor(requireContext().getColor(R.color.white))
+            }
+            
+            btnGerarPdf.isEnabled = true
+            btnGerarPdf.text = "📄 Gerar PDF"
+            btnGerarPdf.alpha = 1.0f
+        } else {
+            // Estado: Não assinado - usar cor primária
+            btnAssinar.isEnabled = true
+            btnAssinar.text = "✍️ Assinar"
+            
+            // Usar Material Button se possível para melhor aparência
+            if (btnAssinar is com.google.android.material.button.MaterialButton) {
+                btnAssinar.backgroundTintList = android.content.res.ColorStateList.valueOf(
+                    requireContext().getColor(R.color.primary)
+                )
+                btnAssinar.setTextColor(requireContext().getColor(R.color.white))
+            } else {
+                btnAssinar.setBackgroundColor(requireContext().getColor(R.color.primary))
+                btnAssinar.setTextColor(requireContext().getColor(R.color.white))
+            }
+            
+            btnGerarPdf.isEnabled = false
+            btnGerarPdf.text = "📄 Assine Primeiro"
+            btnGerarPdf.alpha = 0.5f
+        }
+    }
+
+    /**
+     * Abre o fragmento de assinatura para o contrato selecionado
+     */
+    private fun abrirAssinatura(contrato: Contrato) {
+        val jaAssinado = contrato.status_assinatura == "ASSINADO"
+        val acao = if (jaAssinado) "Alterando" else "Criando"
+        
+        LogUtils.debug("ContratoDetailsDialog", "🖊️ $acao assinatura para contrato #${contrato.contratoNum}")
+        
+        val bundle = Bundle().apply {
+            putString("contratoNumero", contrato.contratoNum)
+            putInt("contratoId", contrato.id)
+            putBoolean("isAlteracao", jaAssinado) // Passa se é uma alteração
+        }
+        
+        val signatureFragment = SignatureCaptureFragment().apply {
+            arguments = bundle
+            setOnContratoAtualizadoListener {
+                LogUtils.debug("ContratoDetailsDialog", "🔔 Callback recebido - contrato assinado")
+                
+                // Atualizar o status da assinatura na UI local
+                val contratoAtualizado = contrato.copy(
+                    status_assinatura = "ASSINADO",
+                    data_assinatura = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                )
+                
+                // Atualizar o contrato local
+                this@ContratoDetailsDialogFragment.contrato = contratoAtualizado
+                
+                // Atualizar a UI do dialog em tempo real
+                atualizarUIAposAssinatura(contratoAtualizado)
+                
+                // Notificar que o contrato foi atualizado (para atualizar lista externa)
+                contratoAtualizadoListener?.onContratoAtualizado()
+                
+                // NÃO FECHAR o dialog - mantê-lo aberto com informações atualizadas
+                
+                val mensagem = if (jaAssinado) {
+                    "🔄 Assinatura alterada com sucesso! Gere um novo PDF com a assinatura atualizada."
+                } else {
+                    "✅ Contrato assinado com sucesso! Agora você pode gerar o PDF."
+                }
+                
+                Toast.makeText(
+                    requireContext(),
+                    mensagem,
+                    Toast.LENGTH_LONG
+                ).show()
+                
+                LogUtils.debug("ContratoDetailsDialog", "✅ Assinatura processada com sucesso")
+            }
+        }
+        
+        LogUtils.debug("ContratoDetailsDialog", "🔓 Abrindo SignatureCaptureFragment")
+        signatureFragment.show(parentFragmentManager, "signature_fragment")
     }
 }

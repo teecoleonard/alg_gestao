@@ -42,7 +42,7 @@ class PdfViewerFragment : DialogFragment() {
     private lateinit var progressBar: ProgressBar
     private lateinit var btnCompartilhar: Button
     private lateinit var btnSalvar: Button
-    private lateinit var btnAssinar: Button
+    private lateinit var btnRegerarPdf: Button
     private lateinit var tvInfo: TextView
     
     // Novos containers para gerenciar estados
@@ -137,7 +137,7 @@ class PdfViewerFragment : DialogFragment() {
         progressBar = view.findViewById(R.id.progressBar)
         btnCompartilhar = view.findViewById(R.id.btnCompartilhar)
         btnSalvar = view.findViewById(R.id.btnSalvar)
-        btnAssinar = view.findViewById(R.id.btnAssinar)
+        btnRegerarPdf = view.findViewById(R.id.btnRegerarPdf)
         tvInfo = view.findViewById(R.id.tvInfo)
         
         // Inicializar novos containers
@@ -400,29 +400,14 @@ class PdfViewerFragment : DialogFragment() {
             verificarPermissaoESalvar()
         }
 
-        btnAssinar.setOnClickListener {
-            LogUtils.debug("PdfViewerFragment", "🖊️ Botão assinar clicado")
-            val bundle = Bundle().apply {
-                putString("contratoNumero", contratoNumero)
-                putInt("contratoId", contratoId)
-            }
-            
-            val signatureFragment = SignatureCaptureFragment().apply {
-                arguments = bundle
-                setOnContratoAtualizadoListener {
-                    LogUtils.debug("PdfViewerFragment", "🔔 Callback recebido - contrato atualizado")
-                    LogUtils.debug("PdfViewerFragment", "🗙 Fechando PdfViewerFragment")
-                    // Fechar este viewer e voltar para a tela de contratos
-                    dismiss()
-                    LogUtils.debug("PdfViewerFragment", "📞 Chamando callback para ContratosFragment")
-                    // Chamar o callback para atualizar a lista de contratos
-                    onContratoAtualizadoCallback?.invoke()
-                    LogUtils.debug("PdfViewerFragment", "✅ Callback PdfViewer concluído")
-                }
-            }
-            
-            LogUtils.debug("PdfViewerFragment", "🔓 Abrindo SignatureCaptureFragment")
-            signatureFragment.show(parentFragmentManager, "signature_fragment")
+        btnRegerarPdf.setOnClickListener {
+            LogUtils.debug("PdfViewerFragment", "🔄 Botão regerar PDF clicado")
+            // TODO: Implementar lógica para regerar PDF com assinatura atualizada
+            Toast.makeText(
+                requireContext(),
+                "Regenerando PDF com assinatura atualizada...",
+                Toast.LENGTH_SHORT
+            ).show()
         }
     }
     

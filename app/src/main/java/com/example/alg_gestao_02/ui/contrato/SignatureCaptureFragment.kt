@@ -1,5 +1,6 @@
 package com.example.alg_gestao_02.ui.contrato
 
+import android.content.res.Configuration
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.util.Base64
@@ -7,6 +8,8 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.LinearLayout
+import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.lifecycleScope
@@ -26,11 +29,16 @@ class SignatureCaptureFragment : DialogFragment() {
     private lateinit var signatureView: SignatureView
     private lateinit var btnLimpar: Button
     private lateinit var btnConfirmar: Button
+    private lateinit var signatureContainer: LinearLayout
+    private lateinit var orientationBlockContainer: LinearLayout
+    private lateinit var tvTituloAssinatura: TextView
     private var contratoNumero: String? = null
     private var contratoId: Int = 0
     private val contratoRepository = ContratoRepository()
     private var isGeneratingPdf = false
     private var onContratoAtualizadoListener: (() -> Unit)? = null
+    private var savedSignatureData: ByteArray? = null
+    private var isAlteracao: Boolean = false
     
     // Interface para comunicar que o contrato foi atualizado com assinatura
     interface OnContratoAtualizadoListener {
@@ -82,12 +90,31 @@ class SignatureCaptureFragment : DialogFragment() {
 
         contratoNumero = arguments?.getString("contratoNumero")
         contratoId = arguments?.getInt("contratoId") ?: 0
+        isAlteracao = arguments?.getBoolean("isAlteracao") ?: false
         
+        // Inicializar views
         signatureView = view.findViewById(R.id.signatureView)
         btnLimpar = view.findViewById(R.id.btnLimpar)
         btnConfirmar = view.findViewById(R.id.btnConfirmar)
+        signatureContainer = view.findViewById(R.id.signatureContainer)
+        orientationBlockContainer = view.findViewById(R.id.orientationBlockContainer)
+        tvTituloAssinatura = view.findViewById(R.id.tvTituloAssinatura)
+        
+        // Configurar título baseado se é alteração ou nova assinatura
+        tvTituloAssinatura.text = if (isAlteracao) {
+            "Alterar assinatura do contrato"
+        } else {
+            "Assine o contrato"
+        }
+        
+        // Restaurar assinatura se houver dados salvos
+        savedInstanceState?.getByteArray("signature_data")?.let { data ->
+            savedSignatureData = data
+            signatureView.restoreFromSavedData(data)
+        }
         
         setupButtons()
+        checkOrientationAndToggleViews()
     }
 
     private fun setupButtons() {
@@ -207,60 +234,25 @@ class SignatureCaptureFragment : DialogFragment() {
             LogUtils.error("SignatureCapture", "❌ Erro ao invocar listener: ${e.message}")
         }
         
-        // 3. Usar lifecycleScope para operações de limpeza
+        // 3. Fechar APENAS este dialog de assinatura (manter outros dialogs abertos)
         viewLifecycleOwner.lifecycleScope.launch {
             try {
-                // 4. Limpar TODOS os dialogs de forma agressiva
-                LogUtils.debug("SignatureCapture", "🧹 PASSO 3: Limpeza agressiva de dialogs")
+                // Pequeno delay para garantir que o callback foi processado
+                kotlinx.coroutines.delay(100)
                 
-                val currentActivity = activity
-                if (currentActivity != null) {
-                    // Tentar limpar dialogs de todos os fragment managers possíveis
-                    val fragmentManagers = listOf(
-                        parentFragmentManager,
-                        currentActivity.supportFragmentManager,
-                        childFragmentManager
-                    )
-                    
-                    fragmentManagers.forEach { fm ->
-                        val fragmentsToRemove = mutableListOf<DialogFragment>()
-                        fm.fragments.forEach { fragment ->
-                            if (fragment is DialogFragment && fragment != this@SignatureCaptureFragment) {
-                                fragmentsToRemove.add(fragment)
-                                LogUtils.debug("SignatureCapture", "🎯 Marcando dialog para remoção: ${fragment::class.simpleName}")
-                            }
-                        }
-                        
-                        // Remover todos os dialogs encontrados neste fragment manager
-                        fragmentsToRemove.forEach { fragment ->
-                            try {
-                                fragment.dismissAllowingStateLoss()
-                                LogUtils.debug("SignatureCapture", "✅ Dialog removido: ${fragment::class.simpleName}")
-                            } catch (e: Exception) {
-                                LogUtils.error("SignatureCapture", "❌ Erro ao remover dialog: ${fragment::class.simpleName}", e)
-                            }
-                        }
-                        
-                        LogUtils.debug("SignatureCapture", "📊 Dialogs removidos neste FM: ${fragmentsToRemove.size}")
-                    }
-                }
-                
-                // 5. Aguardar para garantir que a limpeza foi processada
-                kotlinx.coroutines.delay(200)
-                
-                // 6. Fechar este dialog de assinatura
-                LogUtils.debug("SignatureCapture", "🗙 PASSO 4: Fechando dialog de assinatura")
+                // Fechar APENAS este dialog de assinatura
+                LogUtils.debug("SignatureCapture", "🗙 PASSO 3: Fechando APENAS dialog de assinatura")
                 dismiss()
                 
-                LogUtils.debug("SignatureCapture", "🏁 FIM: Processo de retorno concluído com sucesso")
+                LogUtils.debug("SignatureCapture", "🏁 FIM: Processo concluído - ContratoDetailsDialog MANTIDO ABERTO")
                 
             } catch (e: Exception) {
-                LogUtils.error("SignatureCapture", "❌ Erro durante limpeza: ${e.message}")
+                LogUtils.error("SignatureCapture", "❌ Erro ao fechar dialog: ${e.message}")
                 // Mesmo com erro, tentar fechar o dialog
                 try {
                     dismiss()
                 } catch (dismissError: Exception) {
-                    LogUtils.error("SignatureCapture", "❌ Erro ao fechar dialog: ${dismissError.message}")
+                    LogUtils.error("SignatureCapture", "❌ Erro crítico ao fechar dialog: ${dismissError.message}")
                 }
             }
         }
@@ -323,6 +315,56 @@ class SignatureCaptureFragment : DialogFragment() {
                 LogUtils.error("SignatureCapture", "Erro ao exibir PDF assinado", e)
                 Toast.makeText(context, "Erro ao exibir PDF: ${e.message}", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    /**
+     * Verifica a orientação atual e alterna a visibilidade dos containers
+     */
+    private fun checkOrientationAndToggleViews() {
+        val orientation = resources.configuration.orientation
+        
+        when (orientation) {
+            Configuration.ORIENTATION_LANDSCAPE -> {
+                // Modo paisagem - mostrar área de assinatura
+                signatureContainer.visibility = View.VISIBLE
+                orientationBlockContainer.visibility = View.GONE
+                LogUtils.debug("SignatureCapture", "Modo paisagem detectado - liberando assinatura")
+            }
+            Configuration.ORIENTATION_PORTRAIT -> {
+                // Modo retrato - mostrar bloqueio
+                signatureContainer.visibility = View.GONE
+                orientationBlockContainer.visibility = View.VISIBLE
+                LogUtils.debug("SignatureCapture", "Modo retrato detectado - bloqueando assinatura")
+            }
+            else -> {
+                // Orientação indefinida - mostrar bloqueio por segurança
+                signatureContainer.visibility = View.GONE
+                orientationBlockContainer.visibility = View.VISIBLE
+                LogUtils.debug("SignatureCapture", "Orientação indefinida - bloqueando assinatura por segurança")
+            }
+        }
+    }
+
+    override fun onConfigurationChanged(newConfig: Configuration) {
+        super.onConfigurationChanged(newConfig)
+        LogUtils.debug("SignatureCapture", "Mudança de configuração detectada")
+        
+        // Salvar assinatura antes da mudança
+        savedSignatureData = signatureView.saveSignatureData()
+        
+        // Verificar nova orientação
+        checkOrientationAndToggleViews()
+    }
+
+    override fun onSaveInstanceState(outState: Bundle) {
+        super.onSaveInstanceState(outState)
+        
+        // Salvar dados da assinatura
+        val signatureData = signatureView.saveSignatureData()
+        if (signatureData != null) {
+            outState.putByteArray("signature_data", signatureData)
+            LogUtils.debug("SignatureCapture", "Dados da assinatura salvos no bundle")
         }
     }
 } 

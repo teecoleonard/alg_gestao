@@ -103,12 +103,16 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         // Limpar qualquer filtro pendente quando sair da tela
         com.example.alg_gestao_02.utils.FilterManager.clearPendingFilter()
         
-        // Fechar qualquer diálogo que possa estar aberto
+        // COMENTADO: Não fechar dialogs automaticamente em onPause
+        // para permitir que dialogs persistam durante mudanças de orientação
+        // e após operações de assinatura
+        /*
         val dialog = childFragmentManager.findFragmentByTag("ContratoDetailsDialog")
         if (dialog != null && dialog is ContratoDetailsDialogFragment) {
             LogUtils.debug("ContratosFragment", "Fechando diálogo de detalhes de contrato aberto")
             dialog.dismiss()
         }
+        */
     }
     
     private fun initViews(view: View) {

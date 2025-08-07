@@ -186,34 +186,34 @@
                 android:orientation="horizontal"
                 android:layout_marginBottom="12dp">
 
-                <!-- Botão Assinar -->
-                <com.google.android.material.button.MaterialButton
-                    android:id="@+id/btnAssinar"
-                    style="@style/Widget.MaterialComponents.Button"
-                    android:layout_width="0dp"
-                    android:layout_height="48dp"
-                    android:layout_marginEnd="6dp"
-                    android:layout_weight="1"
-                    android:text="Assinar"
-                    android:textSize="14sp"
-                    app:backgroundTint="@color/primary"
-                    app:icon="@android:drawable/ic_menu_edit"
-                    app:iconGravity="textStart"
-                    app:iconPadding="8dp"
-                    app:iconSize="18dp" />
-
                 <!-- Botão Salvar -->
                 <com.google.android.material.button.MaterialButton
                     android:id="@+id/btnSalvar"
                     style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="0dp"
                     android:layout_height="48dp"
-                    android:layout_marginStart="6dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:text="Salvar"
                     android:textSize="14sp"
                     app:backgroundTint="@color/success"
                     app:icon="@android:drawable/ic_menu_save"
+                    app:iconGravity="textStart"
+                    app:iconPadding="8dp"
+                    app:iconSize="18dp" />
+
+                <!-- Botão Regenerar PDF (agora que já foi assinado) -->
+                <com.google.android.material.button.MaterialButton
+                    android:id="@+id/btnRegerarPdf"
+                    style="@style/Widget.MaterialComponents.Button"
+                    android:layout_width="0dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="6dp"
+                    android:layout_weight="1"
+                    android:text="Atualizar"
+                    android:textSize="14sp"
+                    app:backgroundTint="@color/warning"
+                    app:icon="@android:drawable/ic_popup_sync"
                     app:iconGravity="textStart"
                     app:iconPadding="8dp"
                     app:iconSize="18dp" />
