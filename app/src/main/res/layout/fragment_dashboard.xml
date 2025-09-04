@@ -74,9 +74,10 @@
                             android:orientation="vertical">
 
                             <TextView
+                                android:id="@+id/tvWelcomeUser"
                                 android:layout_width="wrap_content"
                                 android:layout_height="wrap_content"
-                            android:text="Olá, Leonardo! 👋"
+                            android:text="Olá! 👋"
                             android:fontFamily="@font/poppins_medium"
                             android:textColor="@color/text_primary"
                             android:textSize="20sp"

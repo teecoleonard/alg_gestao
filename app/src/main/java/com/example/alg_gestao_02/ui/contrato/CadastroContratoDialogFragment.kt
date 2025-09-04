@@ -93,6 +93,23 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             return fragment
         }
     }
+    private fun calcularVencimentoPorPeriodo(periodo: String): String {
+        return try {
+            val sdfIso = java.text.SimpleDateFormat("yyyy-MM-dd", java.util.Locale.getDefault())
+            val baseDate = sdfIso.parse(viewModel.getDataHoraAtual().substring(0, 10)) ?: java.util.Date()
+            val cal = java.util.Calendar.getInstance().apply { time = baseDate }
+            when (periodo.trim().uppercase(java.util.Locale.getDefault())) {
+                "DIARIA", "DIARIO" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                "QUINZENAL" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
+                "MENSAL" -> cal.add(java.util.Calendar.MONTH, 1)
+                "ANUAL" -> cal.add(java.util.Calendar.YEAR, 1)
+                else -> cal.add(java.util.Calendar.MONTH, 1)
+            }
+            sdfIso.format(cal.time)
+        } catch (e: Exception) {
+            viewModel.getDataVencimento()
+        }
+    }
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -774,14 +791,18 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             }
         }
         
+        // Calcular datas de emissão e vencimento conforme período selecionado
+        val dataHoraEmissaoCalculada = contratoParaEdicao?.dataHoraEmissao ?: viewModel.getDataHoraAtual()
+        val dataVencimentoCalculada = contratoParaEdicao?.dataVenc ?: calcularVencimentoPorPeriodo(contratoPeriodo)
+
         // Criar objeto Contrato
         val contrato = Contrato(
             id = contratoParaEdicao?.id ?: 0,
             clienteId = clienteId,
             clienteNome = clienteSelecionado?.contratante ?: contratoParaEdicao?.clienteNome,
             contratoNum = contratoNum,
-            dataHoraEmissao = contratoParaEdicao?.dataHoraEmissao ?: viewModel.getDataHoraAtual(),
-            dataVenc = contratoParaEdicao?.dataVenc ?: viewModel.getDataVencimento(),
+            dataHoraEmissao = dataHoraEmissaoCalculada,
+            dataVenc = dataVencimentoCalculada,
             contratoValor = contratoValorCalculado,
             obraLocal = obraLocal,
             contratoPeriodo = contratoPeriodo,

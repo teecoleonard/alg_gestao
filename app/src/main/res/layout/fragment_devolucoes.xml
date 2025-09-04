@@ -22,7 +22,7 @@
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Buscar por cliente, equipamento ou número"
+            android:hint="Buscar por nome do cliente"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />
@@ -84,7 +84,7 @@
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:layout_marginTop="8dp"
-                    android:text="Tente ajustar sua busca ou filtros"
+                    android:text="Tente ajustar sua busca ou verificar os contratos ativos"
                     android:textAlignment="center"
                     android:textAppearance="@style/TextAppearance.MaterialComponents.Body2" />
 

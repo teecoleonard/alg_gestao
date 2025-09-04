@@ -10,6 +10,13 @@ import android.widget.EditText
 object TextMaskUtils {
     
     /**
+     * Remove formatação de CPF (pontos, hífens) deixando apenas números
+     */
+    fun normalizeCpf(cpf: String): String {
+        return cpf.replace("[^0-9]".toRegex(), "")
+    }
+    
+    /**
      * Aplica máscara de CPF (000.000.000-00)
      */
     fun insertCpfMask(editText: EditText): TextWatcher {

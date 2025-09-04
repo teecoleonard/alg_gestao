@@ -126,6 +126,9 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
+        
+        // Garantir que não há espaçamento extra
+        recyclerView.setHasFixedSize(true)
     }
     
     private fun setupListeners() {

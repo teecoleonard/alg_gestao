@@ -89,15 +89,19 @@ class LoginActivity : AppCompatActivity() {
             }
             
             // Validação básica de CPF
-            if (cpf.replace("[^0-9]".toRegex(), "").length != 11) {
+            if (TextMaskUtils.normalizeCpf(cpf).length != 11) {
                 Toast.makeText(this, "Digite um CPF válido", Toast.LENGTH_SHORT).show()
                 return@setOnClickListener
             }
             
             LogUtils.debug("LoginActivity", "Tentativa de login para CPF: $cpf")
             
+            // Remover formatação do CPF antes de enviar (mesma lógica do registro)
+            val cpfLimpo = TextMaskUtils.normalizeCpf(cpf)
+            LogUtils.debug("LoginActivity", "CPF sem formatação: $cpfLimpo")
+            
             // Usa as credenciais fornecidas pelo usuário
-            viewModel.login(cpf, senha)
+            viewModel.login(cpfLimpo, senha)
         }
         
         binding.tvRegister.setOnClickListener {

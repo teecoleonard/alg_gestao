@@ -46,6 +46,7 @@ class DashboardFragment : Fragment() {
     
     // Header elements
     private lateinit var tvCurrentDate: TextView
+    private lateinit var tvWelcomeUser: TextView
     
     // Progress bars e TextViews para métricas de performance
     private lateinit var tvContratosProgress: TextView
@@ -118,6 +119,7 @@ class DashboardFragment : Fragment() {
         
         // Header elements
         tvCurrentDate = view.findViewById(R.id.tvDataAtual)
+        tvWelcomeUser = view.findViewById(R.id.tvWelcomeUser)
         
         // Progress bars e TextViews para métricas de performance
         tvContratosProgress = view.findViewById(R.id.tvContratosProgress)
@@ -137,6 +139,9 @@ class DashboardFragment : Fragment() {
         
         // Setup current date
         setupCurrentDate()
+        
+        // Setup user welcome message
+        setupUserWelcome()
     }
     
     private fun setupCurrentDate() {
@@ -144,6 +149,21 @@ class DashboardFragment : Fragment() {
         val dateFormat = SimpleDateFormat("EEEE, dd 'de' MMMM", Locale("pt", "BR"))
         val formattedDate = dateFormat.format(currentDate)
         tvCurrentDate.text = formattedDate.replaceFirstChar { it.uppercase() }
+    }
+    
+    private fun setupUserWelcome() {
+        val sessionManager = SessionManager(requireContext())
+        val userName = sessionManager.getUserName()
+        
+        if (!userName.isNullOrEmpty()) {
+            // Extrair apenas o primeiro nome para saudação mais pessoal
+            val firstName = userName.split(" ").firstOrNull() ?: userName
+            tvWelcomeUser.text = "Olá, $firstName! 👋"
+            LogUtils.debug("DashboardFragment", "Welcome message configurado para: $firstName")
+        } else {
+            tvWelcomeUser.text = "Olá! 👋"
+            LogUtils.warning("DashboardFragment", "Nome do usuário não encontrado, usando saudação genérica")
+        }
     }
     
 

@@ -84,7 +84,7 @@ class RegisterActivity : AppCompatActivity() {
             
             LogUtils.debug("RegisterActivity", "Tentativa de registro para: $nome")
             
-            viewModel.register(cpf.replace("[^0-9]".toRegex(), ""), nome, senha, role)
+            viewModel.register(TextMaskUtils.normalizeCpf(cpf), nome, senha, role)
         }
     }
     

@@ -84,7 +84,8 @@ class DevolucoesViewModel(
                         val devolucoes = resultado.data
                         if (devolucoes.isNotEmpty()) {
                             LogUtils.info("DevolucoesViewModel", "Devoluções carregadas: ${devolucoes.size}")
-                            allDevolucoes = devolucoes
+                            // Ordenar por data mais recente (usando data efetiva se existir, senão data prevista)
+                            allDevolucoes = sortDevolucoesByMostRecent(devolucoes)
                             applySearchFilter(_searchTerm.value ?: "")
                         } else {
                             LogUtils.info("DevolucoesViewModel", "Nenhuma devolução encontrada")
@@ -125,7 +126,9 @@ class DevolucoesViewModel(
         }
 
         if (filtered.isNotEmpty()) {
-            _uiState.value = UiState.Success(filtered)
+            // Manter a ordenação por data mais recente na lista filtrada
+            val sortedFiltered = sortDevolucoesByMostRecent(filtered)
+            _uiState.value = UiState.Success(sortedFiltered)
         } else {
             _uiState.value = UiState.Empty()
         }
@@ -327,6 +330,31 @@ class DevolucoesViewModel(
      */
     fun clearProcessamentoState() {
         _processamentoState.value = null
+    }
+
+    /**
+     * Função helper para ordenar devoluções por data mais recente
+     */
+    private fun sortDevolucoesByMostRecent(devolucoes: List<Devolucao>): List<Devolucao> {
+        return devolucoes.sortedByDescending { devolucao ->
+            try {
+                val dataParaOrdenar = if (!devolucao.dataDevolucaoEfetiva.isNullOrEmpty()) {
+                    devolucao.dataDevolucaoEfetiva
+                } else {
+                    devolucao.dataDevolucaoPrevista ?: ""
+                }
+                // Converter data para timestamp para ordenação correta
+                val formato = if (dataParaOrdenar.contains("T")) {
+                    SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
+                } else {
+                    SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                }
+                formato.parse(dataParaOrdenar)?.time ?: 0L
+            } catch (e: Exception) {
+                LogUtils.warning("DevolucoesViewModel", "Erro ao ordenar por data: ${e.message}")
+                0L // Se não conseguir parsear, coloca no final
+            }
+        }
     }
 }
 

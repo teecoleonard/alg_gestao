@@ -22,6 +22,7 @@ import android.app.ProgressDialog
 import android.widget.Toast
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.utils.Resource
+import java.util.Date
 
 class ContratoDetailsDialogFragment : DialogFragment() {
 
@@ -131,9 +132,9 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                 LogUtils.debug("ContratoDetailsDialog", "Cliente não disponível no contrato")
             }
             
-            // Usar os métodos de formatação da classe Contrato (sem parâmetros)
+            // Exibir datas: emissão do modelo; vencimento calculado por período se aplicável
             tvDataEmissao.text = c.getDataEmissaoFormatada()
-            tvDataVenc.text = c.getDataVencimentoFormatada()
+            tvDataVenc.text = calcularVencimentoParaExibicao(c)
             tvLocalObra.text = "Obra: ${c.obraLocal ?: "Não informado"}"
             tvPeriodo.text = "Período: ${c.contratoPeriodo ?: "Não informado"}"
             tvLocalEntrega.text = "Entrega: ${c.entregaLocal ?: "Não informado"}"
@@ -231,6 +232,48 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             } else {
                 Toast.makeText(requireContext(), "É necessário assinar o contrato primeiro!", Toast.LENGTH_SHORT).show()
             }
+        }
+    }
+
+    private fun calcularVencimentoParaExibicao(c: Contrato): String {
+        return try {
+            val periodo = c.contratoPeriodo?.trim()?.uppercase(Locale.getDefault()) ?: ""
+            val base = c.dataHoraEmissao ?: c.dataVenc ?: ""
+            if (base.isBlank()) return c.getDataVencimentoFormatada()
+
+            fun parseFlexible(value: String): Date? {
+                val patterns = listOf(
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                    "yyyy-MM-dd'T'HH:mm:ss",
+                    "yyyy-MM-dd"
+                )
+                for (p in patterns) {
+                    try {
+                        val sdf = java.text.SimpleDateFormat(p, java.util.Locale.getDefault())
+                        sdf.timeZone = java.util.TimeZone.getTimeZone("UTC")
+                        return sdf.parse(value)
+                    } catch (_: Exception) {}
+                }
+                return null
+            }
+
+            val baseDate = parseFlexible(base) ?: Date()
+            val cal = java.util.Calendar.getInstance().apply { time = baseDate }
+            when (java.text.Normalizer.normalize(periodo, java.text.Normalizer.Form.NFD).replace("[\\p{InCombiningDiacriticalMarks}]".toRegex(), "")) {
+                "DIARIA", "DIARIO" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                "QUINZENAL" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
+                "MENSAL" -> cal.add(java.util.Calendar.MONTH, 1)
+                "ANUAL" -> cal.add(java.util.Calendar.YEAR, 1)
+                else -> {
+                    // Sem período válido: usa a dataVenc existente formatada
+                    return c.getDataVencimentoFormatada()
+                }
+            }
+            java.text.SimpleDateFormat("dd/MM/yyyy", java.util.Locale.getDefault()).format(cal.time)
+        } catch (_: Exception) {
+            c.getDataVencimentoFormatada()
         }
     }
 

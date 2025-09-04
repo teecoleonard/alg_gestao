@@ -72,6 +72,7 @@ data class ContratoPdfDTO(
     val numero: String,
     val data: String,
     val dataVencimento: String,
+    val periodo: String? = null,
     val cliente: ClientePdfDTO,
     val produtos: List<ProdutoPdfDTO>,
     val valorTotal: Double,
@@ -367,19 +368,61 @@ class PdfService {
             formatoISO.format(Date())
         }
         
+        // Calcular data de vencimento conforme o período do contrato
         val dataVencimento = try {
-            if (!contrato.dataVenc.isNullOrEmpty()) {
-                val date = formatoOriginal.parse(contrato.getDataVencimentoFormatada())
-                date?.let { formatoISO.format(it) } ?: run {
-                    LogUtils.warning("PdfService", "Data de vencimento inválida, usando data atual")
-                    formatoISO.format(Date())
+            // Base: data de emissão (ISO) já calculada acima; aceitar múltiplos formatos
+            fun parseDateFlexible(value: String?): Date? {
+                if (value.isNullOrBlank()) return null
+                val patterns = listOf(
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                    "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                    "yyyy-MM-dd'T'HH:mm:ss",
+                    "yyyy-MM-dd"
+                )
+                for (p in patterns) {
+                    try {
+                        val sdf = SimpleDateFormat(p, Locale.getDefault())
+                        sdf.timeZone = TimeZone.getTimeZone("UTC")
+                        return sdf.parse(value)
+                    } catch (_: Exception) { }
                 }
-            } else {
-                LogUtils.warning("PdfService", "Data de vencimento não encontrada, usando data atual")
-                formatoISO.format(Date())
+                return null
             }
+
+            val baseDate: Date = parseDateFlexible(dataEmissao) ?: Date()
+
+            val periodoEfetivo = (contrato.contratoPeriodo ?: "").trim().uppercase(Locale.getDefault())
+            val periodoNormalizado = java.text.Normalizer
+                .normalize(periodoEfetivo, java.text.Normalizer.Form.NFD)
+                .replace("[\\p{InCombiningDiacriticalMarks}]".toRegex(), "")
+
+            val cal = java.util.Calendar.getInstance().apply { time = baseDate }
+            when (periodoNormalizado) {
+                "DIARIA", "DIARIO" -> {
+                    // próximo dia
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                }
+                "QUINZENAL" -> {
+                    cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
+                }
+                "MENSAL" -> {
+                    cal.add(java.util.Calendar.MONTH, 1)
+                }
+                "ANUAL" -> {
+                    cal.add(java.util.Calendar.YEAR, 1)
+                }
+                else -> {
+                    // Se período não reconhecido, usar dataVenc se existir; senão segue com baseDate
+                    if (!contrato.dataVenc.isNullOrEmpty()) {
+                        val parsed = formatoOriginal.parse(contrato.getDataVencimentoFormatada())
+                        cal.time = parsed ?: baseDate
+                    }
+                }
+            }
+            formatoISO.format(cal.time)
         } catch (e: Exception) {
-            LogUtils.error("PdfService", "Erro ao converter data de vencimento", e)
+            LogUtils.error("PdfService", "Erro ao calcular data de vencimento pelo período", e)
             formatoISO.format(Date())
         }
 
@@ -416,6 +459,7 @@ class PdfService {
             numero = contrato.getContratoNumOuVazio(),
             data = dataEmissao,
             dataVencimento = dataVencimento,
+            periodo = contrato.contratoPeriodo,
             cliente = clientePdf,
             produtos = produtosPdf,
             valorTotal = contrato.getValorEfetivo(),

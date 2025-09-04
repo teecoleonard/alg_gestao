@@ -40,28 +40,20 @@ class DevolucoesAdapter(
             // Define o nome do cliente
             tvClienteNome.text = devolucao.resolverNomeCliente()
             
-            // Define o número da devolução
-            tvDevolucaoNumero.text = "Devolução #${devolucao.devNum}"
+            // Define o número da devolução (formato compacto)
+            tvDevolucaoNumero.text = "#${devolucao.devNum}"
             
             // Define o nome do equipamento
             tvEquipamentoNome.text = devolucao.resolverNomeEquipamento()
             
-            // Define as quantidades
+            // Define as quantidades (formato compacto)
             val quantidadeDevolvida = devolucao.quantidadeDevolvida
             val quantidadeContratada = devolucao.quantidadeContratada
-            val pendente = devolucao.getQuantidadePendente()
-            tvQuantidades.text = "Devolvido: $quantidadeDevolvida de $quantidadeContratada (Pendente: $pendente)"
+            tvQuantidades.text = "$quantidadeDevolvida/$quantidadeContratada"
             
-            // Define a data prevista
-            tvDataPrevista.text = "Previsão: ${devolucao.getDataPrevistaFormatada()}"
-            
-            // Define a data efetiva ou status
-            if (devolucao.dataDevolucaoEfetiva != null) {
-                tvDataEfetiva.text = "Efetivado em: ${devolucao.getDataEfetivaFormatada()}"
-                tvDataEfetiva.visibility = View.VISIBLE
-            } else {
-                tvDataEfetiva.visibility = View.GONE
-            }
+            // Manter campos antigos ocultos para compatibilidade
+            tvDataPrevista.visibility = View.GONE
+            tvDataEfetiva.visibility = View.GONE
             
             // Define o status visual da devolução
             when (devolucao.statusItemDevolucao) {
