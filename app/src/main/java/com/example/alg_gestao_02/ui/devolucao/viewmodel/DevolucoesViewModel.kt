@@ -57,9 +57,8 @@ class DevolucoesViewModel(
     private val _searchTerm = MutableLiveData<String>("")
     val searchTerm: LiveData<String> = _searchTerm
 
-    init {
-        loadDevolucoes()
-    }
+    // Removido init que carregava automaticamente para evitar chamadas duplas
+    // O carregamento agora é controlado pelo Fragment
 
     /**
      * Carrega a lista de devoluções com base nos filtros atuais
@@ -69,7 +68,7 @@ class DevolucoesViewModel(
 
         viewModelScope.launch {
             try {
-                LogUtils.debug("DevolucoesViewModel", "Carregando devoluções")
+                LogUtils.info("DevolucoesViewModel", "🔥 LOAD DEVOLUÇÕES - Carregando devoluções")
 
                 // Aplicar filtros
                 val resultado = repository.getDevolucoes(
@@ -90,12 +89,20 @@ class DevolucoesViewModel(
                         } else {
                             LogUtils.info("DevolucoesViewModel", "Nenhuma devolução encontrada")
                             allDevolucoes = emptyList()
-                            _uiState.value = UiState.Empty()
+                            
+                            // Verificar se é um filtro por contrato específico
+                            val contratoId = _contratoIdFiltro.value
+                            if (contratoId != null) {
+                                LogUtils.info("DevolucoesViewModel", "Contrato ID $contratoId não possui devoluções cadastradas")
+                                _uiState.value = UiState.Error("Este contrato ainda não possui devoluções cadastradas.\n\nAs devoluções são criadas automaticamente quando o contrato é finalizado.")
+                            } else {
+                                _uiState.value = UiState.Empty()
+                            }
                         }
                     }
                     is Resource.Error -> {
                         LogUtils.error("DevolucoesViewModel", "Erro ao carregar devoluções: ${resultado.message}")
-                        _uiState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
+                        _uiState.value = UiState.Error(resultado.message)
                     }
                     is Resource.Loading -> {
                         // Já estamos exibindo o estado de carregamento
@@ -162,6 +169,7 @@ class DevolucoesViewModel(
      * Define o filtro de contrato
      */
     fun setContratoIdFiltro(contratoId: Int?) {
+        LogUtils.info("DevolucoesViewModel", "🔥 SET CONTRATO FILTRO - Definindo filtro por contrato ID: $contratoId")
         _contratoIdFiltro.value = contratoId
         loadDevolucoes()
     }
@@ -209,7 +217,7 @@ class DevolucoesViewModel(
                     }
                     is Resource.Error -> {
                         LogUtils.error("DevolucoesViewModel", "Erro ao carregar devoluções: ${resultado.message}")
-                        _devolucaoGrupoState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
+                        _devolucaoGrupoState.value = UiState.Error(resultado.message)
                     }
                     is Resource.Loading -> {
                         // Já estamos exibindo o estado de carregamento
@@ -246,7 +254,7 @@ class DevolucoesViewModel(
                     }
                     is Resource.Error -> {
                         LogUtils.error("DevolucoesViewModel", "Erro ao carregar devoluções: ${resultado.message}")
-                        _devolucaoGrupoState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
+                        _devolucaoGrupoState.value = UiState.Error(resultado.message)
                     }
                     is Resource.Loading -> {
                         // Já estamos exibindo o estado de carregamento
@@ -266,7 +274,7 @@ class DevolucoesViewModel(
     fun processarDevolucao(
         devolucaoId: Int,
         quantidadeDevolvida: Int,
-        statusItemDevolucao: String,
+        statusItemDevolucao: String?,
         observacaoItemDevolucao: String? = null
     ) {
         LogUtils.info("DevolucoesViewModel", "🔄 INICIANDO PROCESSAMENTO NO VIEWMODEL")
@@ -281,17 +289,12 @@ class DevolucoesViewModel(
                 LogUtils.debug("DevolucoesViewModel", "Processando devolução ID: $devolucaoId, " +
                         "quantidade: $quantidadeDevolvida, status: $statusItemDevolucao")
 
-                // Formatar data atual como data efetiva de devolução
-                val formatoData = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-                val dataEfetiva = formatoData.format(Date())
-                LogUtils.debug("DevolucoesViewModel", "Data efetiva formatada: $dataEfetiva")
-
                 LogUtils.info("DevolucoesViewModel", "Chamando repository.processarDevolucao...")
                 when (val resultado = repository.processarDevolucao(
                     id = devolucaoId,
                     quantidadeDevolvida = quantidadeDevolvida,
                     statusItemDevolucao = statusItemDevolucao,
-                    dataDevolucaoEfetiva = dataEfetiva,
+                    dataDevolucaoEfetiva = null, // ✅ IMPORTANTE: Deixar NULL - o backend calcula automaticamente quando 100% devolvido
                     observacaoItemDevolucao = observacaoItemDevolucao
                 )) {
                     is Resource.Success -> {
@@ -308,7 +311,7 @@ class DevolucoesViewModel(
                     
                     is Resource.Error -> {
                         LogUtils.error("DevolucoesViewModel", "❌ ERRO NO VIEWMODEL - Falha ao processar devolução: ${resultado.message}")
-                        _processamentoState.value = UiState.Error(resultado.message ?: "Erro desconhecido")
+                        _processamentoState.value = UiState.Error(resultado.message)
                     }
                     
                     is Resource.Loading -> {

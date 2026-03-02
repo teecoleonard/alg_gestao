@@ -96,7 +96,32 @@ class ClienteRepository {
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ClienteRepository", "Falha ao criar cliente: ${response.code()}")
-                Resource.Error("Erro ao criar cliente: ${response.message()}")
+                
+                // Tentar extrair mensagem específica do erro da API
+                val errorMessage = try {
+                    val errorBody = response.errorBody()?.string()
+                    LogUtils.debug("ClienteRepository", "Corpo do erro da API: $errorBody")
+                    
+                    // Se o erro contém uma mensagem específica, usar ela
+                    if (!errorBody.isNullOrEmpty()) {
+                        // Tentar extrair a mensagem do JSON de erro
+                        if (errorBody.contains("message")) {
+                            // Procurar por padrões como {"message":"..."}
+                            val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                            val match = messagePattern.find(errorBody)
+                            match?.groupValues?.get(1) ?: errorBody
+                        } else {
+                            errorBody
+                        }
+                    } else {
+                        "Erro ao criar cliente: ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    LogUtils.error("ClienteRepository", "Erro ao ler corpo da resposta de erro: ${e.message}")
+                    "Erro ao criar cliente: ${response.message()}"
+                }
+                
+                Resource.Error(errorMessage)
             }
         } catch (e: CancellationException) {
             // Tratamento específico para cancelamento de job
@@ -122,7 +147,32 @@ class ClienteRepository {
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ClienteRepository", "Falha ao atualizar cliente: ${response.code()}")
-                Resource.Error("Erro ao atualizar cliente: ${response.message()}")
+                
+                // Tentar extrair mensagem específica do erro da API
+                val errorMessage = try {
+                    val errorBody = response.errorBody()?.string()
+                    LogUtils.debug("ClienteRepository", "Corpo do erro da API: $errorBody")
+                    
+                    // Se o erro contém uma mensagem específica, usar ela
+                    if (!errorBody.isNullOrEmpty()) {
+                        // Tentar extrair a mensagem do JSON de erro
+                        if (errorBody.contains("message")) {
+                            // Procurar por padrões como {"message":"..."}
+                            val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                            val match = messagePattern.find(errorBody)
+                            match?.groupValues?.get(1) ?: errorBody
+                        } else {
+                            errorBody
+                        }
+                    } else {
+                        "Erro ao atualizar cliente: ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    LogUtils.error("ClienteRepository", "Erro ao ler corpo da resposta de erro: ${e.message}")
+                    "Erro ao atualizar cliente: ${response.message()}"
+                }
+                
+                Resource.Error(errorMessage)
             }
         } catch (e: CancellationException) {
             // Tratamento específico para cancelamento de job

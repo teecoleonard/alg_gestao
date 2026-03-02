@@ -61,24 +61,40 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         setupListeners()
         observeViewModel()
         
-        // Verificar se há filtro pendente no FilterManager
-        val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingReturnsFilter()
-        if (pendingFilter != null) {
-            LogUtils.info("DevolucoesFragment", "Aplicando filtro pendente para cliente: ${pendingFilter.clienteNome} (ID: ${pendingFilter.clienteId})")
+        // Verificar se há filtro por contrato vindo da navegação
+        val contratoId = arguments?.getInt("contratoId")
+        if (contratoId != null && contratoId > 0) {
+            LogUtils.info("DevolucoesFragment", "🔥 FILTRO POR CONTRATO - Aplicando filtro por contrato ID: $contratoId")
             
-            // Aplicar filtro por cliente ID no ViewModel
-            viewModel.setClienteIdFiltro(pendingFilter.clienteId)
-            
-            // Aplicar o nome do cliente no campo de busca para feedback visual
-            etSearch.setText(pendingFilter.clienteNome)
-            viewModel.setSearchTerm(pendingFilter.clienteNome)
+            // Aplicar filtro por contrato ID no ViewModel
+            viewModel.setContratoIdFiltro(contratoId)
             
             // Mostrar toast informativo sobre o filtro aplicado
-            Toast.makeText(requireContext(), "Mostrando devoluções de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), "Buscando devoluções do contrato #$contratoId...", Toast.LENGTH_SHORT).show()
         } else {
-            // Carregar devoluções normalmente se não houver filtro
-            LogUtils.debug("DevolucoesFragment", "Carregando lista de devoluções inicialmente")
-            viewModel.loadDevolucoes()
+            // Limpar filtros anteriores quando não há filtro específico
+            LogUtils.info("DevolucoesFragment", "🔥 LIMPANDO FILTROS - Sem filtro específico de contrato")
+            viewModel.clearFiltros()
+            
+            // Verificar se há filtro pendente no FilterManager
+            val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingReturnsFilter()
+            if (pendingFilter != null) {
+                LogUtils.info("DevolucoesFragment", "Aplicando filtro pendente para cliente: ${pendingFilter.clienteNome} (ID: ${pendingFilter.clienteId})")
+                
+                // Aplicar filtro por cliente ID no ViewModel
+                viewModel.setClienteIdFiltro(pendingFilter.clienteId)
+                
+                // Aplicar o nome do cliente no campo de busca para feedback visual
+                etSearch.setText(pendingFilter.clienteNome)
+                viewModel.setSearchTerm(pendingFilter.clienteNome)
+                
+                // Mostrar toast informativo sobre o filtro aplicado
+                Toast.makeText(requireContext(), "Mostrando devoluções de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
+            } else {
+                // Carregar devoluções normalmente se não houver filtro
+                LogUtils.info("DevolucoesFragment", "🔥 CARREGAMENTO NORMAL - Carregando lista de devoluções inicialmente")
+                viewModel.loadDevolucoes()
+            }
         }
     }
     
@@ -134,6 +150,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
     private fun setupListeners() {
         swipeRefresh.setOnRefreshListener {
             LogUtils.debug("DevolucoesFragment", "Atualizando lista de devoluções via swipe refresh")
+            // Respeitar filtros ativos ao fazer refresh
             viewModel.loadDevolucoes()
         }
         
@@ -142,7 +159,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         }
         
         // Configurar listener para busca
-        etSearch.setOnEditorActionListener { v, actionId, event ->
+        etSearch.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || 
                 (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                 val searchTerm = etSearch.text.toString().trim()
@@ -167,10 +184,14 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
                 
                 is UiState.Success -> {
                     LogUtils.debug("DevolucoesFragment", "Estado: Success - Devoluções: ${state.data.size}")
+                    LogUtils.debug("DevolucoesFragment", "Mudando ViewFlipper para índice 2 (List)")
                     viewFlipper.displayedChild = 2 // Índice do viewList
+                    LogUtils.debug("DevolucoesFragment", "ViewFlipper atualizado. Child atual: ${viewFlipper.displayedChild}")
                     
                     // Atualizar o adaptador com as devoluções
+                    LogUtils.debug("DevolucoesFragment", "Atualizando adapter com ${state.data.size} devoluções")
                     adapter.updateDevolucoes(state.data)
+                    LogUtils.debug("DevolucoesFragment", "Adapter atualizado")
                 }
                 
                 is UiState.Empty -> {
@@ -224,7 +245,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
                 }
                 
                 else -> {
-                    LogUtils.warning("DevolucoesFragment", "Estado de processamento desconhecido: ${state?.javaClass?.simpleName}")
+                    LogUtils.warning("DevolucoesFragment", "Estado de processamento desconhecido: ${state.javaClass.simpleName}")
                 }
             }
         }
@@ -238,7 +259,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         dialog.show(childFragmentManager, "DevolucaoDetailsDialog")
     }
     
-    override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String, observacao: String?) {
+    override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String?, observacao: String?) {
         LogUtils.info("DevolucoesFragment", "🚀 USUÁRIO SOLICITOU PROCESSAMENTO DE DEVOLUÇÃO")
         LogUtils.debug("DevolucoesFragment", "Processando devolução ID: ${devolucao.id}, " +
                 "Quantidade: $quantidade, Status: $status")

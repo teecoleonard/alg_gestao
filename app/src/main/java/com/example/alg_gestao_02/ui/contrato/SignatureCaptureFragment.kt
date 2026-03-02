@@ -24,6 +24,9 @@ import com.example.alg_gestao_02.utils.Resource
 import android.app.ProgressDialog
 import com.example.alg_gestao_02.data.dto.AssinaturaRequestDTO
 import com.example.alg_gestao_02.ui.contrato.PdfViewerFragment
+import com.example.alg_gestao_02.data.api.ApiClient
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
 
 class SignatureCaptureFragment : DialogFragment() {
     private lateinit var signatureView: SignatureView
@@ -34,9 +37,13 @@ class SignatureCaptureFragment : DialogFragment() {
     private lateinit var tvTituloAssinatura: TextView
     private var contratoNumero: String? = null
     private var contratoId: Int = 0
+    private var devolucaoNumero: String? = null
+    private var devolucaoId: Int = 0
+    private var tipoAssinatura: String = "CONTRATO" // CONTRATO ou DEVOLUCAO
     private val contratoRepository = ContratoRepository()
     private var isGeneratingPdf = false
     private var onContratoAtualizadoListener: (() -> Unit)? = null
+    private var onDevolucaoAtualizadaListener: (() -> Unit)? = null
     private var savedSignatureData: ByteArray? = null
     private var isAlteracao: Boolean = false
     
@@ -47,6 +54,10 @@ class SignatureCaptureFragment : DialogFragment() {
     
     fun setOnContratoAtualizadoListener(listener: () -> Unit) {
         this.onContratoAtualizadoListener = listener
+    }
+    
+    fun setOnDevolucaoAtualizadaListener(listener: () -> Unit) {
+        this.onDevolucaoAtualizadaListener = listener
     }
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -90,6 +101,9 @@ class SignatureCaptureFragment : DialogFragment() {
 
         contratoNumero = arguments?.getString("contratoNumero")
         contratoId = arguments?.getInt("contratoId") ?: 0
+        devolucaoNumero = arguments?.getString("devolucaoNumero")
+        devolucaoId = arguments?.getInt("devolucaoId") ?: 0
+        tipoAssinatura = arguments?.getString("tipoAssinatura") ?: "CONTRATO"
         isAlteracao = arguments?.getBoolean("isAlteracao") ?: false
         
         // Inicializar views
@@ -100,11 +114,22 @@ class SignatureCaptureFragment : DialogFragment() {
         orientationBlockContainer = view.findViewById(R.id.orientationBlockContainer)
         tvTituloAssinatura = view.findViewById(R.id.tvTituloAssinatura)
         
-        // Configurar título baseado se é alteração ou nova assinatura
-        tvTituloAssinatura.text = if (isAlteracao) {
-            "Alterar assinatura do contrato"
-        } else {
-            "Assine o contrato"
+        // Configurar título baseado no tipo e se é alteração
+        tvTituloAssinatura.text = when (tipoAssinatura) {
+            "DEVOLUCAO" -> {
+                if (isAlteracao) {
+                    "Alterar assinatura da devolução"
+                } else {
+                    "Assine a devolução"
+                }
+            }
+            else -> {
+                if (isAlteracao) {
+                    "Alterar assinatura do contrato"
+                } else {
+                    "Assine o contrato"
+                }
+            }
         }
         
         // Restaurar assinatura se houver dados salvos
@@ -151,31 +176,89 @@ class SignatureCaptureFragment : DialogFragment() {
     private fun enviarAssinatura(assinaturaBase64: String) {
         viewLifecycleOwner.lifecycleScope.launch {
             val progressDialog = ProgressDialog(requireContext()).apply {
-                setMessage("Enviando assinatura, aguarde...")
+                val mensagem = if (tipoAssinatura == "DEVOLUCAO") {
+                    "Enviando assinatura da devolução, aguarde..."
+                } else {
+                    "Enviando assinatura, aguarde..."
+                }
+                setMessage(mensagem)
                 setCancelable(false)
                 show()
             }
             try {
-                LogUtils.debug("SignatureCapture", "Iniciando envio da assinatura para o contrato #$contratoId")
-                val result = contratoRepository.enviarAssinatura(
-                    base64Data = assinaturaBase64,
-                    contratoId = contratoId
-                )
+                val result = if (tipoAssinatura == "DEVOLUCAO") {
+                    LogUtils.debug("SignatureCapture", "Iniciando envio da assinatura para a devolução #$devolucaoId")
+                    enviarAssinaturaDevolucao(assinaturaBase64, devolucaoId)
+                } else {
+                    LogUtils.debug("SignatureCapture", "Iniciando envio da assinatura para o contrato #$contratoId")
+                    contratoRepository.enviarAssinatura(
+                        base64Data = assinaturaBase64,
+                        contratoId = contratoId
+                    )
+                }
 
                 when (result) {
                     is Resource.Success -> {
-                        LogUtils.debug("SignatureCapture", "Assinatura enviada com sucesso: ${result.data.message}")
+                        LogUtils.debug("SignatureCapture", "Assinatura enviada com sucesso")
                         // Verificar se a assinatura foi processada com sucesso
-                        // Se temos um assinaturaId, significa que foi salva com sucesso
-                        if (result.data.assinaturaId != null && result.data.assinaturaId > 0) {
+                        // Para devoluções, verificamos se o resultado é um Map
+                        val isSuccess = if (tipoAssinatura == "DEVOLUCAO") {
+                            val responseData = result.data as? com.example.alg_gestao_02.data.api.AssinaturaDevolucaoResponse
+                            responseData?.success == true
+                        } else {
+                            // Para contratos, verificamos se existe assinaturaId
+                            try {
+                                val data = result.data as com.example.alg_gestao_02.data.api.AssinaturaResponse
+                                // A API não retorna "success", mas se chegou até aqui e tem assinaturaId, foi sucesso
+                                val sucesso = data.assinaturaId != null && data.assinaturaId > 0
+                                LogUtils.debug("SignatureCapture", "🔍 Verificando sucesso do contrato:")
+                                LogUtils.debug("SignatureCapture", "  - message: ${data.message}")
+                                LogUtils.debug("SignatureCapture", "  - assinaturaId: ${data.assinaturaId}")
+                                LogUtils.debug("SignatureCapture", "  - resultado final: $sucesso")
+                                sucesso
+                            } catch (e: Exception) {
+                                LogUtils.error("SignatureCapture", "❌ Erro ao verificar sucesso: ${e.message}")
+                                false
+                            }
+                        }
+                        
+                        if (isSuccess) {
                             progressDialog.dismiss()
+                            
+                            // Mostrar feedback imediato de sucesso
+                            val mensagemSucesso = if (tipoAssinatura == "DEVOLUCAO") {
+                                "✅ Devolução assinada com sucesso!"
+                            } else {
+                                "✅ Contrato assinado com sucesso!"
+                            }
+                            Toast.makeText(context, mensagemSucesso, Toast.LENGTH_LONG).show()
+                            
                             // Aguardar um momento para garantir que o backend processou a assinatura
                             LogUtils.debug("SignatureCapture", "Aguardando 1 segundo para processamento no backend...")
                             kotlinx.coroutines.delay(1000)
-                            voltarParaContratoAtualizado()
+                            
+                            if (tipoAssinatura == "DEVOLUCAO") {
+                                // Notificar callback de devolução e fechar
+                                onDevolucaoAtualizadaListener?.invoke()
+                                dismiss()
+                            } else {
+                                LogUtils.debug("SignatureCapture", "🔄 Executando voltarParaContratoAtualizado...")
+                                voltarParaContratoAtualizado()
+                            }
                         } else {
                             progressDialog.dismiss()
-                            Toast.makeText(context, result.data.message, Toast.LENGTH_SHORT).show()
+                            val message = if (tipoAssinatura == "DEVOLUCAO") {
+                                val responseData = result.data as? com.example.alg_gestao_02.data.api.AssinaturaDevolucaoResponse
+                                responseData?.message ?: "Erro ao processar assinatura"
+                            } else {
+                                try {
+                                    val data = result.data as com.example.alg_gestao_02.data.api.AssinaturaResponse
+                                    data.message
+                                } catch (e: Exception) {
+                                    "Erro ao processar assinatura"
+                                }
+                            }
+                            Toast.makeText(context, message, Toast.LENGTH_SHORT).show()
                         }
                     }
                     is Resource.Error -> {
@@ -228,8 +311,13 @@ class SignatureCaptureFragment : DialogFragment() {
         LogUtils.debug("SignatureCapture", "🔔 PASSO 2: Notificando listener sobre atualização do contrato")
         LogUtils.debug("SignatureCapture", "🔍 Listener existe? ${onContratoAtualizadoListener != null}")
         try {
-            onContratoAtualizadoListener?.invoke()
-            LogUtils.debug("SignatureCapture", "📡 Listener invocado - ContratosFragment deve atualizar a lista")
+            if (onContratoAtualizadoListener != null) {
+                LogUtils.debug("SignatureCapture", "📞 EXECUTANDO callback do listener...")
+                onContratoAtualizadoListener?.invoke()
+                LogUtils.debug("SignatureCapture", "✅ Callback executado com sucesso!")
+            } else {
+                LogUtils.error("SignatureCapture", "❌ LISTENER É NULL - callback não será executado!")
+            }
         } catch (e: Exception) {
             LogUtils.error("SignatureCapture", "❌ Erro ao invocar listener: ${e.message}")
         }
@@ -365,6 +453,36 @@ class SignatureCaptureFragment : DialogFragment() {
         if (signatureData != null) {
             outState.putByteArray("signature_data", signatureData)
             LogUtils.debug("SignatureCapture", "Dados da assinatura salvos no bundle")
+        }
+    }
+    
+    /**
+     * Envia assinatura para uma devolução
+     */
+    private suspend fun enviarAssinaturaDevolucao(base64Data: String, devolucaoId: Int): Resource<Any> {
+        return withContext(Dispatchers.IO) {
+            try {
+                val apiService = ApiClient.apiService
+                val request = com.example.alg_gestao_02.data.api.AssinaturaDevolucaoRequest(
+                    base64Data = base64Data,
+                    devolucaoId = devolucaoId
+                )
+                val response = apiService.processarAssinaturaDevolucao(request)
+                
+                if (response.isSuccessful && response.body() != null) {
+                    val responseBody = response.body()!!
+                    if (responseBody.success) {
+                        Resource.Success(responseBody)
+                    } else {
+                        Resource.Error(responseBody.message)
+                    }
+                } else {
+                    Resource.Error("Falha na comunicação com o servidor")
+                }
+            } catch (e: Exception) {
+                LogUtils.error("SignatureCapture", "Erro ao enviar assinatura de devolução", e)
+                Resource.Error(e.message ?: "Erro desconhecido")
+            }
         }
     }
 } 

@@ -33,6 +33,54 @@
             android:textColor="@color/text_secondary"
             tools:text="Contrato #123456" />
 
+        <!-- Status do Contrato -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginTop="12dp"
+            android:layout_marginBottom="8dp">
+
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status: "
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary" />
+
+            <TextView
+                android:id="@+id/tvDetalhesContratoStatus"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:background="@drawable/rounded_corner_background"
+                android:gravity="center"
+                android:paddingStart="5dp"
+                android:paddingTop="4dp"
+                android:paddingEnd="5dp"
+                android:paddingBottom="5dp"
+                android:textSize="13sp"
+                android:textStyle="bold"
+                tools:backgroundTint="#66BB6A"
+                tools:text="🟢 EM ANDAMENTO"
+                tools:textColor="@android:color/white" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnAlterarStatus"
+                style="@style/Widget.MaterialComponents.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="36dp"
+                android:text="Alterar"
+                android:textSize="16sp"
+                android:textColor="@color/primary"
+                android:padding="0dp"
+                android:minWidth="0dp"
+                android:layout_marginStart="8dp" />
+
+        </LinearLayout>
+
         <!-- CPF/CNPJ e Inscrição Estadual -->
         <LinearLayout
             android:layout_width="match_parent"
@@ -264,11 +312,37 @@
                 tools:text="R$ 15.500,00" />
         </LinearLayout>
 
-        <!-- Botões de Ação -->
+        <!-- Botão Devolução -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="16dp"
+            android:orientation="horizontal"
+            android:gravity="center">
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/btnDevolucao"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Devolução"
+                android:textSize="14sp"
+                android:textColor="@color/warning"
+                app:strokeColor="@color/warning"
+                app:strokeWidth="1dp"
+                app:icon="@android:drawable/ic_menu_revert"
+                app:iconTint="@color/warning"
+                app:iconGravity="textStart"
+                app:iconPadding="8dp"
+                app:iconSize="18dp" />
+
+        </LinearLayout>
+
+        <!-- Botões de Ação -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="8dp"
             android:orientation="horizontal">
 
             <!-- Botão Assinar Contrato -->
@@ -277,9 +351,9 @@
                 style="@style/Widget.MaterialComponents.Button"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginEnd="8dp"
+                android:layout_marginEnd="4dp"
                 android:layout_weight="1"
-                android:text="✍️ Assinar"
+                android:text="Assinar"
                 android:textSize="14sp"
                 app:backgroundTint="@color/primary"
                 app:icon="@android:drawable/ic_menu_edit"
@@ -293,14 +367,15 @@
                 style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
-                android:layout_marginStart="8dp"
+                android:layout_marginStart="4dp"
                 android:layout_weight="1"
-                android:text="📄 Gerar PDF"
+                android:text="Gerar PDF"
                 android:textSize="14sp"
                 android:textColor="@color/red_500"
                 app:strokeColor="@color/red_500"
                 app:strokeWidth="1dp"
                 app:icon="@android:drawable/ic_menu_view"
+                app:iconTint="@color/red_500"
                 app:iconGravity="textStart"
                 app:iconPadding="8dp"
                 app:iconSize="18dp" />

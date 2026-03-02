@@ -263,20 +263,38 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
                     is UiState.Success -> {
                         equipamentos = state.data
                         
-                        // Preenche o dropdown com os equipamentos
+                        // Preenche o dropdown com os equipamentos e suas disponibilidades
+                        val equipamentosFormatados = equipamentos.map { equipamento ->
+                            val disponivel = equipamento.getQuantidadeDisponivelAtual()
+                            val emUso = equipamento.quantidadeEmUso ?: 0
+                            
+                            when {
+                                disponivel == 0 -> "${equipamento.nomeEquip} (Indisponível)"
+                                emUso > 0 -> "${equipamento.nomeEquip} ($disponivel disp., $emUso em uso)"
+                                else -> "${equipamento.nomeEquip} ($disponivel disponível)"
+                            }
+                        }
+                        
                         val adapter = ArrayAdapter(
                             requireContext(),
                             android.R.layout.simple_dropdown_item_1line,
-                            equipamentos.map { it.nomeEquip }
+                            equipamentosFormatados
                         )
                         actvEquipamento.setAdapter(adapter)
                         
                         // Se estiver editando, seleciona o equipamento no dropdown
                         equipamentoContratoParaEdicao?.let { equipamento ->
                             val equipamentoAtual = equipamentos.find { it.id == equipamento.equipamentoId }
-                            equipamentoAtual?.let {
-                                equipamentoSelecionado = it
-                                actvEquipamento.setText(it.nomeEquip, false)
+                            equipamentoAtual?.let { equip ->
+                                equipamentoSelecionado = equip
+                                
+                                // Formatar texto com disponibilidade
+                                val index = equipamentos.indexOf(equip)
+                                if (index >= 0 && index < equipamentosFormatados.size) {
+                                    actvEquipamento.setText(equipamentosFormatados[index], false)
+                                } else {
+                                    actvEquipamento.setText(equip.nomeEquip, false)
+                                }
                             }
                         }
                     }
@@ -382,7 +400,22 @@ class EquipamentoContratoDialogFragment : DialogFragment() {
                 tilQuantidade.error = "Quantidade deve ser maior que zero"
                 isValid = false
             } else {
-                tilQuantidade.error = null
+                // Validar disponibilidade do equipamento
+                equipamentoSelecionado?.let { equip ->
+                    if (!equip.temQuantidadeDisponivel(quantidade)) {
+                        val disponivel = equip.getQuantidadeDisponivelAtual()
+                        tilQuantidade.error = if (disponivel == 0) {
+                            "Equipamento indisponível (0 em estoque)"
+                        } else {
+                            "Apenas $disponivel unidade(s) disponível(is)"
+                        }
+                        isValid = false
+                    } else {
+                        tilQuantidade.error = null
+                    }
+                } ?: run {
+                    tilQuantidade.error = null
+                }
             }
         }
         

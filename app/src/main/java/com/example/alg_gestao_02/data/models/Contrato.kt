@@ -54,6 +54,17 @@ data class Contrato(
     @SerializedName("data_assinatura")
     val data_assinatura: String? = null,
 
+    @SerializedName("status_contrato")
+    val statusContrato: String? = "PENDENTE",
+
+    // Campo para arquivamento de contratos
+    @SerializedName("arquivado")
+    val arquivado: Boolean = false,
+
+    // Data de arquivamento
+    @SerializedName("data_arquivamento")
+    val dataArquivamento: String? = null,
+
     // Campo adicional para nome do cliente
     @SerializedName("cliente_nome")
     val clienteNome: String? = null,
@@ -167,6 +178,118 @@ data class Contrato(
      */
     fun isAssinado(): Boolean {
         return status_assinatura == "ASSINADO"
+    }
+    
+    /**
+     * Retorna o status do contrato como enum
+     */
+    fun getStatusContratoEnum(): StatusContrato {
+        return StatusContrato.fromString(statusContrato)
+    }
+    
+    /**
+     * Verifica se o contrato está finalizado (todos equipamentos devolvidos)
+     */
+    fun isFinalizado(): Boolean {
+        return statusContrato == "FINALIZADO"
+    }
+    
+    /**
+     * Verifica se o contrato está em andamento
+     */
+    fun isEmAndamento(): Boolean {
+        return statusContrato == "EM_ANDAMENTO"
+    }
+    
+    /**
+     * Verifica se o contrato está arquivado
+     */
+    fun isArquivado(): Boolean {
+        return arquivado
+    }
+    
+    /**
+     * Verifica se o contrato deve ser arquivado automaticamente
+     * (Finalizado há mais de 6 meses)
+     */
+    fun deveSerArquivado(): Boolean {
+        if (!isFinalizado()) return false
+        if (arquivado) return false
+        
+        try {
+            val formatoData = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dataFinalizacao = dataVenc?.let { formatoData.parse(it) } ?: return false
+            
+            val calendar = java.util.Calendar.getInstance()
+            calendar.time = dataFinalizacao
+            calendar.add(java.util.Calendar.MONTH, 6)
+            
+            return Date().after(calendar.time)
+        } catch (e: Exception) {
+            LogUtils.error("Contrato", "Erro ao verificar arquivamento automático", e)
+            return false
+        }
+    }
+    
+    /**
+     * Verifica se o contrato está vencido
+     */
+    fun isVencido(): Boolean {
+        if (dataVenc.isNullOrEmpty()) return false
+        
+        try {
+            val formatoData = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dataVencimento = formatoData.parse(dataVenc) ?: return false
+            val hoje = Date()
+            
+            return hoje.after(dataVencimento) && !isFinalizado()
+        } catch (e: Exception) {
+            LogUtils.error("Contrato", "Erro ao verificar vencimento", e)
+            return false
+        }
+    }
+    
+    /**
+     * Verifica se o contrato está próximo do vencimento (7 dias ou menos)
+     */
+    fun isProximoVencimento(): Boolean {
+        if (dataVenc.isNullOrEmpty()) return false
+        if (isFinalizado()) return false
+        
+        try {
+            val formatoData = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dataVencimento = formatoData.parse(dataVenc) ?: return false
+            val hoje = Date()
+            
+            if (hoje.after(dataVencimento)) return false
+            
+            val diferencaMilissegundos = dataVencimento.time - hoje.time
+            val diferencaDias = diferencaMilissegundos / (1000 * 60 * 60 * 24)
+            
+            return diferencaDias <= 7
+        } catch (e: Exception) {
+            LogUtils.error("Contrato", "Erro ao verificar proximidade do vencimento", e)
+            return false
+        }
+    }
+    
+    /**
+     * Retorna os dias até o vencimento
+     */
+    fun getDiasAteVencimento(): Long {
+        if (dataVenc.isNullOrEmpty()) return 0
+        
+        try {
+            val formatoData = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+            val dataVencimento = formatoData.parse(dataVenc) ?: return 0
+            val hoje = Date()
+            
+            val diferencaMilissegundos = dataVencimento.time - hoje.time
+            return diferencaMilissegundos / (1000 * 60 * 60 * 24)
+        } catch (e: Exception) {
+            LogUtils.error("Contrato", "Erro ao calcular dias até vencimento", e)
+            return 0
+        }
     }
     
     /**

@@ -104,22 +104,29 @@ class DevolucoesAdapter(
     }
     
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): DevolucaoViewHolder {
+        LogUtils.debug("DevolucoesAdapter", "Criando ViewHolder")
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.item_devolucao, parent, false)
         return DevolucaoViewHolder(view)
     }
     
     override fun onBindViewHolder(holder: DevolucaoViewHolder, position: Int) {
+        LogUtils.debug("DevolucoesAdapter", "Fazendo bind do item $position: ${devolucoes[position].devNum}")
         holder.bind(devolucoes[position])
     }
     
-    override fun getItemCount(): Int = devolucoes.size
+    override fun getItemCount(): Int {
+        LogUtils.debug("DevolucoesAdapter", "getItemCount() retornando: ${devolucoes.size}")
+        return devolucoes.size
+    }
     
     /**
      * Atualiza a lista de devoluções do adapter
      */
     fun updateDevolucoes(newDevolucoes: List<Devolucao>) {
+        LogUtils.debug("DevolucoesAdapter", "Atualizando devoluções: ${newDevolucoes.size} itens")
         this.devolucoes = newDevolucoes
         notifyDataSetChanged()
+        LogUtils.debug("DevolucoesAdapter", "Adapter notificado da mudança")
     }
 }

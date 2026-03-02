@@ -105,7 +105,7 @@ class ClientesFragment : Fragment() {
         }
         
         // Configurar listener para busca
-        etSearch.setOnEditorActionListener { v, actionId, event ->
+        etSearch.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || 
                 (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                 val searchTerm = etSearch.text.toString().trim()
@@ -160,6 +160,40 @@ class ClientesFragment : Fragment() {
                 }
             }
         }
+        
+        // Observar operações de criação/atualização/exclusão
+        viewModel.operationState.observe(viewLifecycleOwner) { state ->
+            when (state) {
+                is UiState.Loading -> {
+                    LogUtils.debug("ClientesFragment", "Operação em andamento...")
+                    // Opcional: mostrar indicador de carregamento
+                }
+                
+                is UiState.Success -> {
+                    LogUtils.info("ClientesFragment", "✅ Operação concluída com sucesso")
+                    val mensagem = when {
+                        state.data.id > 0 -> "Cliente salvo com sucesso!"
+                        else -> "Operação concluída com sucesso!"
+                    }
+                    Toast.makeText(context, mensagem, Toast.LENGTH_SHORT).show()
+                }
+                
+                is UiState.Error -> {
+                    LogUtils.error("ClientesFragment", "❌ Erro na operação: ${state.message}")
+                    // Exibir a mensagem de erro específica da API
+                    Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
+                }
+                
+                is UiState.Empty -> {
+                    // Estado vazio, não fazer nada
+                    LogUtils.debug("ClientesFragment", "Estado vazio na operação")
+                }
+                
+                null -> {
+                    // Estado limpo, não fazer nada
+                }
+            }
+        }
     }
     
     private fun showClienteDetailDialog(cliente: Cliente) {
@@ -187,7 +221,7 @@ class ClientesFragment : Fragment() {
                 R.id.action_edit -> {
                     LogUtils.debug("ClientesFragment", "Editando cliente: ${cliente.contratante}")
                     val dialog = CadastroClienteDialogFragment.newInstance(cliente)
-                    dialog.setOnClienteSavedListener { clienteAtualizado ->
+                    dialog.setOnClienteSavedListener { _ ->
                         // Recarregar a lista quando o cliente for atualizado
                         viewModel.loadClientes()
                     }

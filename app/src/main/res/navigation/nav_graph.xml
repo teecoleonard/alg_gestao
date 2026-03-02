@@ -49,13 +49,31 @@
         android:id="@+id/contratosFragment"
         android:name="com.example.alg_gestao_02.ui.contrato.ContratosFragment"
         android:label="Contratos"
-        tools:layout="@layout/fragment_contratos" />
+        tools:layout="@layout/fragment_contratos">
+        <argument
+            android:name="ano"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="mes"
+            app:argType="integer"
+            android:defaultValue="0" />
+        <argument
+            android:name="mesDescricao"
+            app:argType="string"
+            android:defaultValue="" />
+    </fragment>
 
     <fragment
         android:id="@+id/devolucoesFragment"
         android:name="com.example.alg_gestao_02.ui.devolucao.DevolucoesFragment"
         android:label="Devoluções"
-        tools:layout="@layout/fragment_devolucoes" />
+        tools:layout="@layout/fragment_devolucoes">
+        <argument
+            android:name="contratoId"
+            app:argType="integer"
+            android:defaultValue="0" />
+    </fragment>
 
     <fragment
         android:id="@+id/equipamentosFragment"

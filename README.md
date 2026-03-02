@@ -1,202 +1,145 @@
-# 🏗️ ALG Gestão - Sistema de Locação de Equipamentos
-<div align="left">  
-<img src="https://github.com/user-attachments/assets/5a1e1c17-e49e-42a2-ac19-b44cd879509a" alt="Logo ALG"/>
-</div>
+# 🏗️ ALG Gestão — Sistema Completo de Locação e Contratos
+
+Aplicativo Android nativo (100% Kotlin) para operar todo o ciclo de locação de equipamentos da ALG: prospecção, contratos, logística, devoluções, financeiro e analytics. Este README centraliza **toda a documentação funcional e técnica** do app.
 
 ---
 
-[![Android](https://img.shields.io/badge/Android-7.0%2B-green.svg)](https://developer.android.com/about/versions/nougat/)
-[![Kotlin](https://img.shields.io/badge/Kotlin-1.9.0-blue.svg)](https://kotlinlang.org/)
-[![License](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
-[![Version](https://img.shields.io/badge/Version-1.1.0-blue.svg)](#changelog)
+## 🔄 Ciclo Operacional do Negócio
 
-**Sistema Android completo para gestão de contratos, clientes e equipamentos de locação com interface moderna e funcionalidades avançadas.**
-
----
-
-## 🚀 Funcionalidades Principais
-
-### 🔐 **Autenticação & Segurança**
-- Login seguro com validação CPF/CNPJ e máscaras automáticas
-- Gerenciamento de sessões (30 dias) com recuperação automática
-- Diferentes níveis de acesso por usuário
-
-### 👥 **Gestão de Clientes**
-- Cadastro completo PF/PJ com validação de documentos
-- Busca avançada e histórico detalhado
-- Integração com contratos e devoluções
-
-### 📋 **Sistema de Contratos**
-- Criação via wizard intuitivo com seleção múltipla de equipamentos
-- **Assinaturas digitais** via touch com validação
-- **Geração automática de PDF** e controle de status em tempo real
-
-### 🔧 **Controle de Equipamentos**
-- Cadastro detalhado com especificações técnicas
-- **Controle de disponibilidade em tempo real**
-- Histórico completo e associação inteligente aos contratos
-
-### 📦 **Sistema de Devoluções**
-- Controle com múltiplos status e rastreamento completo
-- Processamento detalhado com observações
-- Alertas automáticos para devoluções em atraso
-
-### 💰 **Módulo Financeiro Avançado**
-- **Dashboard financeiro** com métricas em tempo real
-- **Receita por cliente** com análise de períodos específicos
-- **Filtros inteligentes** por mês/ano com dados precisos
-- **Sistema de fallback** quando API indisponível
-- Relatórios detalhados e geração de PDFs
-
-### 📊 **Dashboard & Analytics**
-- Visão geral em tempo real com métricas do negócio
-- Cards informativos: receita, contratos ativos, equipamentos, devoluções
-- Pull-to-refresh e navegação rápida entre módulos
+| Etapa | Onde acontece | Persistência | O que é disparado |
+|-------|---------------|--------------|-------------------|
+| **1. Criar Cliente** | `ClientesFragment` → `CadastroClienteDialogFragment` | `ClienteRepository` chama `ApiService.createCliente()` e sincroniza `AppDatabase` | Histórico do cliente passa a ser exibido em `ClientDetailsFragment` |
+| **2. Criar Contrato** | `ContratosFragment` → `CadastroContratoDialogFragment` + `EquipamentoContratoDialogFragment` | `ContractRepository` envia payload completo com cliente, equipamentos e período; Room guarda rascunho offline | API gera `Contrato`, `EquipamentoContrato` e devoluções pendentes atomizadas |
+| **3. Coletar Assinaturas** | `SignatureCaptureFragment` + `PdfService` | Arquivo da assinatura é convertido em base64, armazenado via `/api/contratos/:numero/assinatura` | `status_assinatura` e `status_contrato` passam a `ASSINADO` |
+| **4. Gerar Devolução** | `DevolucoesFragment` → `DevolucaoDetailsDialogFragment` | `DevolucaoRepository` obtém itens criados automaticamente no contrato; operador define quantidades recebidas | Atualiza `Devolucao` e status por item, alimentando dashboards de atraso |
+| **5. Devolver Equipamento** | Mesma tela de devolução, botão “Confirmar devolução” | `EquipamentoContratoRepository` ajusta estoque disponível | Se todos os itens forem devolvidos, `StatusContrato` sugere finalização |
+| **6. Finalizar Contrato** | `AtualizarStatusBottomSheet` acessível pelo card ou diálogo de detalhes | PATCH `/api/contratos/:id/status` via `ContratoRepository` | `ContratosFragment` move registro para aba “Arquivados” após 6 meses |
 
 ---
 
-## 🆕 Novidades da Versão 1.1.0
+## 🏛️ Arquitetura de Desenvolvimento
 
-### 🎯 **Dialog de Seleção de Período**
-Nova interface para escolha de período antes de abrir relatórios:
-- **🗓️ Mês Atual**: Acesso rápido ao período atual
-- **📊 Período Específico**: Seletores de mês/ano funcionais  
-- **📈 Último com Dados**: Fallback inteligente
-
-### 🔧 **Filtro Real por Período**
-- **Validação de dados**: Verifica se pertencem ao período solicitado
-- **Filtro local inteligente**: Funciona independente da API backend
-- **Estado vazio**: Interface clara quando não há dados no período
-- **Recálculo preciso**: Valores baseados apenas nos dados filtrados
-
-### 🐛 **Correções Importantes**
-- **Bug crítico de formatação**: Mês de referência agora exibe corretamente
-- **Dropdowns funcionais**: AutoCompleteTextView agora funcionam como esperado
-- **Crash corrigido**: Dialog de período abre sem problemas
+- **Camadas MVVM + Repository** (`ui/*`, `viewmodel`, `data/repository`): separa apresentação, regras de negócio e acesso a dados.
+- **Retrofit + OkHttp** (`data/api/ApiClient.kt`, `AuthInterceptor.kt`) com headers dinâmicos (token + seleção de banco).
+- **Room Database** (`data/db`) para cache local dos widgets do dashboard, filtros recentes e relatórios offline.
+- **Coroutines + Flow** em todos os repositórios para lidar com estados `Loading/Success/Error` modelados por `utils/Resource`.
+- **Gestão de sessão** via `SessionManager` + `AuthRepository`: refresh silencioso e logout forçado em 401.
+- **Serviços especializados**:
+  - `PdfService` e `PdfViewerFragment` geram/visualizam contratos.
+  - `ReportService` produz relatórios financeiros em segundo plano.
+  - `NotificationManager` + `DashboardViewModel` exibem alertas de contratos vencidos.
 
 ---
 
-## 📸 Screenshots
+## 🧱 Organização dos Módulos
 
-### **Interface Principal do Sistema**
-
-<table>
-  <tr>
-    <td align="center" width="25%">
-      <h4>📊 Dashboard</h4>
-      <img src="screenshots/dashboard.jpg" width="200" alt="Dashboard Principal"/>
-      <p><em>Visão completa com métricas em tempo real</em></p>
-    </td>
-    <td align="center" width="25%">
-      <h4>💰 Gestão Financeira</h4>
-      <img src="screenshots/gestao_financeira.jpg" width="200" alt="Gestão Financeira"/>
-      <p><em>Filtros por período e análises detalhadas</em></p>
-    </td>
-    <td align="center" width="25%">
-      <h4>👤 Detalhes do Cliente</h4>
-      <img src="screenshots/detalhes_cliente.jpg" width="200" alt="Detalhes do Cliente"/>
-      <p><em>Histórico completo e contratos associados</em></p>
-    </td>
-    <td align="center" width="25%">
-      <h4>📄 Visualizador PDF</h4>
-      <img src="screenshots/visualizador_pdf.jpg" width="200" alt="Visualizador de PDF"/>
-      <p><em>Contratos e relatórios integrados</em></p>
-    </td>
-  </tr>
-</table>
-
----
-
-## 🛠️ Tecnologias
-
-### **Stack Principal**
-- **Linguagem**: Kotlin 100%
-- **Arquitetura**: MVVM (Model-View-ViewModel) + Repository Pattern
-- **Interface**: Material 3 Design + View Binding
-- **Banco Local**: Room Database com TypeConverters
-- **API**: Retrofit + OkHttp + Gson
-
-### **Libraries Principais**
-- **Concorrência**: Coroutines + Flow + LiveData
-- **Navegação**: Navigation Component + Safe Args
-- **Animações**: Lottie + Android Animations
-- **Documentos**: PDF Generation + FileProvider
-- **UI**: Material Design Components 3
-
----
-
-## 📱 Requisitos & Instalação
-
-### **Requisitos do Sistema**
-- **Android**: 7.0+ (API level 24)
-- **RAM**: Mínimo 2GB recomendado
-- **Armazenamento**: 100MB livres
-- **Internet**: Conexão para sincronização com API
-
-### **Instalação**
-```bash
-# Clone o repositório
-git clone https://github.com/teecoleonard/alg_gestao.git
-cd alg_gestao
-
-# Configure a API em data/api/ApiConfig.kt
-# Build e execute
-./gradlew assembleDebug
+```
+app/src/main/java/com/example/alg_gestao_02/
+├── auth/ (LoginActivity, RegisterActivity, AuthRepository)
+├── dashboard/ (DashboardFragment, DashboardViewModel, cards com métricas)
+├── ui/
+│   ├── cliente/ (CRUD completo + ClientDetailsFragment)
+│   ├── contrato/ e contrato/adapter (cards, detalhes, assinatura, PDF)
+│   ├── equipamento/ (cadastro, estoque, detalhes rápidos)
+│   ├── devolucao/ (workflow de recebimento e confirmação)
+│   ├── financial/ (Receita por cliente, Resumo mensal, filtros avançados)
+│   └── common/ (BaseFragment, dialogs, tratamento de erros)
+├── data/
+│   ├── api/ (ApiService, interceptors, DTOs, integração ViaCEP)
+│   ├── db/  (AppDatabase, DAOs de cache)
+│   ├── models/ (contratos, devoluções, métricas, enums)
+│   └── repository/ (fachadas assíncronas chamadas pelos ViewModels)
+├── service/ (PdfService, ReportService)
+├── manager/ (NotificationManager)
+└── utils/ (CurrencyUtils, FilterManager, SessionManager, PdfUtils, etc.)
 ```
 
 ---
 
-## 📁 Estrutura do Projeto
+## 🔐 Autenticação e Segurança
 
-```
-app/src/main/java/com.example.alg_gestao_02/
-├── 🔐 auth/                    # Sistema de autenticação
-├── 📊 dashboard/               # Dashboard principal
-├── 🎨 ui/                      # Interface do usuário
-│   ├── 👥 cliente/             # Módulo de clientes
-│   ├── 📋 contrato/            # Módulo de contratos
-│   ├── 🔧 equipamento/         # Módulo de equipamentos
-│   ├── 📦 devolucao/           # Módulo de devoluções
-│   ├── 💰 financial/           # Módulo financeiro
-│   └── 🔧 common/              # Componentes comuns
-├── 🗄️ data/                   # Camada de dados
-│   ├── 🌐 api/                 # Serviços de API
-│   ├── 🗃️ db/                 # Banco Room
-│   ├── 📋 models/              # Modelos de dados
-│   └── 🔄 repository/          # Repositórios
-├── 🛠️ service/                # Serviços especializados
-├── 🔔 manager/                 # Gerenciadores
-├── 🎛️ utils/                  # Utilitários
-└── 🧩 adapter/                # RecyclerView Adapters
-```
+- Login e registro com `LoginViewModel`/`RegisterViewModel` e validação de CPF/CNPJ (`TextMaskUtils`).
+- Sessões persistem por 30 dias via `SessionManager`; tokens ficam em `EncryptedSharedPreferences`.
+- `AuthInterceptor` injeta `Authorization: Bearer <token>` e trata código 401 para forçar logout seguro.
+- Controles de permissão por perfil (admin x operador) refletem nas opções de UI (ex.: arquivar contrato).
 
 ---
 
-## 🧪 Testing
+## 📊 Dashboards e Financeiro
 
-```bash
-# Testes unitários
-./gradlew test
-
-# Testes instrumentados
-./gradlew connectedAndroidTest
-
-# Build completo
-./gradlew build
-```
+- `DashboardFragment` consome `/api/dashboard/resumo` e popula cards para receita, contratos ativos, equipamentos e devoluções. Os dados são armazenados em Room para fallback offline.
+- `FinancialFragment` e `ReceitaClientesFragment` usam `FinancialViewModel` com filtros:
+  - Diálogo “Escolher período” (versão 1.1.0) decide entre mês atual, período customizado ou “último com dados”.
+  - Filtragem local garante consistência mesmo se a API retornar dados fora do range solicitado.
+- `ResumoMensalClienteActivity` mostra detalhamento e gera PDFs com `ReportService`.
 
 ---
 
-## 📋 Changelog
+## 📄 PDF, Assinaturas e Status
 
-Veja [CHANGELOG.md](CHANGELOG.md) para histórico completo de mudanças.
+- `SignatureCaptureFragment` captura a assinatura do cliente usando `SignatureView`, converte para base64 e envia para `ContratoRepository`.
+- `PdfService` gera contratos em PDF, armazenando-os localmente com `FileProvider` para compartilhar.
+- `ContratosAdapter` exibe badges de status (cores/ícones definidos em `data/models/StatusContrato.kt`) conforme a implementação descrita em `STATUS_CONTRATO_UI_IMPLEMENTADO.md`.
+- `AtualizarStatusBottomSheet` valida transições (`PENDENTE → ASSINADO → EM_ANDAMENTO → FINALIZADO`) e sincroniza via API.
 
-### Versões Recentes
-- **[1.1.0]** - Dialog de período funcional, dropdowns corrigidos
-- **[1.0.3]** - Nova arquitetura UX, filtro real por período  
-- **[1.0.2]** - Sistema de fallback inteligente
-- **[1.0.1]** - Módulo financeiro com filtros
-- **[1.0.0]** - Lançamento inicial
+---
+
+## 📦 Devoluções e Estoque
+
+- Ao criar um contrato, a API gera automaticamente um item de devolução por equipamento. O app consome em `DevolucoesFragment`.
+- Cada item tem status próprio (pendente, parcial, concluído). Operador informa quantidades recebidas, fotos e observações.
+- `DevolucaoRepository` sincroniza devoluções e atualiza equipamentos vinculados, refletindo disponibilidade em `EquipamentosFragment`.
+
+---
+
+## 🔁 Interação com a API `api-sql`
+
+- Todas as chamadas HTTP partem de `data/api/ApiService.kt` usando Retrofit. Principais endpoints:
+  - `POST /api/auth/login`, `POST /api/auth/register`
+  - `GET/POST /api/clientes`, `GET /api/clientes/:id`
+  - `GET/POST /api/contratos`, `POST /api/contratos/:id/arquivar`
+  - `GET/POST /api/devolucoes`, `POST /api/devolucoes/:id/finalizar`
+  - `GET /api/dashboard/resumo`, `GET /api/financial/receita-clientes`
+- O app envia `X-Database` quando o operador escolhe trabalhar em modo teste (útil para treinamentos). O middleware `databaseContext` da API seleciona o banco correto.
+
+---
+
+## ⚙️ Build, Configuração e DevOps
+
+1. **Pré-requisitos**
+   - Android Studio Giraffe+, JDK 17 (`build.gradle.kts` já configurado com `compileSdk=34`).
+   - Dispositivo/Emulador com Android 7.0+ e 2 GB RAM.
+
+2. **Configurar endpoint**
+   - Ajuste `ApiClient.BASE_URL` em `data/api/ApiService.kt`.
+   - Defina `BuildConfig.BACKEND_URL` via `gradle.properties` se quiser separar builds `debug`/`release`.
+
+3. **Build e testes**
+   ```bash
+   ./gradlew clean assembleDebug
+   ./gradlew test
+   ./gradlew connectedAndroidTest
+   ```
+
+4. **Observabilidade**
+   - `LogAnalyzer` concentra logs do app.
+   - `ErrorHandler` padroniza mensagens e fallback visual.
+
+---
+
+## 🧪 Estratégia de Testes
+
+- **Unitários**: ViewModels e repositórios com mocks do `ApiService` (use `./gradlew test`).
+- **Instrumentação**: Fluxo completo (login → criação de contrato → devolução) via Espresso (`./gradlew connectedAndroidTest`).
+- **Testes manuais guiados**: siga o ciclo operacional descrito no topo; cada etapa possui checklists em `STATUS_CONTRATO_UI_IMPLEMENTADO.md` e `NOVO_SISTEMA_CONTRATOS.md`.
+
+---
+
+## 🗂️ Referências Rápidas
+
+- `NOVO_SISTEMA_CONTRATOS.md`: detalha abas, filtros, arquivamento e endpoints envolvidos.
+- `STATUS_CONTRATO_UI_IMPLEMENTADO.md`: documentação visual do badge e fluxo de alteração de status.
+- `CHANGELOG.md`: histórico de releases (1.0.0 → 1.1.0).
 
 ---
 

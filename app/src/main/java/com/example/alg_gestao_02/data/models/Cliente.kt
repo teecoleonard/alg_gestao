@@ -22,19 +22,19 @@ data class Cliente(
     val rgIe: String? = null,
     
     @SerializedName("endereco")
-    val endereco: String,
+    val endereco: String? = null,
     
     @SerializedName("bairro")
-    val bairro: String,
+    val bairro: String? = null,
     
     @SerializedName("cep")
     val cep: String? = null,
     
     @SerializedName("cidade")
-    val cidade: String,
+    val cidade: String? = null,
     
     @SerializedName("estado")
-    val estado: String,
+    val estado: String? = null,
     
     @SerializedName("telefone")
     val telefone: String? = null
@@ -72,14 +72,50 @@ data class Cliente(
      * Retorna o endereço completo formatado
      */
     fun getEnderecoCompleto(): String {
-        val enderecoCompleto = StringBuilder(endereco)
-        if (bairro.isNotBlank()) {
-            enderecoCompleto.append(", $bairro")
+        val enderecoCompleto = StringBuilder()
+        
+        // Adiciona o endereço se não for nulo ou vazio
+        if (!endereco.isNullOrBlank()) {
+            enderecoCompleto.append(endereco)
         }
+        
+        // Adiciona o bairro se não for nulo ou vazio
+        if (!bairro.isNullOrBlank()) {
+            if (enderecoCompleto.isNotEmpty()) {
+                enderecoCompleto.append(", ")
+            }
+            enderecoCompleto.append(bairro)
+        }
+        
+        // Adiciona o CEP se não for nulo ou vazio
         if (!cep.isNullOrBlank()) {
-            enderecoCompleto.append(", CEP: $cep")
+            if (enderecoCompleto.isNotEmpty()) {
+                enderecoCompleto.append(", ")
+            }
+            enderecoCompleto.append("CEP: $cep")
         }
-        enderecoCompleto.append(", $cidade/$estado")
-        return enderecoCompleto.toString()
+        
+        // Adiciona cidade e estado se não forem nulos ou vazios
+        val cidadeEstado = mutableListOf<String>()
+        if (!cidade.isNullOrBlank()) {
+            cidadeEstado.add(cidade)
+        }
+        if (!estado.isNullOrBlank()) {
+            cidadeEstado.add(estado)
+        }
+        
+        if (cidadeEstado.isNotEmpty()) {
+            if (enderecoCompleto.isNotEmpty()) {
+                enderecoCompleto.append(", ")
+            }
+            enderecoCompleto.append(cidadeEstado.joinToString("/"))
+        }
+        
+        // Se não há nenhum endereço, retorna uma mensagem padrão
+        return if (enderecoCompleto.isEmpty()) {
+            "Endereço não informado"
+        } else {
+            enderecoCompleto.toString()
+        }
     }
 }

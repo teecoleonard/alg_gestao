@@ -41,28 +41,33 @@ class EquipamentosViewModel(
     }
     
     /**
-     * Carrega a lista de equipamentos
+     * Carrega a lista de equipamentos com informações de disponibilidade
      */
     fun loadEquipamentos() {
         _uiState.value = UiState.loading()
         
         viewModelScope.launch {
-            val result = when (filtroTipo) {
-                FiltroEquipamento.TODOS -> repository.getEquipamentos()
-                FiltroEquipamento.DISPONIVEIS -> repository.getEquipamentosDisponiveis()
-            }
+            // Sempre usar o endpoint com disponibilidade calculada
+            val result = repository.getEquipamentosComDisponibilidade()
             
             when {
                 result.isSuccess() -> {
                     val equipamentos = result.data!!
-                    val filteredEquipamentos = filtrarEquipamentos(equipamentos)
+                    
+                    // Aplicar filtros
+                    val equipamentosFiltrados = when (filtroTipo) {
+                        FiltroEquipamento.TODOS -> equipamentos
+                        FiltroEquipamento.DISPONIVEIS -> equipamentos.filter { it.isDisponivel() }
+                    }
+                    
+                    val filteredEquipamentos = filtrarEquipamentos(equipamentosFiltrados)
                     
                     if (filteredEquipamentos.isEmpty()) {
                         _uiState.value = UiState.Empty()
                     } else {
                         _uiState.value = UiState.Success(filteredEquipamentos)
                     }
-                    LogUtils.debug("EquipamentosViewModel", "Equipamentos carregados: ${equipamentos.size}")
+                    LogUtils.debug("EquipamentosViewModel", "Equipamentos carregados com disponibilidade: ${equipamentos.size}")
                 }
                 result.isError() -> {
                     _uiState.value = UiState.Error(result.message ?: "Erro desconhecido")

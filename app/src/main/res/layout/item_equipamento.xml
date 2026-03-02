@@ -66,14 +66,33 @@
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginTop="4dp"
+            android:layout_marginEnd="8dp"
             android:ellipsize="end"
             android:maxLines="1"
             android:textAppearance="@style/TextAppearance.ALG.Body"
             android:textColor="@color/text_secondary"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@id/tvBadgeDisponibilidade"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toBottomOf="@id/tvCodigoEquipamento"
-            tools:text="Quantidade: 5" />
+            tools:text="Total: 10" />
+
+        <!-- Badge de disponibilidade -->
+        <TextView
+            android:id="@+id/tvBadgeDisponibilidade"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="4dp"
+            android:background="@drawable/bg_status_active"
+            android:backgroundTint="@color/success"
+            android:paddingHorizontal="8dp"
+            android:paddingVertical="4dp"
+            android:textAppearance="@style/TextAppearance.ALG.Caption"
+            android:textColor="@color/white"
+            android:textSize="11sp"
+            android:textStyle="bold"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintTop_toBottomOf="@id/tvCodigoEquipamento"
+            tools:text="5 Disp." />
 
         <!-- Preço da diária -->
         <TextView

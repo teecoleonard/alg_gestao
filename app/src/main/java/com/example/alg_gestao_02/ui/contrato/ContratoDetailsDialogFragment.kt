@@ -23,6 +23,8 @@ import android.widget.Toast
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.utils.Resource
 import java.util.Date
+import androidx.navigation.Navigation
+import androidx.appcompat.app.AlertDialog
 
 class ContratoDetailsDialogFragment : DialogFragment() {
 
@@ -96,6 +98,9 @@ class ContratoDetailsDialogFragment : DialogFragment() {
         val btnEditar: Button = view.findViewById(R.id.btnEditarContrato)
         val btnAssinarContrato: Button = view.findViewById(R.id.btnAssinarContrato)
         val btnGerarPdf: Button = view.findViewById(R.id.btnGerarPdf)
+        val btnDevolucao: Button = view.findViewById(R.id.btnDevolucao)
+        val tvStatusContrato: TextView = view.findViewById(R.id.tvDetalhesContratoStatus)
+        val btnAlterarStatus: Button = view.findViewById(R.id.btnAlterarStatus)
 
         // Formatter de moeda para o valor
         val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
@@ -184,7 +189,13 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             }
 
             LogUtils.debug("ContratoDetailsDialog", "Valor Total Calculado: $valorTotalCalculado, Valor no contrato: ${c.contratoValor}")
-            tvValorTotal.text = currencyFormat.format(valorTotalCalculado) 
+            tvValorTotal.text = currencyFormat.format(valorTotalCalculado)
+            
+            // Exibir status do contrato
+            val statusContrato = c.getStatusContratoEnum()
+            tvStatusContrato.text = "${statusContrato.getIcone()} ${statusContrato.descricao.uppercase()}"
+            tvStatusContrato.setTextColor(android.graphics.Color.WHITE)
+            tvStatusContrato.setBackgroundColor(statusContrato.getCor())
 
         } ?: run {
             // Se o objeto contrato for nulo, loga erro e fecha o diálogo
@@ -233,6 +244,53 @@ class ContratoDetailsDialogFragment : DialogFragment() {
                 Toast.makeText(requireContext(), "É necessário assinar o contrato primeiro!", Toast.LENGTH_SHORT).show()
             }
         }
+        
+        // Configurar o botão Devolução
+        btnDevolucao.setOnClickListener {
+            contrato?.let { contratoNaoNulo ->
+                mostrarDialogoConfirmacaoDevolucao(contratoNaoNulo.id)
+            }
+        }
+        
+        // Configurar o botão Alterar Status
+        btnAlterarStatus.setOnClickListener {
+            contrato?.let { contratoNaoNulo ->
+                abrirBottomSheetAlterarStatus(contratoNaoNulo)
+            }
+        }
+    }
+    
+    /**
+     * Abre o BottomSheet para alterar o status do contrato
+     */
+    private fun abrirBottomSheetAlterarStatus(contrato: Contrato) {
+        val bottomSheet = AtualizarStatusBottomSheet.newInstance(
+            contratoId = contrato.id,
+            statusAtual = contrato.statusContrato ?: "PENDENTE"
+        ) { contratoAtualizado ->
+            // Callback quando o status for atualizado
+            Toast.makeText(
+                requireContext(),
+                "✅ Status atualizado para ${contratoAtualizado.getStatusContratoEnum().descricao}",
+                Toast.LENGTH_SHORT
+            ).show()
+            
+            // Atualizar a UI com o novo status
+            view?.findViewById<TextView>(R.id.tvDetalhesContratoStatus)?.let { tvStatus ->
+                val novoStatus = contratoAtualizado.getStatusContratoEnum()
+                tvStatus.text = "${novoStatus.getIcone()} ${novoStatus.descricao.uppercase()}"
+                tvStatus.setTextColor(android.graphics.Color.WHITE)
+                tvStatus.setBackgroundColor(novoStatus.getCor())
+            }
+            
+            // Notificar o listener
+            contratoAtualizadoListener?.onContratoAtualizado()
+            
+            // Atualizar o objeto contrato local
+            this.contrato = contratoAtualizado
+        }
+        
+        bottomSheet.show(parentFragmentManager, "alterar_status")
     }
 
     private fun calcularVencimentoParaExibicao(c: Contrato): String {
@@ -469,15 +527,36 @@ class ContratoDetailsDialogFragment : DialogFragment() {
      */
     private fun atualizarUIAposAssinatura(contratoAtualizado: Contrato) {
         try {
+            LogUtils.debug("ContratoDetailsDialog", "🔄 INICIANDO atualizarUIAposAssinatura")
+            LogUtils.debug("ContratoDetailsDialog", "📋 Status do contrato: ${contratoAtualizado.status_assinatura}")
+            LogUtils.debug("ContratoDetailsDialog", "📅 Data assinatura: ${contratoAtualizado.data_assinatura}")
+            
             // Buscar as views novamente para garantir que ainda existem
-            val view = this.view ?: return
+            val view = this.view
+            if (view == null) {
+                LogUtils.error("ContratoDetailsDialog", "❌ View é null - não é possível atualizar UI")
+                return
+            }
+            
+            LogUtils.debug("ContratoDetailsDialog", "✅ View encontrada, buscando componentes...")
             
             val tvAssinatura: TextView? = view.findViewById(R.id.tvDetalhesContratoAssinatura)
             val btnAssinarContrato: Button? = view.findViewById(R.id.btnAssinarContrato) 
             val btnGerarPdf: Button? = view.findViewById(R.id.btnGerarPdf)
             
+            LogUtils.debug("ContratoDetailsDialog", "📱 Componentes encontrados:")
+            LogUtils.debug("ContratoDetailsDialog", "  - tvAssinatura: ${tvAssinatura != null}")
+            LogUtils.debug("ContratoDetailsDialog", "  - btnAssinarContrato: ${btnAssinarContrato != null}")
+            LogUtils.debug("ContratoDetailsDialog", "  - btnGerarPdf: ${btnGerarPdf != null}")
+            
             // Atualizar status da assinatura
-            tvAssinatura?.text = "Assinado em ${contratoAtualizado.data_assinatura}"
+            if (tvAssinatura != null) {
+                val textoAssinatura = "Assinado em ${contratoAtualizado.data_assinatura}"
+                tvAssinatura.text = textoAssinatura
+                LogUtils.debug("ContratoDetailsDialog", "📝 Texto da assinatura atualizado: $textoAssinatura")
+            } else {
+                LogUtils.error("ContratoDetailsDialog", "❌ tvAssinatura não encontrado!")
+            }
             
             // Reconfigurar botões para o novo estado com animação sutil
             if (btnAssinarContrato != null && btnGerarPdf != null) {
@@ -526,12 +605,12 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             }
             
             btnGerarPdf.isEnabled = true
-            btnGerarPdf.text = "📄 Gerar PDF"
+            btnGerarPdf.text = "Gerar PDF"
             btnGerarPdf.alpha = 1.0f
         } else {
             // Estado: Não assinado - usar cor primária
             btnAssinar.isEnabled = true
-            btnAssinar.text = "✍️ Assinar"
+            btnAssinar.text = "Assinar"
             
             // Usar Material Button se possível para melhor aparência
             if (btnAssinar is com.google.android.material.button.MaterialButton) {
@@ -545,7 +624,7 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             }
             
             btnGerarPdf.isEnabled = false
-            btnGerarPdf.text = "📄 Assine Primeiro"
+            btnGerarPdf.text = "Gerar PDF"
             btnGerarPdf.alpha = 0.5f
         }
     }
@@ -570,20 +649,53 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             setOnContratoAtualizadoListener {
                 LogUtils.debug("ContratoDetailsDialog", "🔔 Callback recebido - contrato assinado")
                 
-                // Atualizar o status da assinatura na UI local
-                val contratoAtualizado = contrato.copy(
-                    status_assinatura = "ASSINADO",
-                    data_assinatura = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
-                )
-                
-                // Atualizar o contrato local
-                this@ContratoDetailsDialogFragment.contrato = contratoAtualizado
-                
-                // Atualizar a UI do dialog em tempo real
-                atualizarUIAposAssinatura(contratoAtualizado)
-                
-                // Notificar que o contrato foi atualizado (para atualizar lista externa)
-                contratoAtualizadoListener?.onContratoAtualizado()
+                // Buscar dados atualizados da API para garantir informações corretas
+                lifecycleScope.launch {
+                    try {
+                        val contratoRepository = ContratoRepository()
+                        val result = contratoRepository.getContratoById(contrato.id)
+                        
+                        when (result) {
+                            is Resource.Success -> {
+                                val contratoAtualizado = result.data
+                                LogUtils.debug("ContratoDetailsDialog", "✅ Contrato atualizado da API: status=${contratoAtualizado.status_assinatura}")
+                                
+                                // Atualizar o contrato local
+                                this@ContratoDetailsDialogFragment.contrato = contratoAtualizado
+                                
+                                // Atualizar a UI do dialog em tempo real
+                                atualizarUIAposAssinatura(contratoAtualizado)
+                                
+                                // Notificar que o contrato foi atualizado (para atualizar lista externa)
+                                contratoAtualizadoListener?.onContratoAtualizado()
+                                
+                                // Mostrar feedback visual melhorado
+                                val statusTexto = if (contratoAtualizado.isAssinado()) "ASSINADO" else "PENDENTE"
+                                Toast.makeText(
+                                    requireContext(), 
+                                    "🔄 Status atualizado para: $statusTexto", 
+                                    Toast.LENGTH_LONG
+                                ).show()
+                            }
+                            is Resource.Error -> {
+                                LogUtils.error("ContratoDetailsDialog", "Erro ao buscar contrato atualizado: ${result.message}")
+                                // Usar dados locais como fallback
+                                val contratoAtualizado = contrato.copy(
+                                    status_assinatura = "ASSINADO",
+                                    data_assinatura = java.text.SimpleDateFormat("dd/MM/yyyy HH:mm:ss", java.util.Locale.getDefault()).format(java.util.Date())
+                                )
+                                this@ContratoDetailsDialogFragment.contrato = contratoAtualizado
+                                atualizarUIAposAssinatura(contratoAtualizado)
+                                contratoAtualizadoListener?.onContratoAtualizado()
+                            }
+                            is Resource.Loading -> {
+                                LogUtils.debug("ContratoDetailsDialog", "⏳ Carregando dados atualizados do contrato...")
+                            }
+                        }
+                    } catch (e: Exception) {
+                        LogUtils.error("ContratoDetailsDialog", "Erro ao atualizar contrato", e)
+                    }
+                }
                 
                 // NÃO FECHAR o dialog - mantê-lo aberto com informações atualizadas
                 
@@ -605,5 +717,69 @@ class ContratoDetailsDialogFragment : DialogFragment() {
         
         LogUtils.debug("ContratoDetailsDialog", "🔓 Abrindo SignatureCaptureFragment")
         signatureFragment.show(parentFragmentManager, "signature_fragment")
+    }
+    
+    /**
+     * Mostra diálogo de confirmação para gerar devolução
+     */
+    private fun mostrarDialogoConfirmacaoDevolucao(contratoId: Int) {
+        LogUtils.info("ContratoDetailsDialog", "📦 Mostrando diálogo de confirmação para devolução do contrato ID: $contratoId")
+        
+        AlertDialog.Builder(requireContext())
+            .setTitle("Devolução")
+            .setMessage("Deseja gerar devolução?")
+            .setPositiveButton("Sim") { _, _ ->
+                LogUtils.debug("ContratoDetailsDialog", "✅ Usuário confirmou geração de devolução")
+                navegarParaDevolucoes(contratoId)
+            }
+            .setNegativeButton("Cancelar") { dialog, _ ->
+                LogUtils.debug("ContratoDetailsDialog", "❌ Usuário cancelou geração de devolução")
+                dialog.dismiss()
+            }
+            .setIcon(android.R.drawable.ic_dialog_alert)
+            .show()
+    }
+    
+    /**
+     * Navega para a página de devoluções do contrato específico
+     */
+    private fun navegarParaDevolucoes(contratoId: Int) {
+        LogUtils.info("ContratoDetailsDialog", "📦 Navegando para devoluções do contrato ID: $contratoId")
+        
+        // Fechar o diálogo atual
+        dismiss()
+        
+        // Limpar outros dialogs que possam estar abertos
+        parentFragmentManager.fragments.forEach { fragment ->
+            if (fragment is DialogFragment && fragment != this@ContratoDetailsDialogFragment) {
+                fragment.dismissAllowingStateLoss()
+            }
+        }
+        
+        // Navegar para o fragment de devoluções usando Navigation Component
+        try {
+            val navController = Navigation.findNavController(requireActivity(), R.id.nav_host_fragment)
+            val bundle = Bundle().apply {
+                putInt("contratoId", contratoId)
+            }
+            navController.navigate(R.id.devolucoesFragment, bundle)
+            
+            LogUtils.debug("ContratoDetailsDialog", "✅ Navegação para devoluções iniciada com sucesso")
+            
+            // Feedback para o usuário
+            Toast.makeText(
+                requireContext(),
+                "Mostrando devoluções do contrato",
+                Toast.LENGTH_SHORT
+            ).show()
+            
+        } catch (e: Exception) {
+            LogUtils.error("ContratoDetailsDialog", "❌ Erro ao navegar para devoluções", e)
+            Toast.makeText(
+                requireContext(),
+                "Erro ao abrir devoluções: ${e.message}",
+                Toast.LENGTH_LONG
+            ).show()
+        }
     }
 }

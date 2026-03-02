@@ -11,267 +11,417 @@
         android:layout_height="wrap_content"
         android:orientation="vertical"
         android:background="@color/white"
-        android:padding="20dp">
+        android:padding="24dp">
 
-        <!-- Nome do Cliente -->
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoClienteNome"
+        <!-- Cabeçalho -->
+        <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="20sp"
-            android:textStyle="bold"
-            tools:text="Nome Completo do Cliente Ltda" />
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
 
-        <!-- Número da Devolução -->
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoNumero"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="4dp"
-            android:textAppearance="@style/TextAppearance.ALG.Subtitle"
-            android:textColor="@color/text_secondary"
-            tools:text="Devolução #123456" />
+            <!-- Nome do Cliente -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoClienteNome"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="22sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="2dp"
+                tools:text="Nome Completo do Cliente Ltda" />
+
+            <!-- Número da Devolução -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoNumero"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="6dp"
+                android:textAppearance="@style/TextAppearance.ALG.Subtitle"
+                android:textSize="16sp"
+                android:textColor="@color/text_secondary"
+                tools:text="Devolução #123456" />
+
+        </LinearLayout>
 
         <!-- Separador -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
-            android:layout_marginTop="16dp"
-            android:layout_marginBottom="16dp"
+            android:layout_marginBottom="24dp"
             android:background="@color/divider" />
 
-        <!-- Informações do Equipamento -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Equipamento"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoEquipamentoNome"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:textAppearance="@style/TextAppearance.ALG.Body"
-            android:textStyle="bold"
-            android:layout_marginBottom="4dp"
-            tools:text="Plataforma Elevatória Articulada" />
-
-        <!-- Quantidades -->
+        <!-- Seção: Equipamento -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
+            <!-- Título da Seção -->
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Quantidade Contratada:"
+                android:text="Equipamento"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
 
+            <!-- Nome do Equipamento -->
             <TextView
-                android:id="@+id/tvDetalhesDevolucaoQuantidadeContratada"
-                android:layout_width="0dp"
+                android:id="@+id/tvDetalhesDevolucaoEquipamentoNome"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
                 android:textAppearance="@style/TextAppearance.ALG.Body"
-                tools:text="5 unidades" />
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"
+                tools:text="Plataforma Elevatória Articulada" />
+
         </LinearLayout>
 
+        <!-- Seção: Quantidades -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
 
+            <!-- Título da Seção -->
             <TextView
-                android:layout_width="0dp"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Quantidade Devolvida:"
+                android:text="Quantidades"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
                 android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.ALG.Caption" />
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
 
-            <TextView
-                android:id="@+id/tvDetalhesDevolucaoQuantidadeDevolvida"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:textAppearance="@style/TextAppearance.ALG.Body"
-                tools:text="3 unidades" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Quantidade Pendente:"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.ALG.Caption" />
-
-            <TextView
-                android:id="@+id/tvDetalhesDevolucaoQuantidadePendente"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:textAppearance="@style/TextAppearance.ALG.Body"
-                android:textColor="@color/warning"
-                tools:text="2 unidades" />
-        </LinearLayout>
-
-        <!-- Datas -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Datas"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-        <LinearLayout
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="8dp">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Previsão de Devolução:"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.ALG.Caption" />
-
-            <TextView
-                android:id="@+id/tvDetalhesDevolucaoDataPrevista"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:textAppearance="@style/TextAppearance.ALG.Body"
-                tools:text="01/02/2023" />
-        </LinearLayout>
-
-        <LinearLayout
-            android:id="@+id/layoutDataEfetiva"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:layout_marginBottom="16dp"
-            android:visibility="visible">
-
-            <TextView
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:text="Data Efetiva de Devolução:"
-                android:textStyle="bold"
-                android:textAppearance="@style/TextAppearance.ALG.Caption" />
-
-            <TextView
-                android:id="@+id/tvDetalhesDevolucaoDataEfetiva"
-                android:layout_width="0dp"
-                android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:gravity="end"
-                android:textAppearance="@style/TextAppearance.ALG.Body"
-                tools:text="01/02/2023 14:30" />
-        </LinearLayout>
-
-        <!-- Status -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Status"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoStatus"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:drawablePadding="8dp"
-            android:textStyle="bold"
-            android:textSize="16sp"
-            android:textAppearance="@style/TextAppearance.ALG.Body"
-            tools:text="Pendente" />
-
-        <!-- Observações -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Observações"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoObservacao"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="16dp"
-            android:textAppearance="@style/TextAppearance.ALG.Body"
-            tools:text="Equipamento com avarias no painel de controle. Necessário aguardar reparo." />
-
-        <!-- Contrato Relacionado -->
-        <TextView
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:text="Contrato Relacionado"
-            android:textAppearance="@style/TextAppearance.ALG.Title"
-            android:textSize="16sp"
-            android:layout_marginBottom="8dp"/>
-
-        <TextView
-            android:id="@+id/tvDetalhesDevolucaoContratoInfo"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginBottom="24dp"
-            android:textAppearance="@style/TextAppearance.ALG.Body"
-            tools:text="Contrato #12345 - Emissão: 01/01/2023" />
-
-        <!-- Botões de ação -->
-        <LinearLayout
-            android:id="@+id/layoutAcoes"
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="16dp"
-            android:orientation="vertical">
-
-            <!-- Primeira linha de botões -->
+            <!-- Quantidade Contratada -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
                 android:layout_marginBottom="8dp">
 
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Contratada:"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesDevolucaoQuantidadeContratada"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    tools:text="5 unidades" />
+            </LinearLayout>
+
+            <!-- Quantidade Devolvida -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Devolvida:"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesDevolucaoQuantidadeDevolvida"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/success"
+                    tools:text="3 unidades" />
+            </LinearLayout>
+
+            <!-- Quantidade Pendente -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Pendente:"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesDevolucaoQuantidadePendente"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/warning"
+                    tools:text="2 unidades" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Seção: Local da Obra -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Local da Obra"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Endereço -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoLocalObra"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="2dp"
+                tools:text="Rua das Flores, 123 - Centro, São Paulo/SP" />
+
+        </LinearLayout>
+
+        <!-- Seção: Datas -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Datas"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="12dp"/>
+
+            <!-- Data Prevista -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="8dp">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Previsão:"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesDevolucaoDataPrevista"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    tools:text="01/02/2023" />
+            </LinearLayout>
+
+            <!-- Data Efetiva -->
+            <LinearLayout
+                android:id="@+id/layoutDataEfetiva"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:visibility="visible">
+
+                <TextView
+                    android:layout_width="0dp"
+                    android:layout_height="wrap_content"
+                    android:layout_weight="1"
+                    android:text="Efetiva:"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
+                    android:textSize="14sp"
+                    android:textColor="@color/text_secondary" />
+
+                <TextView
+                    android:id="@+id/tvDetalhesDevolucaoDataEfetiva"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Body"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/success"
+                    tools:text="01/02/2023 14:30" />
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <!-- Seção: Status -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Status -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoStatus"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:drawablePadding="8dp"
+                tools:text="Pendente" />
+
+        </LinearLayout>
+
+        <!-- Seção: Observações -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="20dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Observações"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Observação -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoObservacao"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                android:lineSpacingExtra="2dp"
+                tools:text="Equipamento com avarias no painel de controle. Necessário aguardar reparo." />
+
+        </LinearLayout>
+
+        <!-- Seção: Contrato Relacionado -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginBottom="24dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Contrato Relacionado"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="8dp"/>
+
+            <!-- Informações do Contrato -->
+            <TextView
+                android:id="@+id/tvDetalhesDevolucaoContratoInfo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="14sp"
+                android:textColor="@color/text_primary"
+                tools:text="Contrato #12345 - Emissão: 01/01/2023" />
+
+        </LinearLayout>
+
+        <!-- Seção: Ações -->
+        <LinearLayout
+            android:id="@+id/layoutAcoes"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Ações"
+                android:textAppearance="@style/TextAppearance.ALG.Title"
+                android:textSize="18sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_primary"
+                android:layout_marginBottom="16dp"/>
+
+            <!-- Primeira linha de botões -->
+            <LinearLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:layout_marginBottom="12dp">
+
                 <Button
                     android:id="@+id/btnGerarPdfDevolucao"
                     style="@style/Widget.MaterialComponents.Button.OutlinedButton"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginEnd="4dp"
+                    android:layout_height="48dp"
+                    android:layout_marginEnd="6dp"
                     android:layout_weight="1"
                     android:text="Gerar PDF"
+                    android:textSize="14sp"
                     android:textColor="@color/red_500"
                     app:icon="@drawable/ic_pdf"
                     app:iconGravity="textStart"
+                    app:iconSize="18dp"
                     app:strokeColor="@color/red_500"
                     app:strokeWidth="1dp" />
 
@@ -279,21 +429,38 @@
                     android:id="@+id/btnProcessarDevolucao"
                     style="@style/Widget.MaterialComponents.Button"
                     android:layout_width="0dp"
-                    android:layout_height="match_parent"
-                    android:layout_marginStart="4dp"
+                    android:layout_height="48dp"
+                    android:layout_marginStart="6dp"
                     android:layout_weight="1"
-                    android:text="Processar Devolução" />
+                    android:text="Processar"
+                    android:textSize="14sp" />
             </LinearLayout>
 
             <!-- Segunda linha de botões -->
             <Button
+                android:id="@+id/btnAssinarDevolucao"
+                style="@style/Widget.MaterialComponents.Button.OutlinedButton"
+                android:layout_width="match_parent"
+                android:layout_height="48dp"
+                android:layout_marginBottom="12dp"
+                android:text="Assinar Devolução"
+                android:textSize="14sp"
+                android:textColor="@color/primary"
+                app:icon="@drawable/ic_edit"
+                app:iconGravity="textStart"
+                app:iconSize="18dp"
+                app:strokeColor="@color/primary"
+                app:strokeWidth="1dp" />
+
+            <!-- Botão Fechar -->
+            <Button
                 android:id="@+id/btnFecharDetalhesDevolucao"
                 style="@style/Widget.MaterialComponents.Button.TextButton"
                 android:layout_width="match_parent"
-                android:layout_height="wrap_content"
+                android:layout_height="44dp"
                 android:text="Fechar"
-                app:strokeColor="@color/primary"
-                app:strokeWidth="1dp"/>
+                android:textSize="14sp"
+                android:textColor="@color/text_secondary"/>
 
         </LinearLayout>
 

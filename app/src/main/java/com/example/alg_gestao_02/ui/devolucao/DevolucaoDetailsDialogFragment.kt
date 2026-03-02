@@ -50,10 +50,12 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
     private lateinit var layoutDataEfetiva: LinearLayout
     private lateinit var tvStatus: TextView
     private lateinit var tvObservacao: TextView
+    private lateinit var tvLocalObra: TextView
     private lateinit var tvContratoInfo: TextView
     private lateinit var btnFechar: Button
     private lateinit var btnProcessar: Button
     private lateinit var btnGerarPdf: Button
+    private lateinit var btnAssinarDevolucao: Button
     private lateinit var layoutAcoes: LinearLayout
     
     companion object {
@@ -109,10 +111,12 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
         layoutDataEfetiva = view.findViewById(R.id.layoutDataEfetiva)
         tvStatus = view.findViewById(R.id.tvDetalhesDevolucaoStatus)
         tvObservacao = view.findViewById(R.id.tvDetalhesDevolucaoObservacao)
+        tvLocalObra = view.findViewById(R.id.tvDetalhesDevolucaoLocalObra)
         tvContratoInfo = view.findViewById(R.id.tvDetalhesDevolucaoContratoInfo)
         btnFechar = view.findViewById(R.id.btnFecharDetalhesDevolucao)
         btnProcessar = view.findViewById(R.id.btnProcessarDevolucao)
         btnGerarPdf = view.findViewById(R.id.btnGerarPdfDevolucao)
+        btnAssinarDevolucao = view.findViewById(R.id.btnAssinarDevolucao)
         layoutAcoes = view.findViewById(R.id.layoutAcoes)
     }
     
@@ -127,6 +131,10 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
         
         btnGerarPdf.setOnClickListener {
             gerarPdfDevolucao()
+        }
+        
+        btnAssinarDevolucao.setOnClickListener {
+            abrirAssinaturaDevolucao()
         }
     }
     
@@ -189,6 +197,14 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
             // Definir observação
             tvObservacao.text = d.observacaoItemDevolucao ?: "Nenhuma observação registrada"
             
+            // Definir local da obra
+            val localObra = d.contrato?.obraLocal
+            tvLocalObra.text = if (!localObra.isNullOrEmpty()) {
+                localObra
+            } else {
+                "Local da obra não informado"
+            }
+            
             // Definir informações do contrato
             val contratoNum = d.contrato?.contratoNum ?: "Desconhecido"
             val dataEmissao = d.contrato?.getDataEmissaoFormatada() ?: "Data desconhecida"
@@ -223,10 +239,14 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
                 val quantidade = etQuantidade.text.toString().toIntOrNull() ?: 0
                 val observacao = etObservacao.text.toString()
                 
+                // ✅ IMPORTANTE: Não enviamos statusItemDevolucao!
+                // O backend recalcula automaticamente baseado na quantidadeDevolvida
+                // Se quantidade == quantidadeContratada → "Devolvido"
+                // Se 0 < quantidade < quantidadeContratada → "Pendente"
                 onProcessarRequestListener?.onProcessarRequested(
                     devolucao,
                     quantidade,
-                    "Devolvido",
+                    null, // Status será calculado automaticamente no backend
                     observacao.ifEmpty { null }
                 )
                 
@@ -236,6 +256,8 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
                 val quantidade = etQuantidade.text.toString().toIntOrNull() ?: 0
                 val observacao = etObservacao.text.toString()
                 
+                // ✅ IMPORTANTE: Apenas marcar como Avariado quando houver problema
+                // Neste caso, podemos enviar "Avariado" pois é um estado especial diferente
                 onProcessarRequestListener?.onProcessarRequested(
                     devolucao,
                     quantidade,
@@ -425,7 +447,7 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
      * Interface para comunicar solicitação de processamento
      */
     interface OnProcessarRequestListener {
-        fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String, observacao: String?)
+        fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String?, observacao: String?)
     }
     
     /**
@@ -433,5 +455,44 @@ class DevolucaoDetailsDialogFragment : DialogFragment() {
      */
     fun setOnProcessarRequestListener(listener: OnProcessarRequestListener) {
         this.onProcessarRequestListener = listener
+    }
+    
+    /**
+     * Abre o dialog de assinatura para a devolução
+     */
+    private fun abrirAssinaturaDevolucao() {
+        devolucao?.let { d ->
+            val jaAssinado = d.statusItemDevolucao == "ASSINADO" // Assumindo que existe este status
+            val acao = if (jaAssinado) "Alterando" else "Criando"
+            
+            LogUtils.debug("DevolucaoDetailsDialog", "🖊️ $acao assinatura para devolução #${d.devNum}")
+            
+            val bundle = Bundle().apply {
+                putString("devolucaoNumero", d.devNum)
+                putInt("devolucaoId", d.id)
+                putString("tipoAssinatura", "DEVOLUCAO")
+                putBoolean("isAlteracao", jaAssinado)
+            }
+            
+            val signatureFragment = com.example.alg_gestao_02.ui.contrato.SignatureCaptureFragment().apply {
+                arguments = bundle
+                setOnDevolucaoAtualizadaListener {
+                    LogUtils.debug("DevolucaoDetailsDialog", "🔔 Callback recebido - devolução assinada")
+                    
+                    // Atualizar a UI local se necessário
+                    // Aqui você pode atualizar o status da devolução na interface
+                    
+                    val mensagem = if (jaAssinado) {
+                        "🔄 Assinatura da devolução alterada com sucesso! Gere um novo PDF com a assinatura atualizada."
+                    } else {
+                        "✅ Devolução assinada com sucesso! Agora você pode gerar o PDF assinado."
+                    }
+                    
+                    Toast.makeText(requireContext(), mensagem, Toast.LENGTH_LONG).show()
+                }
+            }
+            
+            signatureFragment.show(parentFragmentManager, "signature_devolucao")
+        }
     }
 } 

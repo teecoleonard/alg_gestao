@@ -50,13 +50,38 @@ class EquipamentosAdapter(
         private val tvNomeEquipamento: TextView = itemView.findViewById(R.id.tvNomeEquipamento)
         private val tvCodigoEquipamento: TextView = itemView.findViewById(R.id.tvCodigoEquipamento)
         private val tvQuantidadeEquipamento: TextView = itemView.findViewById(R.id.tvQuantidadeEquipamento)
+        private val tvBadgeDisponibilidade: TextView = itemView.findViewById(R.id.tvBadgeDisponibilidade)
         private val tvPrecoDiariaEquipamento: TextView = itemView.findViewById(R.id.tvPrecoDiariaEquipamento)
         private val ivMenuEquipamento: ImageView = itemView.findViewById(R.id.ivMenuEquipamento)
 
         fun bind(equipamento: Equipamento) {
             tvNomeEquipamento.text = equipamento.nomeEquip
             tvCodigoEquipamento.text = "Código: ${equipamento.codigoEquip}"
-            tvQuantidadeEquipamento.text = "Quantidade: ${equipamento.quantidadeDisp}"
+            
+            // Mostrar quantidade total e em uso
+            val quantidadeTotal = equipamento.quantidadeTotal ?: equipamento.quantidadeDisp
+            val quantidadeEmUso = equipamento.quantidadeEmUso ?: 0
+            val quantidadeDisponivel = equipamento.getQuantidadeDisponivelAtual()
+            
+            tvQuantidadeEquipamento.text = if (quantidadeEmUso > 0) {
+                "Total: $quantidadeTotal (${quantidadeEmUso} em uso)"
+            } else {
+                "Total: $quantidadeTotal"
+            }
+            
+            // Badge de disponibilidade com cores
+            tvBadgeDisponibilidade.text = "$quantidadeDisponivel Disp."
+            
+            // Cor do badge baseado na disponibilidade
+            val badgeColor = when {
+                quantidadeDisponivel == 0 -> R.color.error // Vermelho
+                quantidadeDisponivel < (quantidadeTotal * 0.3) -> R.color.warning // Laranja
+                else -> R.color.success // Verde
+            }
+            tvBadgeDisponibilidade.setBackgroundTintList(
+                itemView.context.getColorStateList(badgeColor)
+            )
+            
             tvPrecoDiariaEquipamento.text = "Diária: ${currencyFormat.format(equipamento.precoDiaria)}"
 
             // Configura o clique no item

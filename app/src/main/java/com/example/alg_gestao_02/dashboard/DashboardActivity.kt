@@ -470,4 +470,14 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             LogUtils.error("DashboardActivity", "❌ Erro ao restaurar estado: ${e.message}", e)
         }
     }
+    
+    
+    /**
+     * Mostra o dialog de cadastro de contrato
+     */
+    private fun showCadastroContratoDialog() {
+        LogUtils.debug("DashboardActivity", "Mostrando dialog de cadastro de contrato")
+        val dialog = com.example.alg_gestao_02.ui.contrato.CadastroContratoDialogFragment()
+        dialog.show(supportFragmentManager, "CadastroContratoDialog")
+    }
 } 

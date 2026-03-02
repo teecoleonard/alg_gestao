@@ -16,6 +16,8 @@ data class Notification(
 
 enum class NotificationType {
     CONTRACT_CREATED,
+    CONTRACT_EXPIRED,
+    CONTRACT_NEAR_EXPIRATION,
     CLIENT_ADDED,
     EQUIPMENT_AVAILABLE,
     RETURN_PENDING,

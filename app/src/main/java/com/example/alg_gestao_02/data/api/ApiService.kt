@@ -35,6 +35,38 @@ data class AssinaturaResponse(
     val assinaturaId: Int? = null
 )
 
+data class DisponibilidadeResponse(
+    @SerializedName("equipamento_id")
+    val equipamentoId: Int,
+    
+    @SerializedName("nome")
+    val nome: String,
+    
+    @SerializedName("quantidade_total")
+    val quantidadeTotal: Int,
+    
+    @SerializedName("quantidade_em_uso")
+    val quantidadeEmUso: Int,
+    
+    @SerializedName("quantidade_disponivel")
+    val quantidadeDisponivel: Int,
+    
+    @SerializedName("disponivel")
+    val disponivel: Boolean,
+    
+    @SerializedName("quantidade_solicitada")
+    val quantidadeSolicitada: Int? = null,
+    
+    @SerializedName("pode_alocar")
+    val podeAlocar: Boolean? = null
+)
+
+// Response para o preview do próximo número de contrato
+data class ProximoNumeroResponse(
+    @SerializedName("proximoNumero")
+    val proximoNumero: String
+)
+
 interface ApiService {
     
     /**
@@ -66,10 +98,25 @@ interface ApiService {
     suspend fun getEquipamentosDisponiveis(): Response<List<Equipamento>>
     
     /**
+     * Obter equipamentos com cálculo de disponibilidade em tempo real
+     */
+    @GET("api/equipamentos/com-disponibilidade")
+    suspend fun getEquipamentosComDisponibilidade(): Response<List<Equipamento>>
+    
+    /**
      * Obter um equipamento específico por ID
      */
     @GET("api/equipamentos/{id}")
     suspend fun getEquipamentoById(@Path("id") id: Int): Response<Equipamento>
+    
+    /**
+     * Verificar disponibilidade de um equipamento específico
+     */
+    @GET("api/equipamentos/{id}/disponibilidade")
+    suspend fun verificarDisponibilidadeEquipamento(
+        @Path("id") id: Int,
+        @Query("quantidade") quantidade: Int? = null
+    ): Response<DisponibilidadeResponse>
     
     /**
      * Criar um novo equipamento
@@ -148,6 +195,13 @@ interface ApiService {
     suspend fun getContratosByCliente(@Path("clienteId") clienteId: Int): Response<List<Contrato>>
 
     /**
+     * Obter o próximo número que será gerado para um cliente (preview apenas)
+     * Backend gera este número, frontend apenas exibe como informação
+     */
+    @GET("api/contratos/proximo-numero/{clienteId}")
+    suspend fun getProximoContratoNum(@Path("clienteId") clienteId: Int): Response<ProximoNumeroResponse>
+
+    /**
      * Obter equipamentos de um contrato específico
      */
     @GET("api/contratos/{contratoId}/equipamentos")
@@ -177,6 +231,27 @@ interface ApiService {
         @Path("id") id: Int,
         @Query("force") force: String? = null
     ): Response<Void>
+
+    /**
+     * Atualizar status do contrato (ciclo de vida)
+     */
+    @PUT("api/contratos/{id}/status")
+    suspend fun atualizarStatusContrato(
+        @Path("id") id: Int,
+        @Body request: AtualizarStatusRequest
+    ): Response<ContratoStatusResponse>
+
+    /**
+     * Verificar se contrato pode ser iniciado (EM_ANDAMENTO)
+     */
+    @GET("api/contratos/{id}/pode-iniciar")
+    suspend fun verificarPodeIniciar(@Path("id") id: Int): Response<VerificarStatusResponse>
+
+    /**
+     * Verificar se contrato pode ser finalizado
+     */
+    @GET("api/contratos/{id}/pode-finalizar")
+    suspend fun verificarPodeFinalizar(@Path("id") id: Int): Response<VerificarStatusResponse>
 
     /**
      * ENDPOINTS DE DEVOLUÇÕES
@@ -227,6 +302,24 @@ interface ApiService {
      */
     @POST("api/assinaturas")
     suspend fun enviarAssinatura(@Body request: AssinaturaApiRequest): Response<AssinaturaResponse>
+
+    /**
+     * Enviar assinatura de devolução para processamento
+     */
+    @POST("api/assinatura-devolucao/processar")
+    suspend fun processarAssinaturaDevolucao(@Body request: AssinaturaDevolucaoRequest): Response<AssinaturaDevolucaoResponse>
+
+    /**
+     * Verificar se contrato precisa regenerar devoluções
+     */
+    @GET("api/regenerar-devolucoes/verificar/{contratoId}")
+    suspend fun verificarNecessidadeRegeneracao(@Path("contratoId") contratoId: Int): Response<Map<String, Any>>
+
+    /**
+     * Regenerar devoluções de um contrato
+     */
+    @POST("api/regenerar-devolucoes/{contratoId}")
+    suspend fun regenerarDevolucoes(@Path("contratoId") contratoId: Int): Response<Map<String, Any>>
 
     /**
      * Endpoint para obter estatísticas do dashboard
@@ -340,6 +433,48 @@ interface ApiService {
     data class DevolucaoUpdateResponse(
         val message: String,
         val devolucao: Devolucao
+    )
+
+    /**
+     * Request para atualizar status do contrato
+     */
+    data class AtualizarStatusRequest(
+        @SerializedName("status_contrato")
+        val statusContrato: String,
+        @SerializedName("motivo")
+        val motivo: String? = null
+    )
+
+    /**
+     * Response ao atualizar status do contrato
+     */
+    data class ContratoStatusResponse(
+        @SerializedName("success")
+        val success: Boolean,
+        @SerializedName("message")
+        val message: String,
+        @SerializedName("contrato")
+        val contrato: Contrato
+    )
+
+    /**
+     * Response ao verificar status do contrato
+     */
+    data class VerificarStatusResponse(
+        @SerializedName("podeIniciar")
+        val podeIniciar: Boolean? = null,
+        @SerializedName("podeFinalizar")
+        val podeFinalizar: Boolean? = null,
+        @SerializedName("status_atual")
+        val statusAtual: String? = null,
+        @SerializedName("status_assinatura")
+        val statusAssinatura: String? = null,
+        @SerializedName("mensagem")
+        val mensagem: String,
+        @SerializedName("totalDevolucoes")
+        val totalDevolucoes: Int? = null,
+        @SerializedName("devolvidasCompletas")
+        val devolvidasCompletas: Int? = null
     )
 
     /**

@@ -18,13 +18,22 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.ui.contrato.adapter.ContratosAdapter
+import com.google.android.material.tabs.TabLayout
+import com.google.android.material.chip.Chip
+import com.google.android.material.chip.ChipGroup
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.floatingactionbutton.FloatingActionButton
+import java.text.SimpleDateFormat
+import java.util.Calendar
+import java.util.Locale
 import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel
 import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
-import com.google.android.material.floatingactionbutton.FloatingActionButton
-import com.google.android.material.textfield.TextInputEditText
+import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.launch
+import com.example.alg_gestao_02.utils.Resource
 
 /**
  * Fragment para listagem e gestão de contratos
@@ -36,11 +45,22 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     
     private lateinit var recyclerView: RecyclerView
     private lateinit var swipeRefresh: SwipeRefreshLayout
-    private lateinit var fabNovoContrato: FloatingActionButton
     private lateinit var viewLoading: View
     private lateinit var viewEmpty: View
     private lateinit var viewError: View
     private lateinit var etSearch: TextInputEditText
+    private lateinit var fabAddContrato: FloatingActionButton
+    private lateinit var tabLayout: TabLayout
+    private lateinit var chipGroupFilters: ChipGroup
+    
+    // Enum para as abas
+    enum class ContratoTab {
+        TODOS, EM_ANDAMENTO, ARQUIVADOS
+    }
+    
+    private var currentTab: ContratoTab = ContratoTab.TODOS
+    private var selectedMonth: Int? = null
+    private var selectedYear: Int? = null
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -65,24 +85,9 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         
         observeViewModel()
         
-        // Verificar se há filtro pendente no FilterManager
-        val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingContractsFilter()
-        if (pendingFilter != null) {
-            LogUtils.info("ContratosFragment", "Aplicando filtro pendente para cliente: ${pendingFilter.clienteNome} (ID: ${pendingFilter.clienteId})")
-            
-            // Aplicar o filtro no campo de busca
-            etSearch.setText(pendingFilter.clienteNome)
-            
-            // Definir termo de busca no ViewModel
-            viewModel.setSearchTerm(pendingFilter.clienteNome)
-            
-            // Mostrar toast informativo sobre o filtro aplicado
-            Toast.makeText(requireContext(), "Mostrando contratos de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
-        } else {
-            // Carregar contratos normalmente se não houver filtro
-            LogUtils.debug("ContratosFragment", "Carregando lista de contratos inicialmente")
-            viewModel.loadContratos()
-        }
+        // Carregar contratos e clientes
+        viewModel.loadContratos()
+        viewModel.loadClientes()
     }
     
     override fun onResume() {
@@ -118,11 +123,16 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     private fun initViews(view: View) {
         recyclerView = view.findViewById(R.id.rvContratos)
         swipeRefresh = view.findViewById(R.id.swipeRefresh)
-        fabNovoContrato = view.findViewById(R.id.fabAddContrato)
         viewLoading = view.findViewById(R.id.viewLoading)
         viewEmpty = view.findViewById(R.id.viewEmpty)
         viewError = view.findViewById(R.id.viewError)
         etSearch = view.findViewById(R.id.etSearch)
+        fabAddContrato = view.findViewById(R.id.fabAddContrato)
+        tabLayout = view.findViewById(R.id.tabLayout)
+        chipGroupFilters = view.findViewById(R.id.chipGroupFilters)
+        
+        setupTabs()
+        setupMonthFilters()
     }
     
     private fun setupViewModel() {
@@ -131,6 +141,9 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     }
     
     private fun setupRecyclerView() {
+        LogUtils.debug("ContratosFragment", "Configurando RecyclerView")
+        LogUtils.debug("ContratosFragment", "RecyclerView encontrado: $recyclerView")
+        
         adapter = ContratosAdapter(
             contratos = emptyList(),
             onItemClick = { contrato ->
@@ -141,8 +154,93 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
             }
         )
         
+        LogUtils.debug("ContratosFragment", "Adapter criado: $adapter")
+        
         recyclerView.layoutManager = LinearLayoutManager(context)
         recyclerView.adapter = adapter
+        
+        LogUtils.debug("ContratosFragment", "RecyclerView configurado com adapter e layout manager")
+    }
+    
+    /**
+     * Configura as abas do TabLayout
+     */
+    private fun setupTabs() {
+        tabLayout.addOnTabSelectedListener(object : TabLayout.OnTabSelectedListener {
+            override fun onTabSelected(tab: TabLayout.Tab?) {
+                when (tab?.position) {
+                    0 -> {
+                        currentTab = ContratoTab.TODOS
+                        LogUtils.debug("ContratosFragment", "Aba selecionada: TODOS")
+                    }
+                    1 -> {
+                        currentTab = ContratoTab.EM_ANDAMENTO
+                        LogUtils.debug("ContratosFragment", "Aba selecionada: EM_ANDAMENTO")
+                    }
+                    2 -> {
+                        currentTab = ContratoTab.ARQUIVADOS
+                        LogUtils.debug("ContratosFragment", "Aba selecionada: ARQUIVADOS")
+                    }
+                }
+                aplicarFiltros()
+            }
+
+            override fun onTabUnselected(tab: TabLayout.Tab?) {}
+            override fun onTabReselected(tab: TabLayout.Tab?) {}
+        })
+    }
+    
+    /**
+     * Configura os chips de filtro por mês
+     */
+    private fun setupMonthFilters() {
+        chipGroupFilters.removeAllViews()
+        
+        // Chip "Todos" (remove filtro de mês)
+        val chipTodos = Chip(requireContext()).apply {
+            text = "Todos os meses"
+            isCheckable = true
+            isChecked = true
+            setOnClickListener {
+                selectedMonth = null
+                selectedYear = null
+                LogUtils.debug("ContratosFragment", "Filtro de mês removido")
+                aplicarFiltros()
+            }
+        }
+        chipGroupFilters.addView(chipTodos)
+        
+        // Adicionar chips para os últimos 12 meses
+        val calendar = Calendar.getInstance()
+        val formatter = SimpleDateFormat("MMM/yy", Locale("pt", "BR"))
+        
+        for (i in 0 until 12) {
+            val mes = calendar.get(Calendar.MONTH) + 1
+            val ano = calendar.get(Calendar.YEAR)
+            val dataFormatada = formatter.format(calendar.time)
+            
+            val chip = Chip(requireContext()).apply {
+                text = dataFormatada.replaceFirstChar { it.uppercase() }
+                isCheckable = true
+                tag = Pair(ano, mes)
+                setOnClickListener {
+                    selectedYear = ano
+                    selectedMonth = mes
+                    LogUtils.debug("ContratosFragment", "Filtro de mês selecionado: $mes/$ano")
+                    aplicarFiltros()
+                }
+            }
+            chipGroupFilters.addView(chip)
+            
+            calendar.add(Calendar.MONTH, -1)
+        }
+    }
+    
+    /**
+     * Aplica os filtros de aba e mês aos contratos
+     */
+    private fun aplicarFiltros() {
+        viewModel.aplicarFiltros(currentTab, selectedYear, selectedMonth, etSearch.text.toString())
     }
     
     private fun setupListeners() {
@@ -151,39 +249,51 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
             viewModel.loadContratos()
         }
         
-        fabNovoContrato.setOnClickListener {
+        // Configurar listener do FAB
+        fabAddContrato.setOnClickListener {
+            LogUtils.debug("ContratosFragment", "FAB adicionar contrato clicado")
             showCadastroContratoDialog()
         }
         
         // Configurar listener para busca
-        etSearch.setOnEditorActionListener { v, actionId, event ->
+        etSearch.setOnEditorActionListener { _, actionId, event ->
             if (actionId == EditorInfo.IME_ACTION_SEARCH || 
                 (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                 val searchTerm = etSearch.text.toString().trim()
                 LogUtils.debug("ContratosFragment", "Buscando por: $searchTerm")
-                viewModel.setSearchTerm(searchTerm)
+                aplicarFiltros()
                 true
             } else {
                 false
             }
         }
+        
+        // Listener para mudanças no texto de busca (busca em tempo real)
+        etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                aplicarFiltros()
+            }
+        })
     }
     
     private fun observeViewModel() {
+        LogUtils.debug("ContratosFragment", "Configurando observadores do ViewModel")
+        
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
+            LogUtils.debug("ContratosFragment", "Observer uiState ativado: ${state.javaClass.simpleName}")
             swipeRefresh.isRefreshing = false
             
             when (state) {
                 is UiState.Loading -> {
-                    LogUtils.debug("ContratosFragment", "Estado: Loading")
+                    LogUtils.debug("ContratosFragment", "Estado: Loading - Mostrando tela de carregamento")
+                    LogUtils.debug("ContratosFragment", "viewLoading visibilidade: ${viewLoading.visibility}")
                     viewLoading.visibility = View.VISIBLE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.GONE
                     recyclerView.visibility = View.GONE
-                    
-                    // Definir exibição do ViewFlipper para o estado de carregamento (índice 0)
-                    val viewFlipper = view?.findViewById<ViewFlipper>(R.id.viewFlipper)
-                    viewFlipper?.displayedChild = 0
+                    LogUtils.debug("ContratosFragment", "viewLoading visibilidade após: ${viewLoading.visibility}")
                 }
                 
                 is UiState.Success -> {
@@ -193,13 +303,16 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                     viewError.visibility = View.GONE
                     recyclerView.visibility = View.VISIBLE
                     
+                    LogUtils.debug("ContratosFragment", "RecyclerView visibilidade: ${recyclerView.visibility}")
+                    LogUtils.debug("ContratosFragment", "Adapter atual: ${adapter}")
+                    
                     // Atualizar o adaptador com os contratos
                     adapter.updateContratos(state.data)
+                    LogUtils.debug("ContratosFragment", "Adapter atualizado com ${state.data.size} itens")
                     
-                    // Definir exibição do ViewFlipper para a lista (índice 2)
-                    val viewFlipper = view?.findViewById<ViewFlipper>(R.id.viewFlipper)
-                    viewFlipper?.displayedChild = 2
-                    LogUtils.debug("ContratosFragment", "ViewFlipper exibindo tela de lista (índice 2)")
+                    // Forçar notificação do adapter
+                    adapter.notifyDataSetChanged()
+                    LogUtils.debug("ContratosFragment", "Adapter.notifyDataSetChanged() chamado")
                 }
                 
                 is UiState.Empty -> {
@@ -208,10 +321,6 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                     viewEmpty.visibility = View.VISIBLE
                     viewError.visibility = View.GONE
                     recyclerView.visibility = View.GONE
-                    
-                    // Definir exibição do ViewFlipper para o estado vazio (índice 1)
-                    val viewFlipper = view?.findViewById<ViewFlipper>(R.id.viewFlipper)
-                    viewFlipper?.displayedChild = 1
                 }
                 
                 is UiState.Error -> {
@@ -220,10 +329,6 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.VISIBLE
                     recyclerView.visibility = View.GONE
-                    
-                    // Definir exibição do ViewFlipper para o estado de erro (índice 3)
-                    val viewFlipper = view?.findViewById<ViewFlipper>(R.id.viewFlipper)
-                    viewFlipper?.displayedChild = 3
                     
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                 }
@@ -240,7 +345,7 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                 
                 is UiState.Success -> {
                     if (state.data != null) {
-                        LogUtils.debug("ContratosFragment", "Detalhes do contrato carregados com sucesso. ID: ${state.data.id}, equipamentos: ${state.data.equipamentos?.size ?: 0}")
+                        LogUtils.debug("ContratosFragment", "Detalhes do contrato carregados com sucesso. ID: ${state.data.id}, equipamentos: ${state.data.equipamentos.size}")
                         showContratoDetailDialogWithDetails(state.data)
                     } else {
                         LogUtils.error("ContratosFragment", "Contrato carregado é nulo")
@@ -284,15 +389,128 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     
     override fun onContratoAtualizado() {
         LogUtils.debug("ContratosFragment", "🔔 CALLBACK RECEBIDO: Contrato foi atualizado, recarregando lista")
-        LogUtils.debug("ContratosFragment", "🔄 Chamando viewModel.loadContratos()")
         viewModel.loadContratos()
         LogUtils.debug("ContratosFragment", "✅ Recarga da lista iniciada")
     }
     
+    /**
+     * Callback chamado quando um contrato é editado/modificado
+     * Verifica se precisa regenerar devoluções
+     */
+    fun onContratoEditado(contratoId: Int, contratoNum: String) {
+        LogUtils.debug("ContratosFragment", "🔧 Contrato editado: #$contratoNum (ID: $contratoId)")
+        
+        // Verificar se precisa regenerar devoluções
+        lifecycleScope.launch {
+            try {
+                val regenerarRepository = com.example.alg_gestao_02.data.repository.RegenerarDevolucaoRepository()
+                val result = regenerarRepository.verificarNecessidadeRegeneracao(contratoId)
+                
+                when (result) {
+                    is Resource.Success -> {
+                        val precisaRegenerar = result.data
+                        LogUtils.debug("ContratosFragment", "🔍 Precisa regenerar devoluções: $precisaRegenerar")
+                        
+                        if (precisaRegenerar) {
+                            mostrarDialogRegenerarDevolucoes(contratoId, contratoNum)
+                        }
+                    }
+                    is Resource.Error -> {
+                        LogUtils.error("ContratosFragment", "Erro ao verificar regeneração: ${result.message}")
+                    }
+                    is Resource.Loading -> {
+                        // Não fazer nada
+                    }
+                }
+            } catch (e: Exception) {
+                LogUtils.error("ContratosFragment", "Erro ao verificar regeneração", e)
+            }
+        }
+    }
+    
+    /**
+     * Mostra dialog perguntando se quer regenerar devoluções
+     */
+    private fun mostrarDialogRegenerarDevolucoes(contratoId: Int, contratoNum: String) {
+        com.google.android.material.dialog.MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Contrato Modificado")
+            .setMessage("O contrato #$contratoNum foi modificado. Deseja regenerar as devoluções para refletir as mudanças?\n\n• Devoluções antigas serão marcadas como obsoletas\n• Novas devoluções serão criadas com base nos equipamentos atuais")
+            .setPositiveButton("Sim, Regenerar") { _, _ ->
+                regenerarDevolucoes(contratoId, contratoNum)
+            }
+            .setNegativeButton("Não, Manter Como Está") { _, _ ->
+                LogUtils.debug("ContratosFragment", "Usuário optou por não regenerar devoluções")
+            }
+            .setCancelable(false)
+            .show()
+    }
+    
+    /**
+     * Executa a regeneração das devoluções
+     */
+    private fun regenerarDevolucoes(contratoId: Int, contratoNum: String) {
+        lifecycleScope.launch {
+            val progressDialog = android.app.ProgressDialog(requireContext()).apply {
+                setMessage("Regenerando devoluções do contrato #$contratoNum...")
+                setCancelable(false)
+                show()
+            }
+            
+            try {
+                val regenerarRepository = com.example.alg_gestao_02.data.repository.RegenerarDevolucaoRepository()
+                val result = regenerarRepository.regenerarDevolucoes(contratoId)
+                
+                progressDialog.dismiss()
+                
+                when (result) {
+                    is Resource.Success -> {
+                        val data = result.data.get("data") as? Map<String, Any>
+                        val novasCount = (data?.get("novasDevolucoesS") as? Double)?.toInt() ?: 0
+                        val obsoletasCount = (data?.get("devolucoesSObsoletas") as? Double)?.toInt() ?: 0
+                        
+                        val mensagem = "✅ Devoluções regeneradas com sucesso!\n\n" +
+                                "• $obsoletasCount devoluções marcadas como obsoletas\n" +
+                                "• $novasCount novas devoluções criadas"
+                        
+                        android.widget.Toast.makeText(requireContext(), mensagem, android.widget.Toast.LENGTH_LONG).show()
+                        
+                        LogUtils.debug("ContratosFragment", "✅ Devoluções regeneradas: $novasCount novas, $obsoletasCount obsoletas")
+                    }
+                    is Resource.Error -> {
+                        android.widget.Toast.makeText(
+                            requireContext(), 
+                            "Erro ao regenerar devoluções: ${result.message}", 
+                            android.widget.Toast.LENGTH_LONG
+                        ).show()
+                        LogUtils.error("ContratosFragment", "Erro na regeneração: ${result.message}")
+                    }
+                    is Resource.Loading -> {
+                        // Não fazer nada
+                    }
+                }
+            } catch (e: Exception) {
+                progressDialog.dismiss()
+                android.widget.Toast.makeText(
+                    requireContext(), 
+                    "Erro ao regenerar devoluções: ${e.message}", 
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+                LogUtils.error("ContratosFragment", "Erro na regeneração", e)
+            }
+        }
+    }
+    
     private fun showCadastroContratoDialog(contratoParaEditar: Contrato? = null) {
         val dialog = CadastroContratoDialogFragment.newInstance(contratoParaEditar)
-        dialog.setOnContratoSavedListener {
+        dialog.setOnContratoSavedListener { contratoSalvo ->
             LogUtils.debug("ContratosFragment", "Contrato salvo/atualizado, recarregando lista.")
+            
+            // Se é uma edição (não criação), verificar regeneração de devoluções
+            if (contratoParaEditar != null) {
+                LogUtils.debug("ContratosFragment", "🔧 Contrato editado detectado, verificando regeneração...")
+                onContratoEditado(contratoSalvo.id, contratoSalvo.contratoNum ?: "")
+            }
+            
             viewModel.loadContratos()
         }
         val dialogTag = if (contratoParaEditar == null) "CadastroContratoDialog" else "EditContratoDialog_${contratoParaEditar.id}"

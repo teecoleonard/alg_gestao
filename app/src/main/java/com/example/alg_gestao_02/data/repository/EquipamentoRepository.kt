@@ -1,6 +1,7 @@
 package com.example.alg_gestao_02.data.repository
 
 import com.example.alg_gestao_02.data.api.ApiClient
+import com.example.alg_gestao_02.data.api.DisponibilidadeResponse
 import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
@@ -137,6 +138,52 @@ class EquipamentoRepository {
             }
         } catch (e: Exception) {
             LogUtils.error("EquipamentoRepository", "Erro ao excluir equipamento", e)
+            Resource.Error("Erro de conexão: ${e.message}")
+        }
+    }
+    
+    /**
+     * Busca equipamentos com cálculo de disponibilidade em tempo real
+     */
+    suspend fun getEquipamentosComDisponibilidade(): Resource<List<Equipamento>> {
+        return try {
+            LogUtils.debug("EquipamentoRepository", "Buscando equipamentos com disponibilidade calculada")
+            val response = apiService.getEquipamentosComDisponibilidade()
+            
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    LogUtils.info("EquipamentoRepository", "Equipamentos com disponibilidade carregados: ${it.size}")
+                    Resource.Success(it)
+                } ?: Resource.Error("Resposta vazia do servidor")
+            } else {
+                LogUtils.warning("EquipamentoRepository", "Falha ao buscar equipamentos com disponibilidade: ${response.code()}")
+                Resource.Error("Erro ao buscar equipamentos: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            LogUtils.error("EquipamentoRepository", "Erro ao buscar equipamentos com disponibilidade", e)
+            Resource.Error("Erro de conexão: ${e.message}")
+        }
+    }
+    
+    /**
+     * Verifica disponibilidade de um equipamento específico
+     */
+    suspend fun verificarDisponibilidade(id: Int, quantidade: Int? = null): Resource<DisponibilidadeResponse> {
+        return try {
+            LogUtils.debug("EquipamentoRepository", "Verificando disponibilidade do equipamento $id (quantidade: $quantidade)")
+            val response = apiService.verificarDisponibilidadeEquipamento(id, quantidade)
+            
+            if (response.isSuccessful) {
+                response.body()?.let {
+                    LogUtils.info("EquipamentoRepository", "Disponibilidade: ${it.quantidadeDisponivel} de ${it.quantidadeTotal}")
+                    Resource.Success(it)
+                } ?: Resource.Error("Resposta vazia do servidor")
+            } else {
+                LogUtils.warning("EquipamentoRepository", "Falha ao verificar disponibilidade: ${response.code()}")
+                Resource.Error("Erro ao verificar disponibilidade: ${response.message()}")
+            }
+        } catch (e: Exception) {
+            LogUtils.error("EquipamentoRepository", "Erro ao verificar disponibilidade", e)
             Resource.Error("Erro de conexão: ${e.message}")
         }
     }

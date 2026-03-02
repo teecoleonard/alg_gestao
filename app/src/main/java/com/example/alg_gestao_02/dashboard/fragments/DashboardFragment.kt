@@ -239,7 +239,7 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.btnNovoContrato)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Botão novo contrato clicado")
             
-            // Navegar para a página de contratos
+            // Navegar diretamente para a página de contratos
             findNavController().navigate(R.id.contratosFragment)
             
             // Atualizar item selecionado no menu de navegação
@@ -270,7 +270,7 @@ class DashboardFragment : Fragment() {
         view.findViewById<View>(R.id.cardContratosOverview)?.setOnClickListener {
             LogUtils.debug("DashboardFragment", "Card overview de contratos clicado")
             
-            // Navegar para a página de contratos
+            // Navegar diretamente para a página de contratos
             findNavController().navigate(R.id.contratosFragment)
             
             // Atualizar item selecionado no menu de navegação
@@ -519,5 +519,14 @@ class DashboardFragment : Fragment() {
         LogUtils.info("DashboardFragment", "✅ Observação do ViewModel configurada com sucesso")
     }
     
+    
+    /**
+     * Mostra o dialog de cadastro de contrato
+     */
+    private fun showCadastroContratoDialog() {
+        LogUtils.debug("DashboardFragment", "Mostrando dialog de cadastro de contrato")
+        val dialog = com.example.alg_gestao_02.ui.contrato.CadastroContratoDialogFragment()
+        dialog.show(parentFragmentManager, "CadastroContratoDialog")
+    }
 
 } 

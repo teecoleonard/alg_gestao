@@ -4,124 +4,245 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:layout_marginVertical="2dp"
-    android:layout_marginHorizontal="8dp"
+    android:layout_marginVertical="3dp"
+    android:layout_marginHorizontal="12dp"
     app:cardBackgroundColor="@color/card_contracts_bg"
     app:cardCornerRadius="8dp"
     app:cardElevation="1dp"
     app:strokeColor="@color/card_contracts_accent"
     app:strokeWidth="0.5dp">
 
-    <androidx.constraintlayout.widget.ConstraintLayout
+    <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
+        android:orientation="vertical"
         android:padding="12dp">
 
-        <!-- Status do contrato - Ícone compacto -->
-        <ImageView
-            android:id="@+id/ivStatusContrato"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:contentDescription="Status do contrato"
-            app:layout_constraintStart_toStartOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            tools:src="@drawable/ic_check_circle"
-            tools:tint="@color/success" />
-
-        <!-- Informações principais em formato compacto -->
+        <!-- Cabeçalho do Card -->
         <LinearLayout
-            android:id="@+id/llInfoPrincipal"
-            android:layout_width="0dp"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_marginStart="12dp"
-            android:layout_marginEnd="8dp"
-            android:orientation="vertical"
-            app:layout_constraintStart_toEndOf="@+id/ivStatusContrato"
-            app:layout_constraintEnd_toStartOf="@+id/ivMenuContrato"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent">
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
 
-            <!-- Linha 1: Nome do Cliente + Número do Contrato -->
+            <!-- Status do contrato -->
+            <ImageView
+                android:id="@+id/ivStatusContrato"
+                android:layout_width="20dp"
+                android:layout_height="20dp"
+                android:contentDescription="Status do contrato"
+                android:layout_marginEnd="8dp"
+                tools:src="@drawable/ic_check_circle"
+                tools:tint="@color/success" />
+
+            <!-- Título e Número do Contrato -->
+            <LinearLayout
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:orientation="vertical">
+
+                <TextView
+                    android:id="@+id/tvClienteNome"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:textAppearance="@style/TextAppearance.ALG.Title"
+                    android:textSize="14sp"
+                    android:textStyle="bold"
+                    android:textColor="@color/text_primary"
+                    android:maxLines="1"
+                    android:ellipsize="end"
+                    tools:text="MINAS MIX CONSTRUÇÕES E INCORPORAÇÕES LTDA" />
+
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:orientation="horizontal"
+                android:layout_marginTop="2dp"
                 android:gravity="center_vertical">
-
-                <TextView
-                    android:id="@+id/tvClienteNome"
-                    android:layout_width="0dp"
-                    android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body1"
-                    android:textColor="@color/card_contracts_accent"
-                    android:textStyle="bold"
-                    android:textSize="14sp"
-                    android:maxLines="1"
-                    android:ellipsize="end"
-                    tools:text="CENTRO DE TREINAMENTO BASE SPORTING" />
 
                 <TextView
                     android:id="@+id/tvContratoNumero"
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
-                    android:layout_marginStart="8dp"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
+                    android:textAppearance="@style/TextAppearance.ALG.Caption"
                     android:textColor="@color/text_secondary"
                     android:textSize="11sp"
                     android:textStyle="bold"
-                    tools:text="#123" />
+                    tools:text="Contrato #014" />
+
+                <!-- Badge de Status do Contrato -->
+                <TextView
+                    android:id="@+id/tvStatusContratoCard"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="8dp"
+                    android:paddingStart="6dp"
+                    android:paddingEnd="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingBottom="2dp"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:background="@drawable/rounded_corner_background"
+                    tools:text="🟢 EM ANDAMENTO"
+                    tools:backgroundTint="#66BB6A"
+                    tools:textColor="@android:color/white" />
 
             </LinearLayout>
 
-            <!-- Linha 2: Valor + Data de Vencimento -->
+            </LinearLayout>
+
+            <!-- Menu de opções -->
+            <ImageView
+                android:id="@+id/ivMenuContrato"
+                android:layout_width="28dp"
+                android:layout_height="28dp"
+                android:background="?attr/selectableItemBackgroundBorderless"
+                android:clickable="true"
+                android:contentDescription="Menu de opções"
+                android:focusable="true"
+                android:padding="4dp"
+                android:src="@drawable/ic_more_vert"
+                app:tint="@color/text_secondary" />
+
+        </LinearLayout>
+
+        <!-- Informações Financeiras -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="8dp">
+
+            <!-- Valor do Contrato -->
+            <TextView
+                android:id="@+id/tvValorContrato"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:textAppearance="@style/TextAppearance.ALG.Body"
+                android:textSize="16sp"
+                android:textStyle="bold"
+                android:textColor="@color/success"
+                tools:text="R$ 40,00" />
+
+            <!-- Data de Emissão -->
+            <TextView
+                android:id="@+id/tvDataEmissao"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:textAppearance="@style/TextAppearance.ALG.Caption"
+                android:textColor="@color/text_secondary"
+                android:textSize="11sp"
+                tools:text="Emissão: 27/09/2025 10:43" />
+
+        </LinearLayout>
+
+        <!-- Seção de Equipamentos -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Equipamentos"
+                android:textAppearance="@style/TextAppearance.ALG.Caption"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Lista de Equipamentos (vertical) -->
             <LinearLayout
+                android:id="@+id/llEquipamentos"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_marginTop="2dp"
-                android:orientation="horizontal"
-                android:gravity="center_vertical">
+                android:orientation="vertical">
 
-                <TextView
-                    android:id="@+id/tvValorContrato"
-                    android:layout_width="0dp"
+                <!-- Equipamento 1 (Exemplo) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:layout_weight="1"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Body2"
-                    android:textColor="@color/price_text"
-                    android:textSize="13sp"
-                    android:textStyle="bold"
-                    tools:text="R$ 5.000,00" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="2dp">
 
-                <TextView
-                    android:id="@+id/tvDataVencimento"
-                    android:layout_width="wrap_content"
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="3dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/circle_background_primary"
+                        android:alpha="0.6" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textAppearance="@style/TextAppearance.ALG.Body"
+                        android:textSize="10sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        tools:text="Plataforma Elevatória" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textAppearance="@style/TextAppearance.ALG.Caption"
+                        android:textSize="9sp"
+                        android:textColor="@color/text_secondary"
+                        android:textStyle="bold"
+                        tools:text="x2" />
+
+                </LinearLayout>
+
+                <!-- Equipamento 2 (Exemplo) -->
+                <LinearLayout
+                    android:layout_width="match_parent"
                     android:layout_height="wrap_content"
-                    android:textAppearance="@style/TextAppearance.AppCompat.Caption"
-                    android:textColor="@color/text_secondary"
-                    android:textSize="11sp"
-                    tools:text="Venc: 01/02/2023" />
+                    android:orientation="horizontal"
+                    android:gravity="center_vertical"
+                    android:layout_marginBottom="2dp">
+
+                    <View
+                        android:layout_width="3dp"
+                        android:layout_height="3dp"
+                        android:layout_marginEnd="6dp"
+                        android:background="@drawable/circle_background_primary"
+                        android:alpha="0.6" />
+
+                    <TextView
+                        android:layout_width="0dp"
+                        android:layout_height="wrap_content"
+                        android:layout_weight="1"
+                        android:textAppearance="@style/TextAppearance.ALG.Body"
+                        android:textSize="10sp"
+                        android:textColor="@color/text_primary"
+                        android:maxLines="1"
+                        android:ellipsize="end"
+                        tools:text="Gerador" />
+
+                    <TextView
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:layout_marginStart="8dp"
+                        android:textAppearance="@style/TextAppearance.ALG.Caption"
+                        android:textSize="9sp"
+                        android:textColor="@color/text_secondary"
+                        android:textStyle="bold"
+                        tools:text="x1" />
+
+                </LinearLayout>
 
             </LinearLayout>
 
         </LinearLayout>
-
-        <!-- Menu de opções - Compacto -->
-        <ImageView
-            android:id="@+id/ivMenuContrato"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:background="?attr/selectableItemBackgroundBorderless"
-            android:clickable="true"
-            android:contentDescription="Menu de opções"
-            android:focusable="true"
-            android:padding="4dp"
-            android:src="@drawable/ic_more_vert"
-            app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintTop_toTopOf="parent"
-            app:layout_constraintBottom_toBottomOf="parent"
-            app:tint="@color/card_contracts_accent" />
 
         <!-- Campos ocultos para compatibilidade (para não quebrar o código existente) -->
         <TextView
@@ -137,7 +258,7 @@
             android:visibility="gone" />
 
         <TextView
-            android:id="@+id/tvDataEmissao"
+            android:id="@+id/tvDataVencimento"
             android:layout_width="0dp"
             android:layout_height="0dp"
             android:visibility="gone" />
@@ -154,6 +275,6 @@
             android:layout_height="0dp"
             android:visibility="gone" />
 
-    </androidx.constraintlayout.widget.ConstraintLayout>
+    </LinearLayout>
 
 </androidx.cardview.widget.CardView> 

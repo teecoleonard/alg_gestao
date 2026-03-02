@@ -2,6 +2,7 @@ package com.example.alg_gestao_02.data.models
 
 import android.os.Parcelable
 import com.example.alg_gestao_02.utils.LogUtils
+import com.example.alg_gestao_02.utils.DateTimeUtils
 import com.google.gson.annotations.SerializedName
 import kotlinx.parcelize.Parcelize
 import java.text.NumberFormat
@@ -57,7 +58,11 @@ data class Devolucao(
     
     // Objeto equipamento que vem aninhado na resposta da API
     @SerializedName("equipamento")
-    val equipamento: Equipamento? = null
+    val equipamento: Equipamento? = null,
+    
+    // Objeto assinatura que vem aninhado na resposta da API
+    @SerializedName("assinatura")
+    val assinatura: AssinaturaDevolucao? = null
 ) : Parcelable {
     
     /**
@@ -73,6 +78,10 @@ data class Devolucao(
      * Retorna o nome do equipamento associado à devolução
      */
     fun resolverNomeEquipamento(): String {
+        LogUtils.info("Devolucao", "🔍 Resolvendo nome do equipamento - ID: $id")
+        LogUtils.info("Devolucao", "📦 Equipamento objeto: $equipamento")
+        LogUtils.info("Devolucao", "🏷️ Equipamento nome: ${equipamento?.nomeEquip}")
+        
         return equipamento?.nomeEquip ?: "Equipamento não encontrado"
     }
     
@@ -81,16 +90,7 @@ data class Devolucao(
      */
     fun getDataPrevistaFormatada(): String {
         if (dataDevolucaoPrevista.isNullOrEmpty()) return ""
-        
-        try {
-            val formatoEntrada = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
-            val formatoSaida = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
-            val data = formatoEntrada.parse(dataDevolucaoPrevista) ?: Date()
-            return formatoSaida.format(data)
-        } catch (e: Exception) {
-            LogUtils.error("Devolucao", "Erro ao formatar data prevista", e)
-            return dataDevolucaoPrevista
-        }
+        return DateTimeUtils.formatarDataISO(dataDevolucaoPrevista, "dd/MM/yyyy")
     }
     
     /**
@@ -98,16 +98,7 @@ data class Devolucao(
      */
     fun getDataEfetivaFormatada(): String {
         if (dataDevolucaoEfetiva.isNullOrEmpty()) return "Não devolvido"
-        
-        try {
-            val formatoEntrada = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss", Locale.getDefault())
-            val formatoSaida = SimpleDateFormat("dd/MM/yyyy HH:mm", Locale.getDefault())
-            val data = formatoEntrada.parse(dataDevolucaoEfetiva) ?: Date()
-            return formatoSaida.format(data)
-        } catch (e: Exception) {
-            LogUtils.error("Devolucao", "Erro ao formatar data efetiva", e)
-            return dataDevolucaoEfetiva
-        }
+        return DateTimeUtils.formatarDataISO(dataDevolucaoEfetiva, "dd/MM/yyyy HH:mm")
     }
     
     /**

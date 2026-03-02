@@ -166,10 +166,12 @@ class ContratoRepository {
     
     /**
      * Cria um novo contrato
+     * 🔐 NOTA IMPORTANTE: O número do contrato é GERADO NO BACKEND
+     * O Android apenas envia vazio, deixando o backend gerar com MAX()
      */
     suspend fun createContrato(contrato: Contrato): Resource<Contrato> {
         return try {
-            LogUtils.debug("ContratoRepository", "Criando contrato: ${contrato.contratoNum}")
+            LogUtils.debug("ContratoRepository", "Criando contrato...")
             
             // Verificar se o cliente existe
             if (contrato.clienteId <= 0) {
@@ -177,22 +179,28 @@ class ContratoRepository {
             }
             
             // Validar IDs dos equipamentos
-            val equipamentosValidos = contrato.equipamentos.mapNotNull { equipamento ->
+            val equipamentosValidos = contrato.equipamentos?.mapNotNull { equipamento ->
                 if (equipamento.id <= 0) {
                     LogUtils.warning("ContratoRepository", "Equipamento com ID inválido: ${equipamento.id}")
                     null
                 } else {
                     equipamento
                 }
-            }
+            } ?: emptyList()
             
-            if (equipamentosValidos.size != contrato.equipamentos.size) {
+            if (equipamentosValidos.size != (contrato.equipamentos?.size ?: 0)) {
                 LogUtils.error("ContratoRepository", 
                     "Alguns equipamentos foram removidos devido a IDs inválidos")
             }
             
-            // Criar contrato com equipamentos validados
-            val contratoParaSalvar = contrato.copy(equipamentos = equipamentosValidos)
+            // 🔐 Limpar o número para deixar o backend gerar
+            // Isso garante sequência correta mesmo com deletados
+            val contratoParaSalvar = contrato.copy(
+                equipamentos = equipamentosValidos,
+                contratoNum = "" // Backend gera automaticamente com MAX()
+            )
+            
+            LogUtils.debug("ContratoRepository", "Enviando ao backend com número em branco (será gerado)")
             val response = apiService.createContrato(contratoParaSalvar)
             
             if (response.isSuccessful) {
@@ -214,11 +222,31 @@ class ContratoRepository {
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao criar contrato: ${response.code()}")
-                val errorMessage = if (response.errorBody() != null) {
-                    "Erro ao criar contrato: ${response.errorBody()?.string() ?: "Erro desconhecido"}"
-                } else {
+                
+                // Tentar extrair mensagem específica do erro da API
+                val errorMessage = try {
+                    val errorBody = response.errorBody()?.string()
+                    LogUtils.debug("ContratoRepository", "Corpo do erro da API: $errorBody")
+                    
+                    // Se o erro contém uma mensagem específica, usar ela
+                    if (!errorBody.isNullOrEmpty()) {
+                        // Tentar extrair a mensagem do JSON de erro
+                        if (errorBody.contains("message")) {
+                            // Procurar por padrões como {"message":"..."}
+                            val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                            val match = messagePattern.find(errorBody)
+                            match?.groupValues?.get(1) ?: errorBody
+                        } else {
+                            errorBody
+                        }
+                    } else {
+                        "Erro ao criar contrato: ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    LogUtils.error("ContratoRepository", "Erro ao ler corpo da resposta de erro: ${e.message}")
                     "Erro ao criar contrato: ${response.message()}"
                 }
+                
                 Resource.Error(errorMessage)
             }
         } catch (e: Exception) {
@@ -245,7 +273,7 @@ class ContratoRepository {
             }
             
             // Validar IDs dos equipamentos
-            val equipamentosValidos = contrato.equipamentos.mapNotNull { equipamento ->
+            val equipamentosValidos = contrato.equipamentos?.mapNotNull { equipamento ->
                 if (equipamento.id <= 0) {
                     LogUtils.warning("ContratoRepository", "Equipamento com ID inválido: ${equipamento.id}")
                     null
@@ -256,9 +284,9 @@ class ContratoRepository {
                 } else {
                     equipamento
                 }
-            }
+            } ?: emptyList()
             
-            if (equipamentosValidos.size != contrato.equipamentos.size) {
+            if (equipamentosValidos.size != (contrato.equipamentos?.size ?: 0)) {
                 LogUtils.error("ContratoRepository", 
                     "Alguns equipamentos foram removidos devido a IDs inválidos")
             }
@@ -336,24 +364,63 @@ class ContratoRepository {
     }
     
     /**
-     * Gera o próximo número de contrato para um cliente
+     * 🔐 Gera o próximo número sequencial para um cliente
+     * Chama o backend que usa MAX para encontrar o maior número
+     * (respeita histórico mesmo com deletados)
+     * 
+     * @param clienteId ID do cliente
+     * @return Próximo número no formato '001', '002', etc
      */
     suspend fun getNextContratoNum(clienteId: Int): String {
-        val contratos = when (val result = getContratosByCliente(clienteId)) {
-            is Resource.Success -> result.data
-            else -> emptyList()
+        return try {
+            LogUtils.debug("ContratoRepository", "Buscando próximo número para cliente: $clienteId")
+            val response = apiService.getProximoContratoNum(clienteId)
+            
+            if (response.isSuccessful) {
+                response.body()?.let { resultado ->
+                    LogUtils.debug("ContratoRepository", "Próximo número obtido: ${resultado.proximoNumero}")
+                    resultado.proximoNumero
+                } ?: run {
+                    LogUtils.warning("ContratoRepository", "Resposta vazia ao buscar próximo número")
+                    "001" // Fallback
+                }
+            } else {
+                LogUtils.warning("ContratoRepository", "Erro ao buscar próximo número: ${response.code()}")
+                // Fallback para geração local em caso de erro
+                getNextContratoNumLocal(clienteId)
+            }
+        } catch (e: Exception) {
+            LogUtils.error("ContratoRepository", "Erro ao buscar próximo número", e)
+            // Fallback para geração local em caso de erro de conexão
+            getNextContratoNumLocal(clienteId)
         }
-        
-        val contratoNums = contratos.map { 
-            // Pega apenas os dígitos do número do contrato
-            val numerico = """\d+""".toRegex().find(it.contratoNum ?: "")?.value
-            numerico?.toIntOrNull() ?: 0
+    }
+
+    /**
+     * 🔒 Gera próximo número LOCALMENTE (fallback se API não estiver disponível)
+     * Usa MAX para encontrar o maior número
+     */
+    private suspend fun getNextContratoNumLocal(clienteId: Int): String {
+        return try {
+            val contratos = when (val result = getContratosByCliente(clienteId)) {
+                is Resource.Success -> result.data
+                else -> emptyList()
+            }
+            
+            val contratoNums = contratos.map { 
+                // Pega apenas os dígitos do número do contrato
+                val numerico = """\d+""".toRegex().find(it.contratoNum ?: "")?.value
+                numerico?.toIntOrNull() ?: 0
+            }
+            
+            val proximoNum = if (contratoNums.isEmpty()) 1 else contratoNums.maxOrNull()!! + 1
+            
+            // Formata o número com 3 dígitos
+            String.format("%03d", proximoNum)
+        } catch (e: Exception) {
+            LogUtils.error("ContratoRepository", "Erro ao gerar número localmente", e)
+            "001" // Fallback final
         }
-        
-        val proximoNum = if (contratoNums.isEmpty()) 1 else contratoNums.maxOrNull()!! + 1
-        
-        // Formata o número com 3 dígitos
-        return String.format("%03d", proximoNum)
     }
     
     /**
@@ -389,11 +456,31 @@ class ContratoRepository {
                 } ?: Resource.Error("Resposta vazia do servidor")
             } else {
                 LogUtils.warning("ContratoRepository", "Falha ao enviar assinatura: ${response.code()}")
-                val errorMessage = if (response.errorBody() != null) {
-                    "Erro ao enviar assinatura: ${response.errorBody()?.string() ?: "Erro desconhecido"}"
-                } else {
+                
+                // Tentar extrair mensagem específica do erro da API
+                val errorMessage = try {
+                    val errorBody = response.errorBody()?.string()
+                    LogUtils.debug("ContratoRepository", "Corpo do erro da API: $errorBody")
+                    
+                    // Se o erro contém uma mensagem específica, usar ela
+                    if (!errorBody.isNullOrEmpty()) {
+                        // Tentar extrair a mensagem do JSON de erro
+                        if (errorBody.contains("message")) {
+                            // Procurar por padrões como {"message":"..."}
+                            val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                            val match = messagePattern.find(errorBody)
+                            match?.groupValues?.get(1) ?: errorBody
+                        } else {
+                            errorBody
+                        }
+                    } else {
+                        "Erro ao enviar assinatura: ${response.message()}"
+                    }
+                } catch (e: Exception) {
+                    LogUtils.error("ContratoRepository", "Erro ao ler corpo da resposta de erro: ${e.message}")
                     "Erro ao enviar assinatura: ${response.message()}"
                 }
+                
                 Resource.Error(errorMessage)
             }
         } catch (e: Exception) {

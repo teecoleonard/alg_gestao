@@ -40,6 +40,14 @@ class DevolucaoRepository(private val apiService: ApiService = ApiClient.apiServ
             if (response.isSuccessful) {
                 val devolucoes = response.body() ?: emptyList()
                 LogUtils.debug("DevolucaoRepository", "Devoluções encontradas: ${devolucoes.size}")
+                
+                // Log detalhado para debug
+                devolucoes.forEach { devolucao ->
+                    LogUtils.info("DevolucaoRepository", "🔍 Devolução ID: ${devolucao.id}")
+                    LogUtils.info("DevolucaoRepository", "📦 Equipamento objeto: ${devolucao.equipamento}")
+                    LogUtils.info("DevolucaoRepository", "🏷️ Equipamento nome: ${devolucao.equipamento?.nomeEquip}")
+                }
+                
                 Resource.Success(devolucoes)
             } else {
                 val errorMessage = "Erro ao carregar devoluções: ${response.message()}"
@@ -189,14 +197,32 @@ class DevolucaoRepository(private val apiService: ApiService = ApiClient.apiServ
                     Resource.Error(errorMessage)
                 }
             } else {
-                val errorMessage = "Erro ao processar devolução: HTTP ${response.code()} - ${response.message()}"
-                LogUtils.error("DevolucaoRepository", "❌ $errorMessage")
-                try {
+                LogUtils.error("DevolucaoRepository", "❌ Erro HTTP ao processar devolução: ${response.code()}")
+                
+                // Tentar extrair mensagem específica do erro da API
+                val errorMessage = try {
                     val errorBody = response.errorBody()?.string()
                     LogUtils.error("DevolucaoRepository", "Corpo do erro: $errorBody")
+                    
+                    // Se o erro contém uma mensagem específica, usar ela
+                    if (!errorBody.isNullOrEmpty()) {
+                        // Tentar extrair a mensagem do JSON de erro
+                        if (errorBody.contains("message")) {
+                            // Procurar por padrões como {"message":"..."}
+                            val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                            val match = messagePattern.find(errorBody)
+                            match?.groupValues?.get(1) ?: errorBody
+                        } else {
+                            errorBody
+                        }
+                    } else {
+                        "Erro ao processar devolução: HTTP ${response.code()} - ${response.message()}"
+                    }
                 } catch (e: Exception) {
                     LogUtils.error("DevolucaoRepository", "Erro ao ler corpo da resposta de erro: ${e.message}")
+                    "Erro ao processar devolução: HTTP ${response.code()} - ${response.message()}"
                 }
+                
                 LogUtils.debug("DevolucaoRepository", "=== PROCESSAMENTO FALHOU (ERRO HTTP) ===")
                 Resource.Error(errorMessage)
             }
@@ -211,14 +237,32 @@ class DevolucaoRepository(private val apiService: ApiService = ApiClient.apiServ
             LogUtils.debug("DevolucaoRepository", "=== PROCESSAMENTO FALHOU (CONEXÃO) ===")
             Resource.Error(errorMessage)
         } catch (e: retrofit2.HttpException) {
-            val errorMessage = "Erro HTTP ao processar devolução: ${e.code()} - ${e.message()}"
-            LogUtils.error("DevolucaoRepository", "❌ $errorMessage", e)
-            try {
+            LogUtils.error("DevolucaoRepository", "❌ HttpException ao processar devolução: ${e.code()}", e)
+            
+            // Tentar extrair mensagem específica do erro da API
+            val errorMessage = try {
                 val errorBody = e.response()?.errorBody()?.string()
                 LogUtils.error("DevolucaoRepository", "Detalhes do erro HTTP: $errorBody")
+                
+                // Se o erro contém uma mensagem específica, usar ela
+                if (!errorBody.isNullOrEmpty()) {
+                    // Tentar extrair a mensagem do JSON de erro
+                    if (errorBody.contains("message")) {
+                        // Procurar por padrões como {"message":"..."}
+                        val messagePattern = "\"message\"\\s*:\\s*\"([^\"]+)\"".toRegex()
+                        val match = messagePattern.find(errorBody)
+                        match?.groupValues?.get(1) ?: errorBody
+                    } else {
+                        errorBody
+                    }
+                } else {
+                    "Erro HTTP ao processar devolução: ${e.code()} - ${e.message()}"
+                }
             } catch (ex: Exception) {
                 LogUtils.error("DevolucaoRepository", "Erro ao ler detalhes do erro HTTP: ${ex.message}")
+                "Erro HTTP ao processar devolução: ${e.code()} - ${e.message()}"
             }
+            
             LogUtils.debug("DevolucaoRepository", "=== PROCESSAMENTO FALHOU (HTTP EXCEPTION) ===")
             Resource.Error(errorMessage)
         } catch (e: Exception) {
@@ -235,11 +279,21 @@ class DevolucaoRepository(private val apiService: ApiService = ApiClient.apiServ
      */
     suspend fun getDevolucoesByContratoIdList(contratoId: Int): List<Devolucao> {
         return try {
-            LogUtils.debug("DevolucaoRepository", "Buscando devoluções para contrato ID: $contratoId")
+            LogUtils.info("DevolucaoRepository", "🔍 Buscando devoluções para contrato ID: $contratoId")
             val response = apiService.getDevolucoesByContratoId(contratoId)
             
             if (response.isSuccessful) {
-                response.body() ?: emptyList()
+                val devolucoes = response.body() ?: emptyList()
+                LogUtils.info("DevolucaoRepository", "✅ Devoluções encontradas: ${devolucoes.size}")
+                
+                // Log detalhado para debug
+                devolucoes.forEach { devolucao ->
+                    LogUtils.info("DevolucaoRepository", "🔍 Devolução ID: ${devolucao.id}")
+                    LogUtils.info("DevolucaoRepository", "📦 Equipamento objeto: ${devolucao.equipamento}")
+                    LogUtils.info("DevolucaoRepository", "🏷️ Equipamento nome: ${devolucao.equipamento?.nomeEquip}")
+                }
+                
+                devolucoes
             } else {
                 LogUtils.warning("DevolucaoRepository", "Falha ao buscar devoluções: ${response.code()}")
                 emptyList()

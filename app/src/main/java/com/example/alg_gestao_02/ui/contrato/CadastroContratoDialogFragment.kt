@@ -81,7 +81,7 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         private const val ARG_CONTRATO = "arg_contrato"
         
         // Opções para o período do contrato
-        private val PERIODOS_CONTRATO = listOf("DIARIA", "MENSAL", "QUINZENAL", "ANUAL")
+        private val PERIODOS_CONTRATO = listOf("DIARIA", "SEMANAL", "MENSAL", "QUINZENAL", "ANUAL")
         
         fun newInstance(contrato: Contrato? = null): CadastroContratoDialogFragment {
             val fragment = CadastroContratoDialogFragment()
@@ -100,6 +100,7 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             val cal = java.util.Calendar.getInstance().apply { time = baseDate }
             when (periodo.trim().uppercase(java.util.Locale.getDefault())) {
                 "DIARIA", "DIARIO" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                "SEMANAL" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 7)
                 "QUINZENAL" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
                 "MENSAL" -> cal.add(java.util.Calendar.MONTH, 1)
                 "ANUAL" -> cal.add(java.util.Calendar.YEAR, 1)
@@ -137,6 +138,9 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         setupPeriodoDropdown()
         setupListeners()
         setupRecyclerView()
+        
+        // Carregar clientes para seleção
+        viewModel.loadClientes()
         
         // Usar lifecycleScope para evitar bloqueio da UI
         lifecycleScope.launch {

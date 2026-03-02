@@ -149,4 +149,15 @@
     <string name="completed_returns">Devolvidos</string>
     <string name="returns_with_issues">Problemas</string>
     <string name="retry">Tentar novamente</string>
+    
+    <!-- Módulo de Contratos por Mês -->
+    <string name="contracts_by_month">Contratos por Mês</string>
+    <string name="new_contract">Novo Contrato</string>
+    <string name="arrow_forward">Avançar</string>
+    <string name="month_contracts">Contratos do Mês</string>
+    <string name="total_contracts">Total de Contratos</string>
+    <string name="total_value">Valor Total</string>
+    <string name="no_contracts_this_month">Nenhum contrato neste mês</string>
+    <string name="contracts_in_month">%1$d contrato(s) em %2$s</string>
+    
 </resources>

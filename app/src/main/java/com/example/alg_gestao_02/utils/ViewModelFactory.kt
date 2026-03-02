@@ -5,6 +5,7 @@ import androidx.lifecycle.ViewModelProvider
 import com.example.alg_gestao_02.data.repository.ClienteRepository
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.data.repository.DevolucaoRepository
+import com.example.alg_gestao_02.data.repository.EquipamentoContratoRepository
 import com.example.alg_gestao_02.ui.client.viewmodel.ClientDetailsViewModel
 
 /**
@@ -13,15 +14,16 @@ import com.example.alg_gestao_02.ui.client.viewmodel.ClientDetailsViewModel
 class ViewModelFactory(
     private val clienteRepository: ClienteRepository? = null,
     private val contratoRepository: ContratoRepository? = null,
-    private val devolucaoRepository: DevolucaoRepository? = null
+    private val devolucaoRepository: DevolucaoRepository? = null,
+    private val equipamentoContratoRepository: EquipamentoContratoRepository? = null
 ) : ViewModelProvider.Factory {
 
     @Suppress("UNCHECKED_CAST")
     override fun <T : ViewModel> create(modelClass: Class<T>): T {
         return when {
             modelClass.isAssignableFrom(ClientDetailsViewModel::class.java) -> {
-                if (clienteRepository != null && contratoRepository != null && devolucaoRepository != null) {
-                    ClientDetailsViewModel(clienteRepository, contratoRepository, devolucaoRepository) as T
+                if (clienteRepository != null && contratoRepository != null && devolucaoRepository != null && equipamentoContratoRepository != null) {
+                    ClientDetailsViewModel(clienteRepository, contratoRepository, devolucaoRepository, equipamentoContratoRepository) as T
                 } else {
                     throw IllegalArgumentException("Repositórios necessários não fornecidos para ClientDetailsViewModel")
                 }

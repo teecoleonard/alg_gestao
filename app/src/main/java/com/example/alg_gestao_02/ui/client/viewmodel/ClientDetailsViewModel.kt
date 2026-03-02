@@ -10,6 +10,7 @@ import com.example.alg_gestao_02.data.models.Devolucao
 import com.example.alg_gestao_02.data.repository.ClienteRepository
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.data.repository.DevolucaoRepository
+import com.example.alg_gestao_02.data.repository.EquipamentoContratoRepository
 import com.example.alg_gestao_02.utils.LogUtils
 import kotlinx.coroutines.launch
 import java.io.IOException
@@ -20,7 +21,8 @@ import java.io.IOException
 class ClientDetailsViewModel(
     private val clienteRepository: ClienteRepository,
     private val contratoRepository: ContratoRepository,
-    private val devolucaoRepository: DevolucaoRepository
+    private val devolucaoRepository: DevolucaoRepository,
+    private val equipamentoContratoRepository: EquipamentoContratoRepository
 ) : ViewModel() {
 
     private val _cliente = MutableLiveData<Cliente>()
@@ -66,7 +68,27 @@ class ClientDetailsViewModel(
                     _contratos.value = emptyList()
                     emptyList()
                 }
-                _contratos.value = contratosResult
+                
+                // Carregar equipamentos para cada contrato
+                val contratosComEquipamentos = contratosResult.map { contrato ->
+                    try {
+                        LogUtils.info("ClientDetailsViewModel", "🔍 Carregando equipamentos para contrato ${contrato.contratoNum}")
+                        val equipamentosResource = equipamentoContratoRepository.getEquipamentosContrato(contrato.id)
+                        if (equipamentosResource is com.example.alg_gestao_02.utils.Resource.Success) {
+                            val equipamentos = equipamentosResource.data ?: emptyList()
+                            LogUtils.info("ClientDetailsViewModel", "✅ Contrato ${contrato.contratoNum}: ${equipamentos.size} equipamentos carregados")
+                            contrato.copy(equipamentos = equipamentos)
+                        } else {
+                            LogUtils.warning("ClientDetailsViewModel", "⚠️ Contrato ${contrato.contratoNum}: Erro ao carregar equipamentos")
+                            contrato.copy(equipamentos = emptyList())
+                        }
+                    } catch (e: Exception) {
+                        LogUtils.error("ClientDetailsViewModel", "❌ Erro ao carregar equipamentos para contrato ${contrato.contratoNum}", e)
+                        contrato.copy(equipamentos = emptyList())
+                    }
+                }
+                
+                _contratos.value = contratosComEquipamentos
 
                 // Carrega as devoluções de todos os contratos do cliente
                 val todasDevolucoes = mutableListOf<Devolucao>()

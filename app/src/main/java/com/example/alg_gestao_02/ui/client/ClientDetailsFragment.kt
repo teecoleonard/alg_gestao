@@ -20,6 +20,7 @@ import com.example.alg_gestao_02.data.models.Devolucao
 import com.example.alg_gestao_02.data.repository.ClienteRepository
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.data.repository.DevolucaoRepository
+import com.example.alg_gestao_02.data.repository.EquipamentoContratoRepository
 import com.example.alg_gestao_02.databinding.FragmentClientDetailsBinding
 import com.example.alg_gestao_02.ui.client.viewmodel.ClientDetailsViewModel
 import com.example.alg_gestao_02.ui.contrato.CadastroContratoDialogFragment
@@ -93,11 +94,13 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         val clienteRepository = ClienteRepository()
         val contratoRepository = ContratoRepository()
         val devolucaoRepository = DevolucaoRepository()
+        val equipamentoContratoRepository = EquipamentoContratoRepository()
 
         val factory = ViewModelFactory(
             clienteRepository = clienteRepository,
             contratoRepository = contratoRepository,
-            devolucaoRepository = devolucaoRepository
+            devolucaoRepository = devolucaoRepository,
+            equipamentoContratoRepository = equipamentoContratoRepository
         )
 
         viewModel = ViewModelProvider(this, factory)[ClientDetailsViewModel::class.java]
@@ -159,7 +162,7 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         }
 
         // Observa devoluções relacionadas aos contratos do cliente
-        viewModel.devolucoes.observe(viewLifecycleOwner) { devolucoes ->
+        viewModel.devolucoes.observe(viewLifecycleOwner) { _ ->
             updateDevolucoesInfo()
         }
 
@@ -279,7 +282,7 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         LogUtils.debug("ClientDetailsFragment", "Mostrando detalhes do contrato: ${contrato.id}")
         // Usar o mesmo método que o ContratosFragment usa
         viewLifecycleOwner.lifecycleScope.launch {
-            val contratoRepository = ContratoRepository()
+            // val contratoRepository = ContratoRepository() // Não utilizado
             val contratoViewModelFactory = com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory()
             val contratoViewModel = ViewModelProvider(this@ClientDetailsFragment, contratoViewModelFactory)[com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel::class.java]
             
@@ -371,7 +374,7 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
         
         // Configurar o listener para processamento de devolução
         dialog.setOnProcessarRequestListener(object : DevolucaoDetailsDialogFragment.OnProcessarRequestListener {
-            override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String, observacao: String?) {
+            override fun onProcessarRequested(devolucao: Devolucao, quantidade: Int, status: String?, observacao: String?) {
                 LogUtils.info("ClientDetailsFragment", "🚀 PROCESSAMENTO DE DEVOLUÇÃO SOLICITADO VIA CLIENTE")
                 LogUtils.debug("ClientDetailsFragment", "Devolução ID: ${devolucao.id}, Quantidade: $quantidade, Status: $status")
                 
@@ -599,7 +602,7 @@ class ClientDetailsFragment : Fragment(), ContratoDetailsDialogFragment.OnEditRe
     private fun excluirContrato(contratoId: Int) {
         // Criar ViewModel de contratos para processar a exclusão
         viewLifecycleOwner.lifecycleScope.launch {
-            val contratoRepository = ContratoRepository()
+            // val contratoRepository = ContratoRepository() // Não utilizado
             val contratoViewModelFactory = com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory()
             val contratoViewModel = ViewModelProvider(this@ClientDetailsFragment, contratoViewModelFactory)[com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel::class.java]
             

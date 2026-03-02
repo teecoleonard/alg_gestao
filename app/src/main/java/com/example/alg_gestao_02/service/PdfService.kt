@@ -155,6 +155,15 @@ data class ContratoDevolucaoPdfDTO(
 )
 
 /**
+ * Dados da assinatura para o gerador de PDF de devolução
+ */
+data class AssinaturaDevolucaoPdfDTO(
+    val id: Int,
+    val nome_arquivo: String,
+    val data_criacao: String
+)
+
+/**
  * Dados da devolução para o gerador de PDF
  */
 data class DevolucaoPdfDTO(
@@ -172,7 +181,8 @@ data class DevolucaoPdfDTO(
     val observacao: String? = null,
     val cliente: ClienteDevolucaoPdfDTO,
     val equipamento: EquipamentoDevolucaoPdfDTO,
-    val contrato: ContratoDevolucaoPdfDTO
+    val contrato: ContratoDevolucaoPdfDTO,
+    val assinatura: AssinaturaDevolucaoPdfDTO? = null
 )
 
 /**
@@ -763,6 +773,16 @@ class PdfService {
             }
         }
         
+        // Mapear assinatura se existir
+        val assinaturaPdf = devolucao.assinatura?.let { assinatura ->
+            LogUtils.debug("PdfService", "Mapeando assinatura da devolução: ${assinatura.nomeArquivo}")
+            AssinaturaDevolucaoPdfDTO(
+                id = assinatura.id,
+                nome_arquivo = assinatura.nomeArquivo,
+                data_criacao = assinatura.dataCriacao ?: assinatura.createdAt ?: ""
+            )
+        }
+        
         val devolucaoPdfDTO = DevolucaoPdfDTO(
             id = devolucao.id,
             devNum = devolucao.devNum,
@@ -778,13 +798,15 @@ class PdfService {
             observacao = devolucao.observacaoItemDevolucao,
             cliente = clientePdf,
             equipamento = equipamentoPdf,
-            contrato = contratoPdf
+            contrato = contratoPdf,
+            assinatura = assinaturaPdf
         )
         
         LogUtils.debug("PdfService", "✅ RESULTADO DO MAPEAMENTO:")
         LogUtils.debug("PdfService", "  - Cliente: ${clientePdf.nome}")
         LogUtils.debug("PdfService", "  - Equipamento: ${equipamentoPdf.nome}")
         LogUtils.debug("PdfService", "  - Contrato: ${contratoPdf.numero}")
+        LogUtils.debug("PdfService", "  - Assinatura: ${assinaturaPdf?.nome_arquivo ?: "Não assinado"}")
         LogUtils.debug("PdfService", "=== FIM DO MAPEAMENTO DA DEVOLUÇÃO ===")
         
         return devolucaoPdfDTO
