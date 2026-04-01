@@ -111,8 +111,14 @@ app/src/main/java/com/example/alg_gestao_02/
    - Dispositivo/Emulador com Android 7.0+ e 2 GB RAM.
 
 2. **Configurar endpoint**
-   - Ajuste `ApiClient.BASE_URL` em `data/api/ApiService.kt`.
-   - Defina `BuildConfig.BACKEND_URL` via `gradle.properties` se quiser separar builds `debug`/`release`.
+   - O app usa `BuildConfig.API_BASE_URL` e `BuildConfig.PDF_BASE_URL` (sem hardcode no Kotlin).
+   - Para testar no Docker local (emulador Android), compile com:
+     ```bash
+     ./gradlew :app:assembleDebug \
+       -PALG_API_BASE_URL=http://10.0.2.2:13050/ \
+       -PALG_PDF_BASE_URL=http://10.0.2.2:18080/
+     ```
+   - Para aparelho físico, substitua `10.0.2.2` pelo IP da sua máquina na rede local.
 
 3. **Build e testes**
    ```bash

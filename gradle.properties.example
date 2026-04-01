@@ -1,0 +1,4 @@
+﻿# Copie para gradle.properties (local) e ajuste conforme ambiente.
+# Em emulador Android apontando para docker local:
+ALG_API_BASE_URL=http://10.0.2.2:13050/
+ALG_PDF_BASE_URL=http://10.0.2.2:18080/

@@ -1,5 +1,6 @@
 package com.example.alg_gestao_02.service
 
+import com.example.alg_gestao_02.BuildConfig
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
@@ -78,7 +79,8 @@ data class ContratoPdfDTO(
     val valorTotal: Double,
     val observacoes: String,
     val status: String,
-    val assinatura: AssinaturaPdfDTO? = null
+    val assinatura: AssinaturaPdfDTO? = null,
+    val responsavel: String? = null
 )
 
 /**
@@ -210,7 +212,7 @@ data class DevolucaoPdfResponse(
  */
 class PdfService {
     private val pdfApiService: PdfApiService
-    private val baseUrl = "http://45.10.160.10:8080/"
+    private val baseUrl = BuildConfig.PDF_BASE_URL
 
     init {
         LogUtils.debug("PdfService", "🔧 INICIALIZANDO SERVIÇO DE PDF")
@@ -475,11 +477,13 @@ class PdfService {
             valorTotal = contrato.getValorEfetivo(),
             observacoes = observacoes,
             status = if (contrato.isAssinado()) "FINALIZADO" else "ATIVO",
-            assinatura = assinaturaPdfDTO
+            assinatura = assinaturaPdfDTO,
+            responsavel = contrato.respPedido
         )
         
         LogUtils.debug("PdfService", "✅ RESULTADO DO MAPEAMENTO:")
         LogUtils.debug("PdfService", "  - Assinatura no DTO: ${if (assinaturaPdfDTO != null) "SIM (${assinaturaPdfDTO.nome_arquivo})" else "NÃO"}")
+        LogUtils.debug("PdfService", "  - Responsável no DTO: ${contrato.respPedido ?: "Não informado"}")
         LogUtils.debug("PdfService", "=== FIM DO MAPEAMENTO DO CONTRATO ===")
         
         return contratoPdfDTO
@@ -532,7 +536,8 @@ class PdfService {
             LogUtils.debug("PdfService", "  📄 Contrato ID: ${request.contrato.id}")
             LogUtils.debug("PdfService", "  📄 Número: ${request.contrato.numero}")
             LogUtils.debug("PdfService", "  👤 Cliente: ${request.contrato.cliente.nome}")
-            LogUtils.debug("PdfService", "  🛠️ Produtos: ${request.contrato.produtos.size} itens")
+            LogUtils.debug("PdfService", "  �‍💼 Responsável: ${request.contrato.responsavel ?: "Não informado"}")
+            LogUtils.debug("PdfService", "  �🛠️ Produtos: ${request.contrato.produtos.size} itens")
             LogUtils.debug("PdfService", "  💰 Valor Total: R$ ${String.format("%.2f", request.contrato.valorTotal)}")
             LogUtils.debug("PdfService", "  ✍️ Tem Assinatura: ${request.contrato.assinatura != null}")
             LogUtils.debug("PdfService", "  🎨 Formato: ${request.formatoPdf}")
@@ -629,7 +634,7 @@ class PdfService {
                 }
                 is java.net.UnknownHostException -> {
                     LogUtils.error("PdfService", "  🌐 DIAGNÓSTICO: ERRO DE DNS/HOST")
-                    LogUtils.error("PdfService", "    - IP 45.10.160.10 não está acessível")
+                    LogUtils.error("PdfService", "    - Servidor de PDF não está acessível")
                     LogUtils.error("PdfService", "    - Verificar configuração de rede")
                 }
                 else -> {

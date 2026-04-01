@@ -1,6 +1,7 @@
 package com.example.alg_gestao_02.data.api
 
 import android.content.Context
+import com.example.alg_gestao_02.BuildConfig
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import okhttp3.Interceptor
@@ -21,7 +22,7 @@ import javax.net.ssl.HostnameVerifier
  * Cliente para acessar a API
  */
 object ApiClient {
-    const val BASE_URL = "http://45.10.160.10:3050/"
+    val BASE_URL: String = BuildConfig.API_BASE_URL
     private lateinit var sessionManager: SessionManager
     private lateinit var context: Context
     

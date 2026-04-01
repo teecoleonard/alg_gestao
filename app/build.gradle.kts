@@ -9,6 +9,11 @@ android {
     namespace = "com.example.alg_gestao_02"
     compileSdk = 34
 
+    val apiBaseUrl = (project.findProperty("ALG_API_BASE_URL") as String?)
+        ?: "http://10.0.2.2:13050/"
+    val pdfBaseUrl = (project.findProperty("ALG_PDF_BASE_URL") as String?)
+        ?: "http://10.0.2.2:18080/"
+
     defaultConfig {
         applicationId = "com.example.alg_gestao_02"
         minSdk = 24
@@ -20,8 +25,14 @@ android {
     }
 
     buildTypes {
+        debug {
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "PDF_BASE_URL", "\"$pdfBaseUrl\"")
+        }
         release {
             isMinifyEnabled = false
+            buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
+            buildConfigField("String", "PDF_BASE_URL", "\"$pdfBaseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

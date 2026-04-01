@@ -16,6 +16,9 @@ plugins {
 android {
     namespace 'com.example.alg_gestao_02'
     compileSdk 34
+    
+    def apiBaseUrl = project.findProperty("ALG_API_BASE_URL") ?: "http://10.0.2.2:13050/"
+    def pdfBaseUrl = project.findProperty("ALG_PDF_BASE_URL") ?: "http://10.0.2.2:18080/"
 
     defaultConfig {
         applicationId "com.example.alg_gestao_02"
@@ -25,6 +28,8 @@ android {
         versionName "1.0"
 
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
+        buildConfigField "String", "API_BASE_URL", "\"${apiBaseUrl}\""
+        buildConfigField "String", "PDF_BASE_URL", "\"${pdfBaseUrl}\""
         
         // Configuração do esquema Room para exportar o esquema
         javaCompileOptions {
@@ -38,9 +43,6 @@ android {
         release {
             minifyEnabled false
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
-        }
-        debug {
-            buildConfigField "boolean", "DEBUG", "true"
         }
     }
     compileOptions {
