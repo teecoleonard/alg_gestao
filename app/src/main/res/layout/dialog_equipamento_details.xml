@@ -9,20 +9,30 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
         android:background="@color/white"
+        android:orientation="vertical"
         android:padding="16dp">
 
-        <!-- Nome do Equipamento -->
+        <ImageView
+            android:id="@+id/ivDetalhesFotoEquipamento"
+            android:layout_width="match_parent"
+            android:layout_height="180dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/bg_equipamento_foto_placeholder"
+            android:contentDescription="Foto do equipamento"
+            android:padding="16dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_tools" />
+
         <TextView
             android:id="@+id/tvDetalhesNomeEquipamento"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_marginTop="16dp"
             android:textAppearance="@style/TextAppearance.ALG.Title"
             android:textSize="20sp"
             tools:text="Furadeira Industrial" />
 
-        <!-- Código do Equipamento -->
         <TextView
             android:id="@+id/tvDetalhesCodigoEquipamento"
             android:layout_width="match_parent"
@@ -32,7 +42,6 @@
             android:textColor="@color/text_secondary"
             tools:text="Código: FUR-001" />
 
-        <!-- Quantidade disponível -->
         <TextView
             android:id="@+id/tvDetalhesQuantidadeEquipamento"
             android:layout_width="match_parent"
@@ -42,7 +51,6 @@
             android:textColor="@color/text_secondary"
             tools:text="Quantidade disponível: 5" />
 
-        <!-- Separador -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -50,7 +58,6 @@
             android:layout_marginBottom="16dp"
             android:background="@color/divider" />
 
-        <!-- Tabela de preços -->
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -58,13 +65,11 @@
             android:textAppearance="@style/TextAppearance.ALG.Title"
             android:textSize="16sp" />
 
-        <!-- Tabela de preços -->
         <TableLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="8dp">
 
-            <!-- Diária -->
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -89,7 +94,6 @@
                     tools:text="R$ 150,00" />
             </TableRow>
 
-            <!-- Semanal -->
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -114,7 +118,6 @@
                     tools:text="R$ 900,00" />
             </TableRow>
 
-            <!-- Quinzenal -->
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -139,7 +142,6 @@
                     tools:text="R$ 1.800,00" />
             </TableRow>
 
-            <!-- Mensal -->
             <TableRow
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content">
@@ -165,7 +167,6 @@
             </TableRow>
         </TableLayout>
 
-        <!-- Separador -->
         <View
             android:layout_width="match_parent"
             android:layout_height="1dp"
@@ -173,7 +174,6 @@
             android:layout_marginBottom="16dp"
             android:background="@color/divider" />
 
-        <!-- Valor Patrimonial -->
         <TextView
             android:id="@+id/labelValorPatrimonio"
             android:layout_width="match_parent"
@@ -193,13 +193,12 @@
             android:textStyle="bold"
             tools:text="R$ 12.000,00" />
 
-        <!-- Botões -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="24dp"
-            android:padding="1dp"
-            android:orientation="horizontal">
+            android:orientation="horizontal"
+            android:padding="1dp">
 
             <Button
                 android:id="@+id/btnFecharDetalhes"
@@ -209,7 +208,7 @@
                 android:layout_weight="1"
                 android:text="Fechar"
                 app:strokeColor="@color/primary"
-                app:strokeWidth="1dp"/>
+                app:strokeWidth="1dp" />
 
             <Button
                 android:id="@+id/btnEditarEquipamento"
@@ -220,4 +219,4 @@
                 android:text="Editar" />
         </LinearLayout>
     </LinearLayout>
-</ScrollView> 
+</ScrollView>

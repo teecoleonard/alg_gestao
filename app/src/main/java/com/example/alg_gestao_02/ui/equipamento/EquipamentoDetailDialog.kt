@@ -5,27 +5,30 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
+import com.bumptech.glide.Glide
+import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.ui.equipamento.viewmodel.EquipamentosViewModel
 import com.example.alg_gestao_02.ui.equipamento.viewmodel.EquipamentosViewModelFactory
-import com.example.alg_gestao_02.utils.LogUtils
 import java.text.NumberFormat
 import java.util.Locale
 
 /**
- * Dialog para exibição dos detalhes de um equipamento
+ * Dialog para exibição dos detalhes de um equipamento.
  */
 class EquipamentoDetailDialog : DialogFragment() {
-    
+
     private lateinit var viewModel: EquipamentosViewModel
     private var equipamentoId: Int = 0
     private var equipamento: Equipamento? = null
-    
+
+    private lateinit var ivDetalhesFotoEquipamento: ImageView
     private lateinit var tvDetalhesNomeEquipamento: TextView
     private lateinit var tvDetalhesCodigoEquipamento: TextView
     private lateinit var tvDetalhesQuantidadeEquipamento: TextView
@@ -36,12 +39,12 @@ class EquipamentoDetailDialog : DialogFragment() {
     private lateinit var tvDetalhesValorPatrimonio: TextView
     private lateinit var btnFecharDetalhes: Button
     private lateinit var btnEditarEquipamento: Button
-    
+
     private val currencyFormat = NumberFormat.getCurrencyInstance(Locale("pt", "BR"))
-    
+
     companion object {
         private const val ARG_EQUIPAMENTO_ID = "equipamento_id"
-        
+
         fun newInstance(equipamentoId: Int): EquipamentoDetailDialog {
             val fragment = EquipamentoDetailDialog()
             val args = Bundle()
@@ -50,14 +53,14 @@ class EquipamentoDetailDialog : DialogFragment() {
             return fragment
         }
     }
-    
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setStyle(STYLE_NORMAL, R.style.EquipamentoDetailDialogStyle)
-        
+
         equipamentoId = arguments?.getInt(ARG_EQUIPAMENTO_ID) ?: 0
     }
-    
+
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
@@ -65,18 +68,19 @@ class EquipamentoDetailDialog : DialogFragment() {
     ): View? {
         return inflater.inflate(R.layout.dialog_equipamento_details, container, false)
     }
-    
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
-        
+
         initViews(view)
         setupViewModel()
         setupListeners()
-        
+
         carregarDadosEquipamento()
     }
-    
+
     private fun initViews(view: View) {
+        ivDetalhesFotoEquipamento = view.findViewById(R.id.ivDetalhesFotoEquipamento)
         tvDetalhesNomeEquipamento = view.findViewById(R.id.tvDetalhesNomeEquipamento)
         tvDetalhesCodigoEquipamento = view.findViewById(R.id.tvDetalhesCodigoEquipamento)
         tvDetalhesQuantidadeEquipamento = view.findViewById(R.id.tvDetalhesQuantidadeEquipamento)
@@ -88,17 +92,17 @@ class EquipamentoDetailDialog : DialogFragment() {
         btnFecharDetalhes = view.findViewById(R.id.btnFecharDetalhes)
         btnEditarEquipamento = view.findViewById(R.id.btnEditarEquipamento)
     }
-    
+
     private fun setupViewModel() {
         val factory = EquipamentosViewModelFactory()
         viewModel = ViewModelProvider(requireActivity(), factory)[EquipamentosViewModel::class.java]
     }
-    
+
     private fun setupListeners() {
         btnFecharDetalhes.setOnClickListener {
             dismiss()
         }
-        
+
         btnEditarEquipamento.setOnClickListener {
             equipamento?.let { equip ->
                 val dialog = CadastroEquipamentoDialogFragment.newInstance(equip)
@@ -110,7 +114,7 @@ class EquipamentoDetailDialog : DialogFragment() {
             }
         }
     }
-    
+
     private fun carregarDadosEquipamento() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             if (state is com.example.alg_gestao_02.ui.state.UiState.Success) {
@@ -125,21 +129,43 @@ class EquipamentoDetailDialog : DialogFragment() {
             }
         }
     }
-    
+
     private fun exibirDetalhesEquipamento(equipamento: Equipamento) {
         tvDetalhesNomeEquipamento.text = equipamento.nomeEquip
         tvDetalhesCodigoEquipamento.text = "Código: ${equipamento.codigoEquip}"
         tvDetalhesQuantidadeEquipamento.text = "Quantidade disponível: ${equipamento.quantidadeDisp}"
-        
+
         tvDetalhesPrecoDiaria.text = currencyFormat.format(equipamento.precoDiaria)
         tvDetalhesPrecoSemanal.text = currencyFormat.format(equipamento.precoSemanal)
         tvDetalhesPrecoQuinzenal.text = currencyFormat.format(equipamento.precoQuinzenal)
         tvDetalhesPrecoMensal.text = currencyFormat.format(equipamento.precoMensal)
-        
+
         if (equipamento.valorPatrimonio != null && equipamento.valorPatrimonio > 0) {
             tvDetalhesValorPatrimonio.text = currencyFormat.format(equipamento.valorPatrimonio)
         } else {
             tvDetalhesValorPatrimonio.text = "Não informado"
         }
+
+        bindFotoEquipamento(equipamento.fotoUrl)
     }
-} 
+
+    private fun bindFotoEquipamento(fotoUrl: String?) {
+        val url = fotoUrl?.trim().orEmpty()
+
+        if (url.isBlank()) {
+            Glide.with(this).clear(ivDetalhesFotoEquipamento)
+            ivDetalhesFotoEquipamento.scaleType = ImageView.ScaleType.CENTER_INSIDE
+            ivDetalhesFotoEquipamento.setImageResource(R.drawable.ic_tools)
+            return
+        }
+
+        ivDetalhesFotoEquipamento.scaleType = ImageView.ScaleType.CENTER_CROP
+        Glide.with(this)
+            .load(url)
+            .placeholder(R.drawable.ic_tools)
+            .error(R.drawable.ic_tools)
+            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
+            .centerCrop()
+            .into(ivDetalhesFotoEquipamento)
+    }
+}

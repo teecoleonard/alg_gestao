@@ -33,7 +33,6 @@
             android:orientation="vertical"
             android:padding="16dp">
 
-            <!-- Nome do Equipamento -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilNomeEquipamento"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -51,7 +50,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Código do Equipamento -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilCodigoEquipamento"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -69,7 +67,22 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Preço Diária -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilFotoUrl"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="16dp"
+                android:hint="URL da foto (opcional)">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etFotoUrl"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textUri" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrecoDiaria"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -86,7 +99,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Preço Semanal -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrecoSemanal"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -103,7 +115,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Preço Quinzenal -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrecoQuinzenal"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -120,7 +131,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Preço Mensal -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilPrecoMensal"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -137,7 +147,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Quantidade -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilQuantidade"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -154,7 +163,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Valor do Patrimônio (opcional) -->
             <com.google.android.material.textfield.TextInputLayout
                 android:id="@+id/tilValorPatrimonio"
                 style="@style/Widget.ALG.TextInputLayout.Dialog"
@@ -171,7 +179,6 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
-            <!-- Botões -->
             <LinearLayout
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
@@ -201,4 +208,4 @@
 
     </androidx.core.widget.NestedScrollView>
 
-</androidx.coordinatorlayout.widget.CoordinatorLayout> 
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

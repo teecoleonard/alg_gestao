@@ -35,6 +35,9 @@ data class Equipamento(
     
     @SerializedName("valorPatrimonio")
     val valorPatrimonio: Double? = null,
+
+    @SerializedName("fotoUrl")
+    val fotoUrl: String? = null,
     
     // Campos de disponibilidade em tempo real
     @SerializedName("quantidade_total")

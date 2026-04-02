@@ -16,7 +16,20 @@
         android:layout_height="wrap_content"
         android:padding="16dp">
 
-        <!-- Nome do equipamento -->
+        <ImageView
+            android:id="@+id/ivFotoEquipamento"
+            android:layout_width="72dp"
+            android:layout_height="72dp"
+            android:layout_marginEnd="12dp"
+            android:adjustViewBounds="true"
+            android:background="@drawable/bg_equipamento_foto_placeholder"
+            android:contentDescription="Foto do equipamento"
+            android:padding="12dp"
+            android:scaleType="centerInside"
+            android:src="@drawable/ic_tools"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
+
         <TextView
             android:id="@+id/tvNomeEquipamento"
             android:layout_width="0dp"
@@ -29,11 +42,10 @@
             android:textSize="16sp"
             android:textStyle="bold"
             app:layout_constraintEnd_toStartOf="@id/ivMenuEquipamento"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toEndOf="@id/ivFotoEquipamento"
             app:layout_constraintTop_toTopOf="parent"
             tools:text="Furadeira Industrial" />
 
-        <!-- Menu de opções -->
         <ImageView
             android:id="@+id/ivMenuEquipamento"
             android:layout_width="24dp"
@@ -45,7 +57,6 @@
             app:layout_constraintTop_toTopOf="parent"
             app:tint="@color/card_equipment_accent" />
 
-        <!-- Código do equipamento -->
         <TextView
             android:id="@+id/tvCodigoEquipamento"
             android:layout_width="0dp"
@@ -56,11 +67,10 @@
             android:textAppearance="@style/TextAppearance.ALG.Body"
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toEndOf="parent"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tvNomeEquipamento"
             app:layout_constraintTop_toBottomOf="@id/tvNomeEquipamento"
             tools:text="Código: FUR-001" />
 
-        <!-- Quantidade disponível -->
         <TextView
             android:id="@+id/tvQuantidadeEquipamento"
             android:layout_width="0dp"
@@ -72,11 +82,10 @@
             android:textAppearance="@style/TextAppearance.ALG.Body"
             android:textColor="@color/text_secondary"
             app:layout_constraintEnd_toStartOf="@id/tvBadgeDisponibilidade"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tvNomeEquipamento"
             app:layout_constraintTop_toBottomOf="@id/tvCodigoEquipamento"
             tools:text="Total: 10" />
 
-        <!-- Badge de disponibilidade -->
         <TextView
             android:id="@+id/tvBadgeDisponibilidade"
             android:layout_width="wrap_content"
@@ -94,7 +103,6 @@
             app:layout_constraintTop_toBottomOf="@id/tvCodigoEquipamento"
             tools:text="5 Disp." />
 
-        <!-- Preço da diária -->
         <TextView
             android:id="@+id/tvPrecoDiariaEquipamento"
             android:layout_width="wrap_content"
@@ -107,10 +115,10 @@
             android:textAppearance="@style/TextAppearance.ALG.Body"
             android:textColor="@color/white"
             android:textStyle="bold"
-            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintStart_toStartOf="@id/tvNomeEquipamento"
             app:layout_constraintTop_toBottomOf="@id/tvQuantidadeEquipamento"
             tools:text="Diária: R$ 150,00" />
 
     </androidx.constraintlayout.widget.ConstraintLayout>
 
-</androidx.cardview.widget.CardView> 
+</androidx.cardview.widget.CardView>
