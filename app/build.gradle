@@ -18,7 +18,8 @@ android {
     compileSdk 34
     
     def apiBaseUrl = project.findProperty("ALG_API_BASE_URL") ?: "http://10.0.2.2:13050/"
-    def pdfBaseUrl = project.findProperty("ALG_PDF_BASE_URL") ?: "http://10.0.2.2:18080/"
+    def pdfBaseUrl = project.findProperty("ALG_PDF_BASE_URL") ?: "http://10.0.2.2:13010/"
+    def faturasApiBaseUrl = project.findProperty("ALG_FATURAS_API_BASE_URL") ?: "http://10.0.2.2:13010/"
 
     defaultConfig {
         applicationId "com.example.alg_gestao_02"
@@ -30,6 +31,7 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         buildConfigField "String", "API_BASE_URL", "\"${apiBaseUrl}\""
         buildConfigField "String", "PDF_BASE_URL", "\"${pdfBaseUrl}\""
+        buildConfigField "String", "FATURAS_API_BASE_URL", "\"${faturasApiBaseUrl}\""
         
         // Configuração do esquema Room para exportar o esquema
         javaCompileOptions {

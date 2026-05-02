@@ -52,6 +52,7 @@ class PdfViewerFragment : DialogFragment() {
     private var pdfBytes: ByteArray? = null
     private var pdfFile: File? = null
     private var contratoNumero: String = ""
+    private var documentType: String = DOC_TYPE_CONTRATO
     private var contratoId: Int = 0
     private var onContratoAtualizadoCallback: (() -> Unit)? = null
     
@@ -75,8 +76,12 @@ class PdfViewerFragment : DialogFragment() {
             cachedPdfId = bundle.getString(STATE_CACHED_PDF_ID)
             cachedHtmlId = bundle.getString(STATE_CACHED_HTML_ID)
             contratoNumero = bundle.getString(STATE_CONTRATO_NUMERO, "")
+            documentType = bundle.getString(STATE_DOCUMENT_TYPE, DOC_TYPE_CONTRATO)
             contratoId = bundle.getInt(STATE_CONTRATO_ID, 0)
             LogUtils.debug("PdfViewerFragment", "🔄 Estado restaurado - PDF ID: $cachedPdfId, HTML ID: $cachedHtmlId")
+        }
+        if (savedInstanceState == null) {
+            documentType = arguments?.getString(ARG_DOCUMENT_TYPE, DOC_TYPE_CONTRATO) ?: DOC_TYPE_CONTRATO
         }
     }
 
@@ -91,6 +96,7 @@ class PdfViewerFragment : DialogFragment() {
         cachedPdfId?.let { outState.putString(STATE_CACHED_PDF_ID, it) }
         cachedHtmlId?.let { outState.putString(STATE_CACHED_HTML_ID, it) }
         outState.putString(STATE_CONTRATO_NUMERO, contratoNumero)
+        outState.putString(STATE_DOCUMENT_TYPE, documentType)
         outState.putInt(STATE_CONTRATO_ID, contratoId)
         
         // IMPORTANTE: Limpar argumentos grandes para evitar crash
@@ -401,8 +407,8 @@ class PdfViewerFragment : DialogFragment() {
         }
 
         btnRegerarPdf.setOnClickListener {
-            LogUtils.debug("PdfViewerFragment", "🔄 Botão regerar PDF clicado")
-            // TODO: Implementar lógica para regerar PDF com assinatura atualizada
+            LogUtils.debug("PdfViewerFragment", "🔄 Botão regenerar PDF clicado")
+            // TODO: Implementar lógica para regenerar PDF com assinatura atualizada
             Toast.makeText(
                 requireContext(),
                 "Regenerando PDF com assinatura atualizada...",
@@ -436,7 +442,16 @@ class PdfViewerFragment : DialogFragment() {
     }
     
     private fun carregarHtmlUrl(url: String) {
-        webView.loadUrl(url)
+        // Se a URL é relativa (começa com /), prepender a base URL
+        val urlAbsoluta = if (url.startsWith("/")) {
+            val baseUrl = com.example.alg_gestao_02.BuildConfig.PDF_BASE_URL
+            baseUrl.trimEnd('/') + url
+        } else {
+            url
+        }
+        
+        LogUtils.debug("PdfViewerFragment", "📡 Carregando URL HTML absoluta: $urlAbsoluta")
+        webView.loadUrl(urlAbsoluta)
     }
     
     private fun carregarHtmlContent(content: String) {
@@ -464,13 +479,26 @@ class PdfViewerFragment : DialogFragment() {
             mostrarErro("Erro ao carregar HTML: ${e.message}")
         }
     }
+
+    private fun documentoPrefixoArquivo(): String {
+        val tipo = if (documentType == DOC_TYPE_FATURA) "fatura" else "contrato"
+        return "${tipo}_$contratoNumero"
+    }
+
+    private fun documentoTituloCompartilhar(): String {
+        return if (documentType == DOC_TYPE_FATURA) "Compartilhar Fatura PDF" else "Compartilhar Contrato PDF"
+    }
+
+    private fun documentoDescricaoCompartilhar(): String {
+        return if (documentType == DOC_TYPE_FATURA) "Fatura #$contratoNumero" else "Contrato #$contratoNumero"
+    }
     
     private fun verificarPermissaoESalvar() {
         pdfBytes?.let { bytes ->
             val resultado = PdfUtils.salvarPdfNaPastaDownloads(
                 requireContext(),
                 bytes,
-                "contrato_$contratoNumero"
+                documentoPrefixoArquivo()
             )
             
             resultado.fold(
@@ -507,7 +535,7 @@ class PdfViewerFragment : DialogFragment() {
             val resultadoArquivo = PdfUtils.criarArquivoTemporario(
                 requireContext(),
                 bytes,
-                "contrato_$contratoNumero"
+                documentoPrefixoArquivo()
             )
             
             resultadoArquivo.fold(
@@ -515,8 +543,8 @@ class PdfViewerFragment : DialogFragment() {
                     val resultadoCompartilhamento = PdfUtils.compartilharPdf(
                         requireContext(),
                         arquivo,
-                        "Compartilhar Contrato PDF",
-                        "Contrato #$contratoNumero"
+                        documentoTituloCompartilhar(),
+                        documentoDescricaoCompartilhar()
                     )
                     
                     resultadoCompartilhamento.fold(
@@ -618,19 +646,25 @@ class PdfViewerFragment : DialogFragment() {
         private const val ARG_HTML_CONTENT = "html_content"
         private const val ARG_CONTRATO_NUMERO = "contrato_numero"
         private const val ARG_CONTRATO_ID = "contrato_id"
+        private const val ARG_DOCUMENT_TYPE = "document_type"
         
         // Constantes para salvar estado (não salvar dados grandes!)
         private const val STATE_CACHED_PDF_ID = "cached_pdf_id"
         private const val STATE_CACHED_HTML_ID = "cached_html_id"
         private const val STATE_CONTRATO_NUMERO = "contrato_numero"
         private const val STATE_CONTRATO_ID = "contrato_id"
+        private const val STATE_DOCUMENT_TYPE = "document_type"
+
+        const val DOC_TYPE_CONTRATO = "contrato"
+        const val DOC_TYPE_FATURA = "fatura"
         
         fun newInstance(
             pdfBase64: String? = null,
             htmlUrl: String? = null,
             htmlContent: String? = null,
             contratoNumero: String,
-            contratoId: Int
+            contratoId: Int,
+            documentType: String = DOC_TYPE_CONTRATO
         ): PdfViewerFragment {
             return PdfViewerFragment().apply {
                 arguments = Bundle().apply {
@@ -662,6 +696,7 @@ class PdfViewerFragment : DialogFragment() {
                     putString(ARG_HTML_URL, htmlUrl)
                     putString(ARG_CONTRATO_NUMERO, contratoNumero)
                     putInt(ARG_CONTRATO_ID, contratoId)
+                    putString(ARG_DOCUMENT_TYPE, documentType)
                 }
             }
         }

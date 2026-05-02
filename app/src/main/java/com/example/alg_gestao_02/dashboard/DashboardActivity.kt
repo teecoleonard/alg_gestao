@@ -102,6 +102,8 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
                 R.id.clientesFragment, 
                 R.id.contratosFragment,
                 R.id.equipamentosFragment,
+                R.id.materiaisFragment,
+                R.id.faturasFragment,
                 R.id.devolucoesFragment
             ),
             binding.drawerLayout
@@ -174,6 +176,12 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             }
             R.id.nav_equipamentos -> {
                 navController.navigate(R.id.equipamentosFragment)
+            }
+            R.id.nav_materiais -> {
+                navController.navigate(R.id.materiaisFragment)
+            }
+            R.id.nav_faturas -> {
+                navController.navigate(R.id.faturasFragment)
             }
             R.id.nav_devolucoes -> {
                 navController.navigate(R.id.devolucoesFragment)

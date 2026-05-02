@@ -9,6 +9,11 @@ import com.example.alg_gestao_02.data.models.ContratoResponse
 import com.example.alg_gestao_02.data.models.Devolucao
 import com.example.alg_gestao_02.data.models.DashboardStats
 import com.example.alg_gestao_02.data.models.FinancialMetrics
+import com.example.alg_gestao_02.data.models.Fatura
+import com.example.alg_gestao_02.data.models.FaturaPdfRequest
+import com.example.alg_gestao_02.data.models.FaturaPdfResponse
+import com.example.alg_gestao_02.data.models.FaturasPageResponse
+import com.example.alg_gestao_02.data.models.Material
 import com.example.alg_gestao_02.data.models.ProgressMetrics
 import com.example.alg_gestao_02.data.models.TaskMetrics
 import retrofit2.http.Query
@@ -59,6 +64,54 @@ data class DisponibilidadeResponse(
     
     @SerializedName("pode_alocar")
     val podeAlocar: Boolean? = null
+)
+
+data class MaterialDisponibilidadeResponse(
+    @SerializedName("materialId")
+    val materialId: Int,
+
+    @SerializedName("nome")
+    val nome: String,
+
+    @SerializedName("quantidade_total")
+    val quantidadeTotal: Int,
+
+    @SerializedName("quantidade_em_uso")
+    val quantidadeEmUso: Int,
+
+    @SerializedName("quantidade_disponivel")
+    val quantidadeDisponivel: Int,
+
+    @SerializedName("disponivel")
+    val disponivel: Boolean,
+
+    @SerializedName("quantidade_solicitada")
+    val quantidadeSolicitada: Int? = null,
+
+    @SerializedName("pode_alocar")
+    val podeAlocar: Boolean? = null
+)
+
+data class MateriaisPageResponse(
+    @SerializedName("data")
+    val data: List<Material>,
+
+    @SerializedName("total")
+    val total: Int = 0,
+
+    @SerializedName("page")
+    val page: Int = 1,
+
+    @SerializedName("limit")
+    val limit: Int = 20
+)
+
+data class MaterialMutationResponse(
+    @SerializedName("message")
+    val message: String? = null,
+
+    @SerializedName("material")
+    val material: Material? = null
 )
 
 // Response para o preview do próximo número de contrato
@@ -138,6 +191,55 @@ interface ApiService {
      */
     @DELETE("api/equipamentos/{id}")
     suspend fun deleteEquipamento(@Path("id") id: Int): Response<Void>
+
+    @GET("api/materiais")
+    suspend fun getMateriais(
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 100,
+        @Query("search") search: String? = null,
+        @Query("ativo") ativo: Boolean? = null
+    ): Response<MateriaisPageResponse>
+
+    @GET("api/materiais/disponiveis")
+    suspend fun getMateriaisDisponiveis(): Response<List<Material>>
+
+    @GET("api/materiais/com-disponibilidade")
+    suspend fun getMateriaisComDisponibilidade(): Response<List<Material>>
+
+    @GET("api/materiais/{id}")
+    suspend fun getMaterialById(@Path("id") id: Int): Response<Material>
+
+    @GET("api/materiais/{id}/disponibilidade")
+    suspend fun verificarDisponibilidadeMaterial(
+        @Path("id") id: Int,
+        @Query("quantidade") quantidade: Int? = null
+    ): Response<MaterialDisponibilidadeResponse>
+
+    @POST("api/materiais")
+    suspend fun createMaterial(@Body material: Material): Response<MaterialMutationResponse>
+
+    @PUT("api/materiais/{id}")
+    suspend fun updateMaterial(
+        @Path("id") id: Int,
+        @Body material: Material
+    ): Response<MaterialMutationResponse>
+
+    @DELETE("api/materiais/{id}")
+    suspend fun deleteMaterial(@Path("id") id: Int): Response<Void>
+
+    @GET("api/faturas")
+    suspend fun getFaturas(
+        @Query("page") page: Int = 1,
+        @Query("limit") limit: Int = 20,
+        @Query("search") search: String? = null,
+        @Query("status") status: String? = null,
+    ): Response<FaturasPageResponse>
+
+    @GET("api/faturas/{id}")
+    suspend fun getFaturaById(@Path("id") id: Int): Response<Fatura>
+
+    @POST("api/pdf-proxy/fatura")
+    suspend fun gerarPdfFatura(@Body request: FaturaPdfRequest): Response<FaturaPdfResponse>
     
     /**
      * Obter todos os clientes
@@ -494,3 +596,4 @@ interface ApiService {
         val observacaoItemDevolucao: String? = null
     )
 }
+

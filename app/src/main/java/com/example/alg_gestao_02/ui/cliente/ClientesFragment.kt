@@ -39,6 +39,7 @@ class ClientesFragment : Fragment() {
     private lateinit var viewEmpty: View
     private lateinit var viewError: View
     private lateinit var etSearch: TextInputEditText
+    private var hasLoadedData: Boolean = false
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -58,10 +59,6 @@ class ClientesFragment : Fragment() {
         setupRecyclerView()
         setupListeners()
         observeViewModel()
-        
-        // Carregar clientes imediatamente
-        LogUtils.debug("ClientesFragment", "Carregando lista de clientes inicialmente")
-        viewModel.loadClientes()
     }
     
     private fun initViews(view: View) {
@@ -97,6 +94,7 @@ class ClientesFragment : Fragment() {
     private fun setupListeners() {
         swipeRefresh.setOnRefreshListener {
             LogUtils.debug("ClientesFragment", "Atualizando lista de clientes via swipe refresh")
+            swipeRefresh.isRefreshing = true
             viewModel.loadClientes()
         }
         
@@ -116,23 +114,42 @@ class ClientesFragment : Fragment() {
                 false
             }
         }
+
+        etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                viewModel.setSearchTerm(s?.toString().orEmpty())
+            }
+        })
     }
     
     private fun observeViewModel() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            swipeRefresh.isRefreshing = false
-            
             when (state) {
                 is UiState.Loading -> {
-                    LogUtils.debug("ClientesFragment", "Estado: Loading")
-                    viewLoading.visibility = View.VISIBLE
-                    viewEmpty.visibility = View.GONE
-                    viewError.visibility = View.GONE
-                    recyclerView.visibility = View.GONE
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
+                    if (keepContentVisible) {
+                        LogUtils.debug("ClientesFragment", "Estado: Loading - mantendo lista durante atualização")
+                        viewLoading.visibility = View.GONE
+                        viewEmpty.visibility = View.GONE
+                        viewError.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                        swipeRefresh.isRefreshing = true
+                    } else {
+                        LogUtils.debug("ClientesFragment", "Estado: Loading - primeira carga")
+                        viewLoading.visibility = View.VISIBLE
+                        viewEmpty.visibility = View.GONE
+                        viewError.visibility = View.GONE
+                        recyclerView.visibility = View.GONE
+                        swipeRefresh.isRefreshing = false
+                    }
                 }
                 
                 is UiState.Success -> {
                     LogUtils.debug("ClientesFragment", "Estado: Success - Clientes: ${state.data.size}")
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.GONE
@@ -143,6 +160,8 @@ class ClientesFragment : Fragment() {
                 
                 is UiState.Empty -> {
                     LogUtils.debug("ClientesFragment", "Estado: Empty")
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.VISIBLE
                     viewError.visibility = View.GONE
@@ -151,10 +170,12 @@ class ClientesFragment : Fragment() {
                 
                 is UiState.Error -> {
                     LogUtils.debug("ClientesFragment", "Estado: Error - ${state.message}")
+                    swipeRefresh.isRefreshing = false
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
-                    viewError.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
+                    viewError.visibility = if (keepContentVisible) View.GONE else View.VISIBLE
+                    recyclerView.visibility = if (keepContentVisible) View.VISIBLE else View.GONE
                     
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                 }

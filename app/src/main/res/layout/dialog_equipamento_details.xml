@@ -13,17 +13,6 @@
         android:orientation="vertical"
         android:padding="16dp">
 
-        <ImageView
-            android:id="@+id/ivDetalhesFotoEquipamento"
-            android:layout_width="match_parent"
-            android:layout_height="180dp"
-            android:adjustViewBounds="true"
-            android:background="@drawable/bg_equipamento_foto_placeholder"
-            android:contentDescription="Foto do equipamento"
-            android:padding="16dp"
-            android:scaleType="centerInside"
-            android:src="@drawable/ic_tools" />
-
         <TextView
             android:id="@+id/tvDetalhesNomeEquipamento"
             android:layout_width="match_parent"

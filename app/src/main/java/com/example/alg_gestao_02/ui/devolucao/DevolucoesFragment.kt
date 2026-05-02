@@ -23,6 +23,7 @@ import com.example.alg_gestao_02.ui.devolucao.viewmodel.DevolucoesViewModel
 import com.example.alg_gestao_02.ui.devolucao.viewmodel.DevolucoesViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 import com.google.android.material.textfield.TextInputEditText
 
@@ -42,6 +43,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
     private lateinit var viewEmpty: View
     private lateinit var viewError: View
     private lateinit var etSearch: TextInputEditText
+    private var hasLoadedData: Boolean = false
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -151,6 +153,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         swipeRefresh.setOnRefreshListener {
             LogUtils.debug("DevolucoesFragment", "Atualizando lista de devoluções via swipe refresh")
             // Respeitar filtros ativos ao fazer refresh
+            swipeRefresh.isRefreshing = true
             viewModel.loadDevolucoes()
         }
         
@@ -160,7 +163,7 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         
         // Configurar listener para busca
         etSearch.setOnEditorActionListener { _, actionId, event ->
-            if (actionId == EditorInfo.IME_ACTION_SEARCH || 
+            if (actionId == EditorInfo.IME_ACTION_SEARCH ||
                 (event != null && event.keyCode == KeyEvent.KEYCODE_ENTER && event.action == KeyEvent.ACTION_DOWN)) {
                 val searchTerm = etSearch.text.toString().trim()
                 LogUtils.debug("DevolucoesFragment", "Buscando por: $searchTerm")
@@ -170,19 +173,35 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
                 false
             }
         }
+
+        etSearch.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                viewModel.setSearchTerm(s?.toString().orEmpty())
+            }
+        })
     }
     
     private fun observeViewModel() {
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
-            swipeRefresh.isRefreshing = false
-            
             when (state) {
                 is UiState.Loading -> {
-                    LogUtils.debug("DevolucoesFragment", "Estado: Loading")
-                    viewFlipper.displayedChild = 0 // Índice do viewLoading
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
+                    if (keepContentVisible) {
+                        LogUtils.debug("DevolucoesFragment", "Estado: Loading - mantendo lista durante atualização")
+                        viewFlipper.displayedChild = 2
+                        swipeRefresh.isRefreshing = true
+                    } else {
+                        LogUtils.debug("DevolucoesFragment", "Estado: Loading - primeira carga")
+                        viewFlipper.displayedChild = 0
+                        swipeRefresh.isRefreshing = false
+                    }
                 }
                 
                 is UiState.Success -> {
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     LogUtils.debug("DevolucoesFragment", "Estado: Success - Devoluções: ${state.data.size}")
                     LogUtils.debug("DevolucoesFragment", "Mudando ViewFlipper para índice 2 (List)")
                     viewFlipper.displayedChild = 2 // Índice do viewList
@@ -195,13 +214,17 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
                 }
                 
                 is UiState.Empty -> {
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     LogUtils.debug("DevolucoesFragment", "Estado: Empty")
                     viewFlipper.displayedChild = 1 // Índice do viewEmpty
                 }
                 
                 is UiState.Error -> {
+                    swipeRefresh.isRefreshing = false
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
                     LogUtils.debug("DevolucoesFragment", "Estado: Error - ${state.message}")
-                    viewFlipper.displayedChild = 3 // Índice do viewError
+                    viewFlipper.displayedChild = if (keepContentVisible) 2 else 3
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                 }
             }
@@ -279,9 +302,20 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
     }
     
     private fun showFilterDialog() {
-        // Criar e exibir um dialog para filtragem de devoluções
-        // Implementar conforme necessidades específicas do projeto
-        Toast.makeText(context, "Filtros de devoluções", Toast.LENGTH_SHORT).show()
+        val itens = arrayOf("Todos", "Pendentes", "Devolvidos", "Avariados", "Faltantes")
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Filtrar devolucoes")
+            .setItems(itens) { _, which ->
+                when (which) {
+                    0 -> viewModel.setStatusFiltro(null)
+                    1 -> viewModel.setStatusFiltro("Pendente")
+                    2 -> viewModel.setStatusFiltro("Devolvido")
+                    3 -> viewModel.setStatusFiltro("Avariado")
+                    4 -> viewModel.setStatusFiltro("Faltante")
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
     
     private fun showPopupMenu(devolucao: Devolucao, view: View) {
@@ -303,3 +337,6 @@ class DevolucoesFragment : Fragment(), DevolucaoDetailsDialogFragment.OnProcessa
         popup.show()
     }
 }
+
+
+

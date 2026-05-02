@@ -33,7 +33,7 @@
         <com.google.android.material.tabs.TabItem
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Arquivados" />
+            android:text="Renovados" />
     </com.google.android.material.tabs.TabLayout>
 
     <!-- Área de filtros (filtro de mês) -->
@@ -75,7 +75,7 @@
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Buscar por nome do cliente"
+            android:hint="Buscar por cliente, contrato ou obra"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />

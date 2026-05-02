@@ -35,6 +35,9 @@ class EquipamentosViewModel(
     
     // Tipo de filtro
     private var filtroTipo: FiltroEquipamento = FiltroEquipamento.TODOS
+
+    // Cache local para evitar recarregar API em toda digitacao/filtro
+    private var allEquipamentos: List<Equipamento> = emptyList()
     
     init {
         loadEquipamentos()
@@ -53,20 +56,8 @@ class EquipamentosViewModel(
             when {
                 result.isSuccess() -> {
                     val equipamentos = result.data!!
-                    
-                    // Aplicar filtros
-                    val equipamentosFiltrados = when (filtroTipo) {
-                        FiltroEquipamento.TODOS -> equipamentos
-                        FiltroEquipamento.DISPONIVEIS -> equipamentos.filter { it.isDisponivel() }
-                    }
-                    
-                    val filteredEquipamentos = filtrarEquipamentos(equipamentosFiltrados)
-                    
-                    if (filteredEquipamentos.isEmpty()) {
-                        _uiState.value = UiState.Empty()
-                    } else {
-                        _uiState.value = UiState.Success(filteredEquipamentos)
-                    }
+                    allEquipamentos = equipamentos
+                    aplicarFiltrosLocais()
                     LogUtils.debug("EquipamentosViewModel", "Equipamentos carregados com disponibilidade: ${equipamentos.size}")
                 }
                 result.isError() -> {
@@ -95,7 +86,7 @@ class EquipamentosViewModel(
      */
     fun setTextoBusca(texto: String) {
         this.textoBusca = texto
-        loadEquipamentos() // Recarrega com o novo filtro
+        aplicarFiltrosLocais()
     }
     
     /**
@@ -103,7 +94,21 @@ class EquipamentosViewModel(
      */
     fun setFiltroTipo(filtro: FiltroEquipamento) {
         this.filtroTipo = filtro
-        loadEquipamentos() // Recarrega com o novo filtro
+        aplicarFiltrosLocais()
+    }
+
+    private fun aplicarFiltrosLocais() {
+        val equipamentosFiltrados = when (filtroTipo) {
+            FiltroEquipamento.TODOS -> allEquipamentos
+            FiltroEquipamento.DISPONIVEIS -> allEquipamentos.filter { it.isDisponivel() }
+        }
+
+        val filteredEquipamentos = filtrarEquipamentos(equipamentosFiltrados)
+        if (filteredEquipamentos.isEmpty()) {
+            _uiState.value = UiState.Empty()
+        } else {
+            _uiState.value = UiState.Success(filteredEquipamentos)
+        }
     }
     
     /**

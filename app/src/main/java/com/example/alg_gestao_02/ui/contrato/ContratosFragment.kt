@@ -55,12 +55,13 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     
     // Enum para as abas
     enum class ContratoTab {
-        TODOS, EM_ANDAMENTO, ARQUIVADOS
+        TODOS, EM_ANDAMENTO, RENOVADOS
     }
     
     private var currentTab: ContratoTab = ContratoTab.TODOS
     private var selectedMonth: Int? = null
     private var selectedYear: Int? = null
+    private var hasLoadedData: Boolean = false
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -178,8 +179,8 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                         LogUtils.debug("ContratosFragment", "Aba selecionada: EM_ANDAMENTO")
                     }
                     2 -> {
-                        currentTab = ContratoTab.ARQUIVADOS
-                        LogUtils.debug("ContratosFragment", "Aba selecionada: ARQUIVADOS")
+                        currentTab = ContratoTab.RENOVADOS
+                        LogUtils.debug("ContratosFragment", "Aba selecionada: RENOVADOS")
                     }
                 }
                 aplicarFiltros()
@@ -246,6 +247,7 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     private fun setupListeners() {
         swipeRefresh.setOnRefreshListener {
             LogUtils.debug("ContratosFragment", "Atualizando lista de contratos via swipe refresh")
+            swipeRefresh.isRefreshing = true
             viewModel.loadContratos()
         }
         
@@ -283,58 +285,67 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         
         viewModel.uiState.observe(viewLifecycleOwner) { state ->
             LogUtils.debug("ContratosFragment", "Observer uiState ativado: ${state.javaClass.simpleName}")
-            swipeRefresh.isRefreshing = false
-            
+
             when (state) {
                 is UiState.Loading -> {
-                    LogUtils.debug("ContratosFragment", "Estado: Loading - Mostrando tela de carregamento")
-                    LogUtils.debug("ContratosFragment", "viewLoading visibilidade: ${viewLoading.visibility}")
-                    viewLoading.visibility = View.VISIBLE
-                    viewEmpty.visibility = View.GONE
-                    viewError.visibility = View.GONE
-                    recyclerView.visibility = View.GONE
-                    LogUtils.debug("ContratosFragment", "viewLoading visibilidade após: ${viewLoading.visibility}")
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
+                    if (keepContentVisible) {
+                        LogUtils.debug("ContratosFragment", "Estado: Loading - mantendo lista durante atualizacao")
+                        viewLoading.visibility = View.GONE
+                        viewEmpty.visibility = View.GONE
+                        viewError.visibility = View.GONE
+                        recyclerView.visibility = View.VISIBLE
+                        swipeRefresh.isRefreshing = true
+                    } else {
+                        LogUtils.debug("ContratosFragment", "Estado: Loading - primeira carga")
+                        viewLoading.visibility = View.VISIBLE
+                        viewEmpty.visibility = View.GONE
+                        viewError.visibility = View.GONE
+                        recyclerView.visibility = View.GONE
+                        swipeRefresh.isRefreshing = false
+                    }
                 }
-                
+
                 is UiState.Success -> {
                     LogUtils.debug("ContratosFragment", "Estado: Success - Contratos: ${state.data.size}")
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
                     viewError.visibility = View.GONE
                     recyclerView.visibility = View.VISIBLE
-                    
+
                     LogUtils.debug("ContratosFragment", "RecyclerView visibilidade: ${recyclerView.visibility}")
                     LogUtils.debug("ContratosFragment", "Adapter atual: ${adapter}")
-                    
+
                     // Atualizar o adaptador com os contratos
                     adapter.updateContratos(state.data)
                     LogUtils.debug("ContratosFragment", "Adapter atualizado com ${state.data.size} itens")
-                    
-                    // Forçar notificação do adapter
-                    adapter.notifyDataSetChanged()
-                    LogUtils.debug("ContratosFragment", "Adapter.notifyDataSetChanged() chamado")
                 }
-                
+
                 is UiState.Empty -> {
                     LogUtils.debug("ContratosFragment", "Estado: Empty")
+                    hasLoadedData = true
+                    swipeRefresh.isRefreshing = false
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.VISIBLE
                     viewError.visibility = View.GONE
                     recyclerView.visibility = View.GONE
                 }
-                
+
                 is UiState.Error -> {
                     LogUtils.debug("ContratosFragment", "Estado: Error - ${state.message}")
+                    swipeRefresh.isRefreshing = false
+                    val keepContentVisible = hasLoadedData && adapter.itemCount > 0
                     viewLoading.visibility = View.GONE
                     viewEmpty.visibility = View.GONE
-                    viewError.visibility = View.VISIBLE
-                    recyclerView.visibility = View.GONE
-                    
+                    viewError.visibility = if (keepContentVisible) View.GONE else View.VISIBLE
+                    recyclerView.visibility = if (keepContentVisible) View.VISIBLE else View.GONE
+
                     Toast.makeText(context, state.message, Toast.LENGTH_LONG).show()
                 }
             }
         }
-
         // Observar o contratoDetalhado para exibir o diálogo de detalhes quando estiver pronto
         viewModel.contratoDetalhado.observe(viewLifecycleOwner) { state ->
             when (state) {
@@ -638,3 +649,4 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
             .show()
     }
 } 
+

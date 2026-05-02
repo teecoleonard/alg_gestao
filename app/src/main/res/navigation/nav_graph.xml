@@ -82,6 +82,18 @@
         tools:layout="@layout/fragment_equipamentos" />
 
     <fragment
+        android:id="@+id/materiaisFragment"
+        android:name="com.example.alg_gestao_02.ui.material.MateriaisFragment"
+        android:label="Materiais"
+        tools:layout="@layout/fragment_materiais" />
+
+    <fragment
+        android:id="@+id/faturasFragment"
+        android:name="com.example.alg_gestao_02.ui.fatura.FaturasFragment"
+        android:label="Faturas"
+        tools:layout="@layout/fragment_faturas" />
+
+    <fragment
         android:id="@+id/financialFragment"
         android:name="com.example.alg_gestao_02.ui.financial.FinancialFragment"
         android:label="Financeiro"

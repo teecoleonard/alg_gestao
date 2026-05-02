@@ -21,9 +21,9 @@ import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.Cliente
 import com.example.alg_gestao_02.data.models.Contrato
 import com.example.alg_gestao_02.data.models.EquipamentoContrato
-import com.example.alg_gestao_02.data.models.temContratoIdTemporario
-import com.example.alg_gestao_02.data.models.temContratoIdValido
+import com.example.alg_gestao_02.data.models.MaterialContrato
 import com.example.alg_gestao_02.ui.contrato.adapter.EquipamentosContratoAdapter
+import com.example.alg_gestao_02.ui.contrato.adapter.MateriaisContratoAdapter
 import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModel
 import com.example.alg_gestao_02.ui.contrato.viewmodel.ContratosViewModelFactory
 import com.example.alg_gestao_02.ui.state.UiState
@@ -67,6 +67,10 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
     private lateinit var btnAddEquipamento: MaterialButton
     private lateinit var rvEquipamentos: RecyclerView
     private lateinit var tvEmptyEquipamentos: TextView
+    private lateinit var tvTituloMateriais: TextView
+    private lateinit var btnAddMaterial: MaterialButton
+    private lateinit var rvMateriais: RecyclerView
+    private lateinit var tvEmptyMateriais: TextView
     private lateinit var tvValorTotalContratoCalculado: TextView
     
     private var contratoParaEdicao: Contrato? = null
@@ -75,7 +79,9 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
     private var clientesFiltrados: List<Cliente> = emptyList()
     private var onContratoSavedListener: ((Contrato) -> Unit)? = null
     private var equipamentosContrato: MutableList<EquipamentoContrato> = mutableListOf()
+    private var materiaisContrato: MutableList<MaterialContrato> = mutableListOf()
     private lateinit var equipamentosAdapter: EquipamentosContratoAdapter
+    private lateinit var materiaisAdapter: MateriaisContratoAdapter
     
     companion object {
         private const val ARG_CONTRATO = "arg_contrato"
@@ -175,6 +181,10 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         btnAddEquipamento = view.findViewById(R.id.btnAddEquipamento)
         rvEquipamentos = view.findViewById(R.id.rvEquipamentos)
         tvEmptyEquipamentos = view.findViewById(R.id.tvEmptyEquipamentos)
+        tvTituloMateriais = view.findViewById(R.id.tvTituloMateriais)
+        btnAddMaterial = view.findViewById(R.id.btnAddMaterial)
+        rvMateriais = view.findViewById(R.id.rvMateriais)
+        tvEmptyMateriais = view.findViewById(R.id.tvEmptyMateriais)
         tvValorTotalContratoCalculado = view.findViewById(R.id.tvValorTotalContratoCalculado)
     }
     
@@ -292,6 +302,15 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             }
             val contratoId = contratoParaEdicao?.id ?: -1
             abrirDialogoEquipamento(contratoId = contratoId, equipamentoContrato = null)
+        }
+
+        btnAddMaterial.setOnClickListener {
+            if (contratoParaEdicao == null && clienteSelecionado == null) {
+                Toast.makeText(context, "Selecione um cliente antes de adicionar materiais", Toast.LENGTH_SHORT).show()
+                return@setOnClickListener
+            }
+            val contratoId = contratoParaEdicao?.id ?: -1
+            abrirDialogoMaterial(contratoId = contratoId, materialContrato = null)
         }
     }
     
@@ -464,13 +483,21 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             equipamentosContrato.clear()
             equipamentosContrato.addAll(contrato.equipamentosParaExibicao)
             equipamentosAdapter.notifyDataSetChanged()
+
+            materiaisContrato.clear()
+            materiaisContrato.addAll(contrato.materiaisParaExibicao)
+            materiaisAdapter.notifyDataSetChanged()
+
             atualizarVisibilidadeListaEquipamentos()
+            atualizarVisibilidadeListaMateriais()
             atualizarValorTotal()
         }
     }
     
     private fun atualizarDisplayValorTotalContrato() {
-        val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalEquipamentos = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalMateriais = materiaisContrato.sumOf { it.valorTotal }
+        val valorTotal = totalEquipamentos + totalMateriais
         val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
         tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
     }
@@ -514,7 +541,6 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
     }
     
     private fun setupRecyclerView() {
-        // Configurar adapter para a lista de equipamentos
         equipamentosAdapter = EquipamentosContratoAdapter(
             equipamentos = equipamentosContrato,
             onEditClick = { equipamentoContrato ->
@@ -524,28 +550,54 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
                 removerEquipamento(equipamentoContrato)
             }
         )
-        
+
         rvEquipamentos.apply {
             layoutManager = LinearLayoutManager(context)
             adapter = equipamentosAdapter
         }
-        
-            // Mostrar seção de equipamentos para edição e criação de novo contrato
-            tvTituloEquipamentos.visibility = View.VISIBLE
-            btnAddEquipamento.visibility = View.VISIBLE
-            rvEquipamentos.visibility = View.VISIBLE
-            tvEmptyEquipamentos.visibility = View.VISIBLE
-            
-            if (contratoParaEdicao != null) {
-                // Para edição, carregar equipamentos existentes
-                carregarEquipamentosDoContrato(contratoParaEdicao!!.id)
-            } else {
-                // Para novo contrato, apenas exibir mensagem
-                tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
-                equipamentosContrato.clear()
-                equipamentosAdapter.updateEquipamentos(equipamentosContrato)
-                atualizarDisplayValorTotalContrato()
+
+        materiaisAdapter = MateriaisContratoAdapter(
+            materiais = materiaisContrato,
+            onEditClick = { materialContrato ->
+                editarMaterial(materialContrato)
+            },
+            onDeleteClick = { materialContrato ->
+                removerMaterial(materialContrato)
             }
+        )
+
+        rvMateriais.apply {
+            layoutManager = LinearLayoutManager(context)
+            adapter = materiaisAdapter
+        }
+
+        tvTituloEquipamentos.visibility = View.VISIBLE
+        btnAddEquipamento.visibility = View.VISIBLE
+        rvEquipamentos.visibility = View.VISIBLE
+        tvEmptyEquipamentos.visibility = View.VISIBLE
+
+        tvTituloMateriais.visibility = View.VISIBLE
+        btnAddMaterial.visibility = View.VISIBLE
+        rvMateriais.visibility = View.VISIBLE
+        tvEmptyMateriais.visibility = View.VISIBLE
+
+        if (contratoParaEdicao != null) {
+            materiaisContrato.clear()
+            materiaisContrato.addAll(contratoParaEdicao?.materiaisParaExibicao ?: emptyList())
+            materiaisAdapter.updateMateriais(materiaisContrato)
+            atualizarVisibilidadeListaMateriais()
+            carregarEquipamentosDoContrato(contratoParaEdicao!!.id)
+        } else {
+            tvEmptyEquipamentos.text = "Nenhum equipamento adicionado"
+            equipamentosContrato.clear()
+            equipamentosAdapter.updateEquipamentos(equipamentosContrato)
+
+            tvEmptyMateriais.text = "Nenhum material adicionado"
+            materiaisContrato.clear()
+            materiaisAdapter.updateMateriais(materiaisContrato)
+
+            atualizarDisplayValorTotalContrato()
+        }
     }
 
     private fun carregarEquipamentosDoContrato(contratoId: Int) {
@@ -716,11 +768,85 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             .setNegativeButton("Cancelar", null)
             .show()
     }
+
+    private fun abrirDialogoMaterial(contratoId: Int, materialContrato: MaterialContrato? = null) {
+        val idUsado = if (contratoId <= 0) {
+            contratoParaEdicao?.id ?: -1
+        } else {
+            contratoId
+        }
+
+        val dialog = MaterialContratoDialogFragment.newInstance(
+            idUsado,
+            materialContrato
+        )
+
+        dialog.setOnMaterialSalvoListener { novoMaterial ->
+            val materialComIdCorreto = if (contratoParaEdicao != null) {
+                val idReal = contratoParaEdicao!!.id
+                if (novoMaterial.contratoId != idReal && idReal > 0) {
+                    novoMaterial.copy(contratoId = idReal)
+                } else {
+                    novoMaterial
+                }
+            } else {
+                if (novoMaterial.contratoId != idUsado && idUsado != 0) {
+                    novoMaterial.copy(contratoId = idUsado)
+                } else {
+                    novoMaterial
+                }
+            }
+
+            val index = materiaisContrato.indexOfFirst { it.id == materialComIdCorreto.id }
+            if (index >= 0) {
+                materiaisContrato[index] = materialComIdCorreto
+            } else {
+                materiaisContrato.add(materialComIdCorreto)
+            }
+
+            materiaisAdapter.updateMateriais(materiaisContrato)
+            atualizarDisplayValorTotalContrato()
+            atualizarVisibilidadeListaMateriais()
+
+            if (tvTituloMateriais.visibility != View.VISIBLE) {
+                tvTituloMateriais.visibility = View.VISIBLE
+                btnAddMaterial.visibility = View.VISIBLE
+                rvMateriais.visibility = View.VISIBLE
+            }
+        }
+
+        dialog.show(childFragmentManager, "material_contrato_dialog")
+    }
+
+    private fun editarMaterial(materialContrato: MaterialContrato) {
+        val contratoId = materialContrato.contratoId
+        abrirDialogoMaterial(contratoId = contratoId, materialContrato = materialContrato)
+    }
+
+    private fun removerMaterial(materialContrato: MaterialContrato) {
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Remover Material")
+            .setMessage("Deseja realmente remover este material do contrato?")
+            .setPositiveButton("Remover") { _, _ ->
+                materiaisContrato.remove(materialContrato)
+                materiaisAdapter.updateMateriais(materiaisContrato)
+                atualizarDisplayValorTotalContrato()
+                atualizarVisibilidadeListaMateriais()
+
+                if (contratoParaEdicao != null) {
+                    salvarContrato()
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
     
     private fun salvarContrato() {
         val clienteId = clienteSelecionado?.id ?: contratoParaEdicao?.clienteId ?: 0
         val contratoNum = etContratoNum.text.toString()
-        val contratoValorCalculado = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalEquipamentos = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalMateriais = materiaisContrato.sumOf { it.valorTotal }
+        val contratoValorCalculado = totalEquipamentos + totalMateriais
         val obraLocal = etObraLocal.text.toString()
         val contratoPeriodo = actvContratoPeriodo.text.toString()
         val entregaLocal = etEntregaLocal.text.toString()
@@ -731,7 +857,7 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         LogUtils.debug("CadastroContratoDialog", 
             "Preparando para salvar contrato: id=$contratoIdAtual, " +
             "clienteId=$clienteId, " +
-            "equipamentos=${equipamentosContrato.size}")
+            "equipamentos=${equipamentosContrato.size}, materiais=${materiaisContrato.size}")
         
         // Log detalhado dos IDs dos equipamentos
         LogUtils.debug("CadastroContratoDialog", "Verificando equipamentos para salvar:")
@@ -794,6 +920,19 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
                     "Equipamento com contratoId inconsistente após atualização: ${equipamento.contratoId} != $contratoIdAtual")
             }
         }
+        val materiaisAtualizados = materiaisContrato.map { material ->
+            when {
+                contratoIdAtual > 0 -> {
+                    if (material.contratoId != contratoIdAtual) {
+                        material.copy(contratoId = contratoIdAtual)
+                    } else {
+                        material
+                    }
+                }
+                material.contratoId < 0 -> material
+                else -> material.copy(contratoId = -1)
+            }
+        }
         
         // Calcular datas de emissão e vencimento conforme período selecionado
         val dataHoraEmissaoCalculada = contratoParaEdicao?.dataHoraEmissao ?: viewModel.getDataHoraAtual()
@@ -811,7 +950,8 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             obraLocal = obraLocal,
             contratoPeriodo = contratoPeriodo,
             entregaLocal = entregaLocal,
-            respPedido = respPedido
+            respPedido = respPedido,
+            materiais = materiaisAtualizados
         )
         
         LogUtils.debug("CadastroContratoDialog", 
@@ -819,10 +959,10 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         
         // Criar ou atualizar contrato
         if (contratoParaEdicao == null) {
-            LogUtils.debug("CadastroContratoDialog", "Criando novo contrato com ${equipamentosAtualizados.size} equipamentos")
+            LogUtils.debug("CadastroContratoDialog", "Criando novo contrato com ${equipamentosAtualizados.size} equipamentos e ${materiaisAtualizados.size} materiais")
             viewModel.criarContrato(contrato, equipamentosAtualizados)
         } else {
-            LogUtils.debug("CadastroContratoDialog", "Atualizando contrato existente id=${contratoParaEdicao!!.id} com ${equipamentosAtualizados.size} equipamentos")
+            LogUtils.debug("CadastroContratoDialog", "Atualizando contrato existente id=${contratoParaEdicao!!.id} com ${equipamentosAtualizados.size} equipamentos e ${materiaisAtualizados.size} materiais")
             viewModel.atualizarContrato(contratoParaEdicao!!.id, contrato, equipamentosAtualizados)
         }
     }
@@ -845,8 +985,21 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         }
     }
 
+    private fun atualizarVisibilidadeListaMateriais() {
+        if (materiaisContrato.isEmpty()) {
+            tvEmptyMateriais.text = "Nenhum material adicionado"
+            tvEmptyMateriais.visibility = View.VISIBLE
+            rvMateriais.visibility = View.GONE
+        } else {
+            tvEmptyMateriais.visibility = View.GONE
+            rvMateriais.visibility = View.VISIBLE
+        }
+    }
+
     private fun atualizarValorTotal() {
-        val valorTotal = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalEquipamentos = equipamentosContrato.sumOf { it.valorTotal ?: 0.0 }
+        val totalMateriais = materiaisContrato.sumOf { it.valorTotal }
+        val valorTotal = totalEquipamentos + totalMateriais
         val formatoMoeda = DecimalFormat("R$ #,##0.00", DecimalFormatSymbols(Locale("pt", "BR")))
         tvValorTotalContratoCalculado.text = "Valor Total: ${formatoMoeda.format(valorTotal)}"
     }
@@ -864,3 +1017,7 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         }
     }
 }
+
+
+
+

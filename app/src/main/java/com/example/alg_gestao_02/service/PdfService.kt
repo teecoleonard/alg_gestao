@@ -24,11 +24,11 @@ import com.example.alg_gestao_02.data.dto.AssinaturaRequestDTO
  * Interface para comunicação com o gerador de PDF
  */
 interface PdfApiService {
-    @POST("api/contrato/gerar-pdf-direto")
+    @POST("api/pdf-proxy/contrato")
     suspend fun gerarPdfContrato(@Body request: ContratoRequestDTO): Response<PdfResponse>
     
     // Novo endpoint para devoluções
-    @POST("api/devolucao/gerar-pdf-direto")
+    @POST("api/pdf-proxy/devolucao")
     suspend fun gerarPdfDevolucao(@Body request: DevolucaoRequestDTO): Response<DevolucaoPdfResponse>
 }
 
@@ -212,7 +212,27 @@ data class DevolucaoPdfResponse(
  */
 class PdfService {
     private val pdfApiService: PdfApiService
-    private val baseUrl = BuildConfig.PDF_BASE_URL
+    private fun normalizePdfBaseUrl(rawUrl: String): String {
+        var normalized = rawUrl.trim()
+        if (!normalized.endsWith("/")) {
+            normalized += "/"
+        }
+
+        // Compatibilidade com configuração legada que apontava para o gerador direto.
+        // Com a stack atual o app deve falar com o backend (/api/pdf-proxy/*).
+        if (normalized.contains("/pdf-service/")) {
+            val migrated = normalized.replace(Regex("^(https?://[^/]+).*$"), "$1/")
+            LogUtils.warning(
+                "PdfService",
+                "PDF_BASE_URL usando /pdf-service detectado. Aplicando fallback para backend: $migrated",
+            )
+            return migrated
+        }
+
+        return normalized
+    }
+
+    private val baseUrl = normalizePdfBaseUrl(BuildConfig.PDF_BASE_URL)
 
     init {
         LogUtils.debug("PdfService", "🔧 INICIALIZANDO SERVIÇO DE PDF")
@@ -545,7 +565,7 @@ class PdfService {
             
             val startTime = System.currentTimeMillis()
             LogUtils.debug("PdfService", "📡 ENVIANDO REQUISIÇÃO HTTP...")
-            LogUtils.debug("PdfService", "  🌐 URL: ${baseUrl}api/contrato/gerar-pdf-direto")
+            LogUtils.debug("PdfService", "  🌐 URL: ${baseUrl}api/pdf-proxy/contrato")
             LogUtils.debug("PdfService", "  ⏰ Iniciado em: ${SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())}")
             
             val response = pdfApiService.gerarPdfContrato(request)
@@ -872,7 +892,7 @@ class PdfService {
             
             val startTime = System.currentTimeMillis()
             LogUtils.debug("PdfService", "📡 ENVIANDO REQUISIÇÃO HTTP...")
-            LogUtils.debug("PdfService", "  🌐 URL: ${baseUrl}api/devolucao/gerar-pdf-direto")
+            LogUtils.debug("PdfService", "  🌐 URL: ${baseUrl}api/pdf-proxy/devolucao")
             LogUtils.debug("PdfService", "  ⏰ Iniciado em: ${SimpleDateFormat("HH:mm:ss.SSS", Locale.getDefault()).format(Date())}")
             
             val response = pdfApiService.gerarPdfDevolucao(request)

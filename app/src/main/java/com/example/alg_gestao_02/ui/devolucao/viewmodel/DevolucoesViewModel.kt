@@ -129,7 +129,11 @@ class DevolucoesViewModel(
         val filtered = allDevolucoes.filter { devolucao ->
             devolucao.resolverNomeCliente().lowercase().contains(termLower) ||
                     devolucao.devNum.lowercase().contains(termLower) ||
-                    devolucao.resolverNomeEquipamento().lowercase().contains(termLower)
+                    devolucao.resolverNomeEquipamento().lowercase().contains(termLower) ||
+                    devolucao.contrato?.getContratoNumOuVazio().orEmpty().lowercase().contains(termLower) ||
+                    devolucao.statusItemDevolucao.lowercase().contains(termLower) ||
+                    devolucao.dataDevolucaoPrevista.orEmpty().lowercase().contains(termLower) ||
+                    devolucao.dataDevolucaoEfetiva.orEmpty().lowercase().contains(termLower)
         }
 
         if (filtered.isNotEmpty()) {

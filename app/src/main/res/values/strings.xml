@@ -30,6 +30,7 @@
     
     <!-- Menu -->
     <string name="equipments">Equipamentos</string>
+    <string name="materials">Materiais</string>
     <string name="invoices">Faturas</string>
     <string name="returns">Devoluções</string>
     

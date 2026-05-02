@@ -21,6 +21,8 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Semaphore
+import kotlinx.coroutines.sync.withPermit
 import java.text.SimpleDateFormat
 import java.util.Date
 import java.util.Locale
@@ -171,13 +173,19 @@ class ContratosViewModel(
      */
     private suspend fun carregarEquipamentosParaContratos(contratos: List<Contrato>): List<Contrato> {
         LogUtils.debug("ContratosViewModel", "Carregando equipamentos para ${contratos.size} contratos com CACHE")
-        
-        // Separar contratos que já têm equipamentos em cache dos que precisam ser carregados
+
+        // Separar contratos que ja tem dados locais/cache dos que precisam de chamada remota
         val contratosComCache = mutableListOf<Contrato>()
         val contratosParaCarregar = mutableListOf<Contrato>()
-        
+
         contratos.forEach { contrato ->
-            if (equipamentosCache.containsKey(contrato.id)) {
+            val equipamentosLocais = contrato.equipamentosParaExibicao
+
+            if (equipamentosLocais.isNotEmpty()) {
+                equipamentosCache[contrato.id] = equipamentosLocais
+                contratosComCache.add(contrato.copy(equipamentos = equipamentosLocais))
+                LogUtils.debug("ContratosViewModel", "Contrato ${contrato.contratoNum}: ${equipamentosLocais.size} equipamentos locais")
+            } else if (equipamentosCache.containsKey(contrato.id)) {
                 // Usar equipamentos do cache
                 val equipamentos = equipamentosCache[contrato.id] ?: emptyList()
                 contratosComCache.add(contrato.copy(equipamentos = equipamentos))
@@ -187,41 +195,44 @@ class ContratosViewModel(
                 contratosParaCarregar.add(contrato)
             }
         }
-        
+
         LogUtils.debug("ContratosViewModel", "Cache: ${contratosComCache.size} contratos, Carregar: ${contratosParaCarregar.size} contratos")
-        
-        // Carregar equipamentos apenas para contratos que não estão em cache
+
+        // Carregar equipamentos apenas para contratos que ainda não estão em cache
         val contratosCarregados = if (contratosParaCarregar.isNotEmpty()) {
             coroutineScope {
+                val limiteConcorrencia = Semaphore(6)
                 val contratosComEquipamentos = contratosParaCarregar.map { contrato ->
                     async {
-                        try {
-                            val equipamentosResource = equipamentoContratoRepository.getEquipamentosContrato(contrato.id)
-                            if (equipamentosResource is Resource.Success) {
-                                val equipamentos = equipamentosResource.data
-                                
-                                // Salvar no cache
-                                equipamentosCache[contrato.id] = equipamentos
-                                
-                                LogUtils.debug("ContratosViewModel", "Contrato ${contrato.contratoNum}: ${equipamentos.size} equipamentos carregados e CACHEADO")
-                                contrato.copy(equipamentos = equipamentos)
-                            } else {
-                                LogUtils.debug("ContratosViewModel", "Contrato ${contrato.contratoNum}: Erro ao carregar equipamentos - ${equipamentosResource.message}")
+                        limiteConcorrencia.withPermit {
+                            try {
+                                val equipamentosResource = equipamentoContratoRepository.getEquipamentosContrato(contrato.id)
+                                if (equipamentosResource is Resource.Success) {
+                                    val equipamentos = equipamentosResource.data
+
+                                    // Salvar no cache
+                                    equipamentosCache[contrato.id] = equipamentos
+
+                                    LogUtils.debug("ContratosViewModel", "Contrato ${contrato.contratoNum}: ${equipamentos.size} equipamentos carregados e CACHEADO")
+                                    contrato.copy(equipamentos = equipamentos)
+                                } else {
+                                    LogUtils.debug("ContratosViewModel", "Contrato ${contrato.contratoNum}: Erro ao carregar equipamentos - ${equipamentosResource.message}")
+                                    contrato.copy(equipamentos = emptyList())
+                                }
+                            } catch (e: Exception) {
+                                LogUtils.error("ContratosViewModel", "Erro ao carregar equipamentos para contrato ${contrato.contratoNum}", e)
                                 contrato.copy(equipamentos = emptyList())
                             }
-                        } catch (e: Exception) {
-                            LogUtils.error("ContratosViewModel", "Erro ao carregar equipamentos para contrato ${contrato.contratoNum}", e)
-                            contrato.copy(equipamentos = emptyList())
                         }
                     }
                 }
-                
+
                 contratosComEquipamentos.awaitAll()
             }
         } else {
             emptyList()
         }
-        
+
         // Combinar contratos do cache com os carregados
         return contratosComCache + contratosCarregados
     }
@@ -518,7 +529,7 @@ class ContratosViewModel(
     fun removerFiltroPorMes() {
         LogUtils.debug("ContratosViewModel", "Removendo filtro por mês")
         filtroMesAtivo = null
-        _uiState.value = UiState.Success(allContratos)
+        _uiState.value = UiState.Success(allContratos.filter { !it.isArquivado() })
     }
     
     /**
@@ -529,34 +540,31 @@ class ContratosViewModel(
             _uiState.value = UiState.Empty()
             return
         }
-        
-        // Se há filtro por mês ativo, não aplicar busca
+
+        // Se há filtro por mês ativo, não aplicar busca aqui
         if (filtroMesAtivo != null) {
             return
         }
-        
+
         if (term.isEmpty()) {
-            // Manter ordenação por data mesmo sem filtro
-            _uiState.value = UiState.Success(allContratos)
+            _uiState.value = UiState.Success(allContratos.filter { !it.isArquivado() })
             return
         }
-        
-        val filteredList = allContratos.filter { contrato ->
-            val clienteNome = contrato.resolverNomeCliente().lowercase()
-            clienteNome.contains(term.lowercase())
-        }
-        
+
+        val filteredList = allContratos
+            .filter { !it.isArquivado() }
+            .filter { contratoMatchesSearch(it, term) }
+
         if (filteredList.isEmpty()) {
             _uiState.value = UiState.Empty()
         } else {
-            // Manter ordenação por data mesmo após filtrar
             val sortedFilteredList = ordenarContratosPorDataEmissao(filteredList)
             _uiState.value = UiState.Success(sortedFilteredList)
         }
     }
-    
+
     /**
-     * Aplica filtros combinados de aba, mês e busca
+     * Aplica filtros combinados de aba, mes e busca
      */
     fun aplicarFiltros(
         tab: com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab,
@@ -571,19 +579,44 @@ class ContratosViewModel(
         
         var contratosFiltrados = allContratos
         
+        LogUtils.debug("ContratosViewModel", "🔍 Iniciando aplicação de filtros:")
+        LogUtils.debug("ContratosViewModel", "  - Aba: $tab")
+        LogUtils.debug("ContratosViewModel", "  - Total de contratos: ${allContratos.size}")
+        LogUtils.debug("ContratosViewModel", "  - Ano: $ano, Mês: $mes")
+        LogUtils.debug("ContratosViewModel", "  - Busca: '$searchTerm'")
+        
         // Filtro por aba
         contratosFiltrados = when (tab) {
             com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.TODOS -> {
                 // Mostra todos os contratos não arquivados
-                contratosFiltrados.filter { !it.isArquivado() }
+                val filtrados = contratosFiltrados.filter { !it.isArquivado() }
+                LogUtils.debug("ContratosViewModel", "  ✓ Filtro TODOS: ${filtrados.size} contratos")
+                filtrados
             }
             com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.EM_ANDAMENTO -> {
                 // Mostra apenas contratos em andamento
-                contratosFiltrados.filter { it.isEmAndamento() && !it.isArquivado() }
+                val filtrados = contratosFiltrados.filter { it.isEmAndamento() && !it.isArquivado() }
+                LogUtils.debug("ContratosViewModel", "  ✓ Filtro EM_ANDAMENTO: ${filtrados.size} contratos")
+                filtrados
             }
-            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.ARQUIVADOS -> {
-                // Mostra apenas contratos arquivados
-                contratosFiltrados.filter { it.isArquivado() }
+            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.RENOVADOS -> {
+                // Mostra apenas contratos renovados (sem usar aba de arquivados)
+                val renovados = allContratos.filter { it.isRenovado() }
+                LogUtils.debug("ContratosViewModel", "  📊 DEBUG FILTRO RENOVADOS:")
+                LogUtils.debug("ContratosViewModel", "     - Total de contratos: ${allContratos.size}")
+                LogUtils.debug("ContratosViewModel", "     - Contratos renovados (sem filtro arquivado): ${renovados.size}")
+                
+                // Listar alguns contratos renovados para debug
+                if (renovados.isNotEmpty()) {
+                    renovados.take(3).forEach { contrato ->
+                        LogUtils.debug("ContratosViewModel", "       ✓ ${contrato.contratoNum} - Status: ${contrato.statusContrato}, Ciclo: ${contrato.cicloNumero}")
+                    }
+                }
+                
+                val filtrados = renovados.filter { !it.isArquivado() }
+                LogUtils.debug("ContratosViewModel", "     - Após remover arquivados: ${filtrados.size} contratos")
+                LogUtils.debug("ContratosViewModel", "  ✓ Filtro RENOVADOS: ${filtrados.size} contratos")
+                filtrados
             }
         }
         
@@ -597,15 +630,18 @@ class ContratosViewModel(
                 }
                 contratoMes?.ano == ano && contratoMes.mes == mes
             }
+            LogUtils.debug("ContratosViewModel", "  ✓ Filtro mês $mes/$ano: ${contratosFiltrados.size} contratos")
         }
         
         // Filtro por busca
         if (searchTerm.isNotEmpty()) {
             contratosFiltrados = contratosFiltrados.filter { contrato ->
-                val clienteNome = contrato.resolverNomeCliente().lowercase()
-                clienteNome.contains(searchTerm.lowercase())
+                contratoMatchesSearch(contrato, searchTerm)
             }
+            LogUtils.debug("ContratosViewModel", "  ✓ Filtro busca '$searchTerm': ${contratosFiltrados.size} contratos")
         }
+        
+        LogUtils.debug("ContratosViewModel", "🎯 Resultado final: ${contratosFiltrados.size} contratos")
         
         // Ordenar e atualizar UI
         if (contratosFiltrados.isEmpty()) {
@@ -619,6 +655,26 @@ class ContratosViewModel(
             "ContratosViewModel",
             "Filtros aplicados: Tab=$tab, Ano=$ano, Mês=$mes, Busca='$searchTerm', Resultados=${contratosFiltrados.size}"
         )
+    }
+
+    private fun contratoMatchesSearch(contrato: Contrato, searchTerm: String): Boolean {
+        val term = searchTerm.trim().lowercase()
+        if (term.isEmpty()) return true
+
+        val status = contrato.statusContrato.orEmpty().lowercase()
+        val referencia = contrato.referenciaCiclo.orEmpty().lowercase()
+        val equipamentos = contrato.equipamentosParaExibicao
+            .joinToString(" ") { it.equipamentoNome.orEmpty() }
+            .lowercase()
+
+        return contrato.resolverNomeCliente().lowercase().contains(term) ||
+            contrato.getContratoNumOuVazio().lowercase().contains(term) ||
+            contrato.obraLocal.orEmpty().lowercase().contains(term) ||
+            contrato.entregaLocal.orEmpty().lowercase().contains(term) ||
+            contrato.respPedido.orEmpty().lowercase().contains(term) ||
+            status.contains(term) ||
+            referencia.contains(term) ||
+            equipamentos.contains(term)
     }
     
     /**
@@ -850,3 +906,8 @@ class ContratosViewModelFactory : ViewModelProvider.Factory {
         throw IllegalArgumentException("ViewModel desconhecido")
     }
 }
+
+
+
+
+

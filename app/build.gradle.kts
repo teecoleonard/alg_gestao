@@ -12,7 +12,9 @@ android {
     val apiBaseUrl = (project.findProperty("ALG_API_BASE_URL") as String?)
         ?: "http://10.0.2.2:13050/"
     val pdfBaseUrl = (project.findProperty("ALG_PDF_BASE_URL") as String?)
-        ?: "http://10.0.2.2:18080/"
+        ?: "http://10.0.2.2:13010/"
+    val faturasApiBaseUrl = (project.findProperty("ALG_FATURAS_API_BASE_URL") as String?)
+        ?: "http://10.0.2.2:13010/"
 
     defaultConfig {
         applicationId = "com.example.alg_gestao_02"
@@ -28,11 +30,13 @@ android {
         debug {
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "PDF_BASE_URL", "\"$pdfBaseUrl\"")
+            buildConfigField("String", "FATURAS_API_BASE_URL", "\"$faturasApiBaseUrl\"")
         }
         release {
             isMinifyEnabled = false
             buildConfigField("String", "API_BASE_URL", "\"$apiBaseUrl\"")
             buildConfigField("String", "PDF_BASE_URL", "\"$pdfBaseUrl\"")
+            buildConfigField("String", "FATURAS_API_BASE_URL", "\"$faturasApiBaseUrl\"")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

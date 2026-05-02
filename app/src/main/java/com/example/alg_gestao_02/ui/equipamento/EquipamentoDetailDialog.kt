@@ -5,13 +5,10 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
-import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.fragment.app.DialogFragment
 import androidx.lifecycle.ViewModelProvider
-import com.bumptech.glide.Glide
-import com.bumptech.glide.load.engine.DiskCacheStrategy
 import com.example.alg_gestao_02.R
 import com.example.alg_gestao_02.data.models.Equipamento
 import com.example.alg_gestao_02.ui.equipamento.viewmodel.EquipamentosViewModel
@@ -28,7 +25,6 @@ class EquipamentoDetailDialog : DialogFragment() {
     private var equipamentoId: Int = 0
     private var equipamento: Equipamento? = null
 
-    private lateinit var ivDetalhesFotoEquipamento: ImageView
     private lateinit var tvDetalhesNomeEquipamento: TextView
     private lateinit var tvDetalhesCodigoEquipamento: TextView
     private lateinit var tvDetalhesQuantidadeEquipamento: TextView
@@ -80,7 +76,6 @@ class EquipamentoDetailDialog : DialogFragment() {
     }
 
     private fun initViews(view: View) {
-        ivDetalhesFotoEquipamento = view.findViewById(R.id.ivDetalhesFotoEquipamento)
         tvDetalhesNomeEquipamento = view.findViewById(R.id.tvDetalhesNomeEquipamento)
         tvDetalhesCodigoEquipamento = view.findViewById(R.id.tvDetalhesCodigoEquipamento)
         tvDetalhesQuantidadeEquipamento = view.findViewById(R.id.tvDetalhesQuantidadeEquipamento)
@@ -145,27 +140,5 @@ class EquipamentoDetailDialog : DialogFragment() {
         } else {
             tvDetalhesValorPatrimonio.text = "Não informado"
         }
-
-        bindFotoEquipamento(equipamento.fotoUrl)
-    }
-
-    private fun bindFotoEquipamento(fotoUrl: String?) {
-        val url = fotoUrl?.trim().orEmpty()
-
-        if (url.isBlank()) {
-            Glide.with(this).clear(ivDetalhesFotoEquipamento)
-            ivDetalhesFotoEquipamento.scaleType = ImageView.ScaleType.CENTER_INSIDE
-            ivDetalhesFotoEquipamento.setImageResource(R.drawable.ic_tools)
-            return
-        }
-
-        ivDetalhesFotoEquipamento.scaleType = ImageView.ScaleType.CENTER_CROP
-        Glide.with(this)
-            .load(url)
-            .placeholder(R.drawable.ic_tools)
-            .error(R.drawable.ic_tools)
-            .diskCacheStrategy(DiskCacheStrategy.AUTOMATIC)
-            .centerCrop()
-            .into(ivDetalhesFotoEquipamento)
     }
 }

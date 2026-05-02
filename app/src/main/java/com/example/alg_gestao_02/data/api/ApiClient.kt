@@ -22,7 +22,51 @@ import javax.net.ssl.HostnameVerifier
  * Cliente para acessar a API
  */
 object ApiClient {
-    val BASE_URL: String = BuildConfig.API_BASE_URL
+    private fun normalizeApiBaseUrl(rawUrl: String, configName: String): String {
+        var normalized = rawUrl.trim()
+        if (!normalized.endsWith("/")) {
+            normalized += "/"
+        }
+
+        // Compatibilidade com configuracoes antigas que usavam acesso direto em :3050.
+        if (normalized.contains(":3050/")) {
+            val migrated = normalized.replace(Regex("(https?://[^/]+):3050/"), "$1/api-sql/")
+            LogUtils.warning(
+                "ApiClient",
+                "URL '$configName' com :3050 detectada. Aplicando fallback para proxy: $migrated"
+            )
+            return migrated
+        }
+
+        return normalized
+    }
+
+    private fun normalizeFaturasBaseUrl(rawUrl: String, configName: String): String {
+        var normalized = rawUrl.trim()
+        if (!normalized.endsWith("/")) {
+            normalized += "/"
+        }
+
+        // O endpoint de faturas vive no backend web (/api/faturas), não no api-sql.
+        // Se vier apontando para /api-sql ou /faturamento, ajustamos para a raiz do host.
+        if (
+            normalized.contains("/api-sql/") ||
+            normalized.contains("/faturamento/") ||
+            normalized.contains(":3050/")
+        ) {
+            val migrated = normalized.replace(Regex("^(https?://[^/]+).*$"), "$1/")
+            LogUtils.warning(
+                "ApiClient",
+                "URL '$configName' incompatível com faturas ($normalized). Aplicando fallback para backend web: $migrated"
+            )
+            return migrated
+        }
+
+        return normalized
+    }
+
+    val BASE_URL: String = normalizeApiBaseUrl(BuildConfig.API_BASE_URL, "API_BASE_URL")
+    val FATURAS_BASE_URL: String = normalizeFaturasBaseUrl(BuildConfig.FATURAS_API_BASE_URL, "FATURAS_API_BASE_URL")
     private lateinit var sessionManager: SessionManager
     private lateinit var context: Context
     
@@ -30,6 +74,11 @@ object ApiClient {
      * Retorna a URL base configurada
      */
     fun getBaseUrl(): String = BASE_URL
+
+    /**
+     * Retorna a URL base configurada para faturas
+     */
+    fun getFaturasBaseUrl(): String = FATURAS_BASE_URL
     
     /**
      * Retorna o contexto da aplicação
@@ -351,6 +400,21 @@ object ApiClient {
     /**
      * Cria e retorna a instância do serviço da API de autenticação
      */
+    /**
+     * Instancia dedicada do Retrofit para endpoints de faturas
+     */
+    private val faturasRetrofit by lazy {
+        if (!::sessionManager.isInitialized) {
+            throw IllegalStateException("ApiClient não foi inicializado. Chame ApiClient.init(context) antes de usar.")
+        }
+
+        Retrofit.Builder()
+            .baseUrl(FATURAS_BASE_URL)
+            .client(createOkHttpClient())
+            .addConverterFactory(GsonConverterFactory.create())
+            .build()
+    }
+
     val apiService: ApiService by lazy {
         LogUtils.info("ApiClient", "🔐 CRIANDO ApiService")
         LogUtils.debug("ApiClient", "🌐 ApiService usando BASE_URL: $BASE_URL")
@@ -362,6 +426,14 @@ object ApiClient {
     /**
      * Cria e retorna a instância do serviço de equipamentos
      */
+    val faturasApiService: ApiService by lazy {
+        LogUtils.info("ApiClient", "CRIANDO FaturasApiService")
+        LogUtils.debug("ApiClient", "FaturasApiService usando BASE_URL: $FATURAS_BASE_URL")
+        val service = faturasRetrofit.create(ApiService::class.java)
+        LogUtils.info("ApiClient", "FaturasApiService criado com sucesso")
+        service
+    }
+
     val equipamentoService: EquipamentoService by lazy {
         LogUtils.info("ApiClient", "🔧 CRIANDO EquipamentoService")
         LogUtils.debug("ApiClient", "🌐 EquipamentoService usando BASE_URL: $BASE_URL")

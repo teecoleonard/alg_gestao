@@ -65,6 +65,18 @@ data class Contrato(
     @SerializedName("data_arquivamento")
     val dataArquivamento: String? = null,
 
+    // Data de renovacao do contrato base/ciclo
+    @SerializedName(value = "data_renovacao", alternate = ["dataRenovacao"])
+    val dataRenovacao: String? = null,
+
+    // Referencia de ciclo para exibicao (ex: 001-C02)
+    @SerializedName(value = "referencia_ciclo", alternate = ["referenciaCiclo"])
+    val referenciaCiclo: String? = null,
+
+    // Numero do ciclo ativo
+    @SerializedName(value = "ciclo_numero", alternate = ["cicloNumero"])
+    val cicloNumero: Int? = null,
+
     // Campo adicional para nome do cliente
     @SerializedName("cliente_nome")
     val clienteNome: String? = null,
@@ -80,6 +92,12 @@ data class Contrato(
     // Suporte para resposta da API que retorna como "equipamentoContratos"
     @SerializedName("equipamentoContratos")
     val equipamentoContratos: List<EquipamentoContrato>? = null,
+
+    @SerializedName("materiais")
+    val materiais: List<MaterialContrato> = emptyList(),
+
+    @SerializedName("materiaisContrato")
+    val materiaisContrato: List<MaterialContrato>? = null,
 
     // Associação com a entidade Assinatura (agora é um objeto aninhado)
     @SerializedName("assinatura")
@@ -207,6 +225,63 @@ data class Contrato(
     fun isArquivado(): Boolean {
         return arquivado
     }
+
+    /**
+     * Verifica se o contrato foi renovado (sem depender de arquivamento).
+     */
+    fun isRenovado(): Boolean {
+        // Verificar data de renovação (campo principal)
+        if (!dataRenovacao.isNullOrBlank()) {
+            LogUtils.debug("Contrato", "✅ Contrato $contratoNum é renovado por dataRenovacao: $dataRenovacao")
+            return true
+        }
+        
+        // Verificar ciclo número
+        val cicloAtual = cicloNumero ?: 1
+        if (cicloAtual > 1) {
+            LogUtils.debug("Contrato", "✅ Contrato $contratoNum é renovado por cicloNumero > 1: $cicloAtual")
+            return true
+        }
+
+        // Verificar referência de ciclo (ex: CONT-001-C02, CONT-001-C03)
+        val referencia = referenciaCiclo.orEmpty().trim().uppercase(Locale.getDefault())
+        if (referencia.isNotEmpty()) {
+            // Se termina com C01, é ciclo 1 (não renovado). Qualquer outro ciclo é renovado
+            val isRenovadoPorReferencia = !referencia.endsWith("-C01") && !referencia.endsWith("C01")
+            if (isRenovadoPorReferencia) {
+                LogUtils.debug("Contrato", "✅ Contrato $contratoNum é renovado por referenciaCiclo: $referencia")
+                return true
+            }
+        }
+
+        // Fallback para cenários em que o backend ainda não envia campos de ciclo,
+        // mas o número do contrato já carrega a referência do ciclo (ex.: 001-C02).
+        val numeroContrato = contratoNum.orEmpty().trim().uppercase(Locale.getDefault())
+        val matchCicloNoNumero = Regex("C(\\d{2,})$").find(numeroContrato)
+        if (matchCicloNoNumero != null) {
+            val cicloNoNumero = matchCicloNoNumero.groupValues[1].toIntOrNull() ?: 1
+            if (cicloNoNumero > 1) {
+                LogUtils.debug("Contrato", "✅ Contrato $contratoNum é renovado por sufixo no contratoNum: C$cicloNoNumero")
+                return true
+            }
+        }
+
+        // Verificar status do contrato
+        val statusNormalizado = statusContrato.orEmpty().trim().uppercase(Locale.getDefault())
+        if (statusNormalizado.isNotEmpty()) {
+            // Aceitar vários padrões de renovação
+            val statusRenovado = statusNormalizado.contains("RENOV") || 
+                                 statusNormalizado.contains("CICLO") ||
+                                 statusNormalizado.contains("RECONTRATAÇÃO")
+            if (statusRenovado) {
+                LogUtils.debug("Contrato", "✅ Contrato $contratoNum é renovado por statusContrato: $statusNormalizado")
+                return true
+            }
+        }
+        
+        LogUtils.debug("Contrato", "ℹ️ Contrato $contratoNum NÃO é renovado - ciclo: $cicloAtual, status: $statusNormalizado, ref: $referencia, dataRenov: $dataRenovacao")
+        return false
+    }
     
     /**
      * Verifica se o contrato deve ser arquivado automaticamente
@@ -312,12 +387,16 @@ data class Contrato(
      * Se não houver equipamentos, usa o contratoValor fornecido pela API.
      */
     fun getValorEfetivo(): Double {
-        // Se houver equipamentos, soma seus valores totais
-        return if (!equipamentos.isNullOrEmpty()) {
-            LogUtils.debug("Contrato", "Calculando valor efetivo a partir de ${equipamentos.size} equipamentos")
-            equipamentos.sumOf { it.valorTotal }
+        val totalEquipamentos = equipamentosParaExibicao.sumOf { it.valorTotal }
+        val totalMateriais = materiaisParaExibicao.sumOf { it.valorTotal }
+
+        return if (totalEquipamentos > 0 || totalMateriais > 0) {
+            LogUtils.debug(
+                "Contrato",
+                "Calculando valor efetivo: equipamentos=$totalEquipamentos materiais=$totalMateriais",
+            )
+            totalEquipamentos + totalMateriais
         } else {
-            // Usar o contratoValor fornecido pela API (que já está calculado no servidor)
             LogUtils.debug("Contrato", "Usando contratoValor da API: $contratoValor")
             contratoValor
         }
@@ -334,6 +413,13 @@ data class Contrato(
             else -> emptyList()
         }
 
+    val materiaisParaExibicao: List<MaterialContrato>
+        get() = when {
+            materiais.isNotEmpty() -> materiais
+            !materiaisContrato.isNullOrEmpty() -> materiaisContrato!!
+            else -> emptyList()
+        }
+
     /**
      * Verifica se o contrato pode ser excluído com base no status e papel do usuário
      * @param isAdmin Indica se o usuário tem papel de administrador
@@ -342,7 +428,7 @@ data class Contrato(
      */
     fun podeExcluir(isAdmin: Boolean, forcar: Boolean = false): Pair<Boolean, String> {
         return when {
-            // Se for admin e forçar, permite exclusão independente do status
+            // Se for admin e forçar, permite exclusão independentemente do status
             isAdmin && forcar -> Pair(true, "Exclusão forçada permitida para administrador")
             
             // Se for admin mas não forçar, verifica regras normais

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/menu_fatura_detalhes"
+        android:title="Detalhes" />
+    <item
+        android:id="@+id/menu_fatura_visualizar_pdf"
+        android:title="Visualizar PDF" />
+    <item
+        android:id="@+id/menu_fatura_compartilhar_pdf"
+        android:title="Compartilhar PDF" />
+</menu>

@@ -28,6 +28,16 @@
             android:title="@string/equipments"
             android:fontFamily="@font/poppins" />
         <item
+            android:id="@+id/nav_materiais"
+            android:icon="@drawable/ic_note"
+            android:title="@string/materials"
+            android:fontFamily="@font/poppins" />
+        <item
+            android:id="@+id/nav_faturas"
+            android:icon="@drawable/ic_business"
+            android:title="@string/invoices"
+            android:fontFamily="@font/poppins" />
+        <item
             android:id="@+id/nav_devolucoes"
             android:icon="@drawable/ic_devolucoes"
             android:title="@string/returns"

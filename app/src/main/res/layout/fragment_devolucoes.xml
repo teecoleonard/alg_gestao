@@ -22,7 +22,7 @@
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Buscar por nome do cliente"
+            android:hint="Buscar por cliente, devolucao, contrato ou equipamento"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />

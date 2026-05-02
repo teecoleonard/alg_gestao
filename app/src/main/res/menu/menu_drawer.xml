@@ -18,6 +18,10 @@
             android:icon="@android:drawable/ic_menu_manage"
             android:title="@string/equipments" />
         <item
+            android:id="@+id/nav_materiais"
+            android:icon="@android:drawable/ic_menu_agenda"
+            android:title="@string/materials" />
+        <item
             android:id="@+id/nav_faturas"
             android:icon="@android:drawable/ic_menu_agenda"
             android:title="@string/invoices" />

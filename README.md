@@ -4,7 +4,7 @@ Aplicativo Android nativo (100% Kotlin) para operar todo o ciclo de locação de
 
 ---
 
-## 🔄 Ciclo Operacional do Negócio
+## Ciclo Operacional do Negócio
 
 | Etapa | Onde acontece | Persistência | O que é disparado |
 |-------|---------------|--------------|-------------------|
@@ -17,7 +17,7 @@ Aplicativo Android nativo (100% Kotlin) para operar todo o ciclo de locação de
 
 ---
 
-## 🏛️ Arquitetura de Desenvolvimento
+## Arquitetura de Desenvolvimento
 
 - **Camadas MVVM + Repository** (`ui/*`, `viewmodel`, `data/repository`): separa apresentação, regras de negócio e acesso a dados.
 - **Retrofit + OkHttp** (`data/api/ApiClient.kt`, `AuthInterceptor.kt`) com headers dinâmicos (token + seleção de banco).
@@ -31,7 +31,7 @@ Aplicativo Android nativo (100% Kotlin) para operar todo o ciclo de locação de
 
 ---
 
-## 🧱 Organização dos Módulos
+## Organização dos Módulos
 
 ```
 app/src/main/java/com/example/alg_gestao_02/
@@ -56,7 +56,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 🔐 Autenticação e Segurança
+## Autenticação e Segurança
 
 - Login e registro com `LoginViewModel`/`RegisterViewModel` e validação de CPF/CNPJ (`TextMaskUtils`).
 - Sessões persistem por 30 dias via `SessionManager`; tokens ficam em `EncryptedSharedPreferences`.
@@ -65,7 +65,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 📊 Dashboards e Financeiro
+## Dashboards e Financeiro
 
 - `DashboardFragment` consome `/api/dashboard/resumo` e popula cards para receita, contratos ativos, equipamentos e devoluções. Os dados são armazenados em Room para fallback offline.
 - `FinancialFragment` e `ReceitaClientesFragment` usam `FinancialViewModel` com filtros:
@@ -75,7 +75,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 📄 PDF, Assinaturas e Status
+## PDF, Assinaturas e Status
 
 - `SignatureCaptureFragment` captura a assinatura do cliente usando `SignatureView`, converte para base64 e envia para `ContratoRepository`.
 - `PdfService` gera contratos em PDF, armazenando-os localmente com `FileProvider` para compartilhar.
@@ -84,7 +84,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 📦 Devoluções e Estoque
+## Devoluções e Estoque
 
 - Ao criar um contrato, a API gera automaticamente um item de devolução por equipamento. O app consome em `DevolucoesFragment`.
 - Cada item tem status próprio (pendente, parcial, concluído). Operador informa quantidades recebidas, fotos e observações.
@@ -92,7 +92,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 🔁 Interação com a API `api-sql`
+## Interação com a API `api-sql`
 
 - Todas as chamadas HTTP partem de `data/api/ApiService.kt` usando Retrofit. Principais endpoints:
   - `POST /api/auth/login`, `POST /api/auth/register`
@@ -104,7 +104,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## ⚙️ Build, Configuração e DevOps
+## Build, Configuração e DevOps
 
 1. **Pré-requisitos**
    - Android Studio Giraffe+, JDK 17 (`build.gradle.kts` já configurado com `compileSdk=34`).
@@ -114,10 +114,19 @@ app/src/main/java/com/example/alg_gestao_02/
    - O app usa `BuildConfig.API_BASE_URL` e `BuildConfig.PDF_BASE_URL` (sem hardcode no Kotlin).
    - Para testar no Docker local (emulador Android), compile com:
      ```bash
-     ./gradlew :app:assembleDebug \
-       -PALG_API_BASE_URL=http://10.0.2.2:13050/ \
-       -PALG_PDF_BASE_URL=http://10.0.2.2:18080/
+     .\gradlew.bat :app:assembleDebug `
+       -PALG_API_BASE_URL=http://10.0.2.2:13050/ `
+       -PALG_FATURAS_API_BASE_URL=http://10.0.2.2:13010/ `
+       -PALG_PDF_BASE_URL=http://10.0.2.2:13010/
      ```
+   - Para VPS com proxy (stack atual em `80/443`), compile com:
+     ```bash
+     .\gradlew.bat :app:assembleDebug `
+        -PALG_API_BASE_URL=http://45.10.160.10/api-sql/ `
+       -PALG_FATURAS_API_BASE_URL=http://45.10.160.10/ `
+        -PALG_PDF_BASE_URL=http://45.10.160.10/
+     ```
+   - Evite `http://45.10.160.10:3050/` no app quando a API estiver somente por proxy.
    - Para aparelho físico, substitua `10.0.2.2` pelo IP da sua máquina na rede local.
 
 3. **Build e testes**
@@ -133,7 +142,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 🧪 Estratégia de Testes
+## Estratégia de Testes
 
 - **Unitários**: ViewModels e repositórios com mocks do `ApiService` (use `./gradlew test`).
 - **Instrumentação**: Fluxo completo (login → criação de contrato → devolução) via Espresso (`./gradlew connectedAndroidTest`).
@@ -141,7 +150,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 🗂️ Referências Rápidas
+##  Referências Rápidas
 
 - `NOVO_SISTEMA_CONTRATOS.md`: detalha abas, filtros, arquivamento e endpoints envolvidos.
 - `STATUS_CONTRATO_UI_IMPLEMENTADO.md`: documentação visual do badge e fluxo de alteração de status.
@@ -149,7 +158,7 @@ app/src/main/java/com/example/alg_gestao_02/
 
 ---
 
-## 👨‍💻 Autor
+## Autor
 
 **Leonardo Henrique**  
 📧 [leonardo4q@gmail.com](mailto:leonardo4q@gmail.com)  
