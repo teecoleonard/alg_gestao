@@ -80,7 +80,9 @@ data class ContratoPdfDTO(
     val observacoes: String,
     val status: String,
     val assinatura: AssinaturaPdfDTO? = null,
-    val responsavel: String? = null
+    val responsavel: String? = null,
+    val recebidoPor: String? = null,
+    val entregueCpf: String? = null
 )
 
 /**
@@ -181,6 +183,7 @@ data class DevolucaoPdfDTO(
     val quantidadePendente: Int,
     val status: String,
     val observacao: String? = null,
+    val created_at: String? = null,
     val cliente: ClienteDevolucaoPdfDTO,
     val equipamento: EquipamentoDevolucaoPdfDTO,
     val contrato: ContratoDevolucaoPdfDTO,
@@ -387,14 +390,15 @@ class PdfService {
         }
         
         // Formatar as datas para o formato ISO
-        val formatoOriginal = SimpleDateFormat("dd/MM/yyyy", Locale.getDefault())
         val formatoISO = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
         
         val dataEmissao = try {
-            contrato.dataHoraEmissao ?: run {
-                LogUtils.warning("PdfService", "Data de emissão não encontrada, usando data atual")
-                formatoISO.format(Date())
-            }
+            contrato.dataInicioCiclo?.takeIf { it.isNotBlank() }
+                ?: contrato.dataHoraEmissao?.takeIf { it.isNotBlank() }
+                ?: run {
+                    LogUtils.warning("PdfService", "Data de emissão não encontrada, usando data atual")
+                    formatoISO.format(Date())
+                }
         } catch (e: Exception) {
             LogUtils.error("PdfService", "Erro ao processar data de emissão", e)
             formatoISO.format(Date())
@@ -402,57 +406,50 @@ class PdfService {
         
         // Calcular data de vencimento conforme o período do contrato
         val dataVencimento = try {
-            // Base: data de emissão (ISO) já calculada acima; aceitar múltiplos formatos
-            fun parseDateFlexible(value: String?): Date? {
-                if (value.isNullOrBlank()) return null
-                val patterns = listOf(
-                    "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
-                    "yyyy-MM-dd'T'HH:mm:ss'Z'",
-                    "yyyy-MM-dd'T'HH:mm:ss.SSS",
-                    "yyyy-MM-dd'T'HH:mm:ss",
-                    "yyyy-MM-dd"
-                )
-                for (p in patterns) {
-                    try {
-                        val sdf = SimpleDateFormat(p, Locale.getDefault())
-                        sdf.timeZone = TimeZone.getTimeZone("UTC")
-                        return sdf.parse(value)
-                    } catch (_: Exception) { }
-                }
-                return null
-            }
-
-            val baseDate: Date = parseDateFlexible(dataEmissao) ?: Date()
-
-            val periodoEfetivo = (contrato.contratoPeriodo ?: "").trim().uppercase(Locale.getDefault())
-            val periodoNormalizado = java.text.Normalizer
-                .normalize(periodoEfetivo, java.text.Normalizer.Form.NFD)
-                .replace("[\\p{InCombiningDiacriticalMarks}]".toRegex(), "")
-
-            val cal = java.util.Calendar.getInstance().apply { time = baseDate }
-            when (periodoNormalizado) {
-                "DIARIA", "DIARIO" -> {
-                    // próximo dia
-                    cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
-                }
-                "QUINZENAL" -> {
-                    cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
-                }
-                "MENSAL" -> {
-                    cal.add(java.util.Calendar.MONTH, 1)
-                }
-                "ANUAL" -> {
-                    cal.add(java.util.Calendar.YEAR, 1)
-                }
-                else -> {
-                    // Se período não reconhecido, usar dataVenc se existir; senão segue com baseDate
-                    if (!contrato.dataVenc.isNullOrEmpty()) {
-                        val parsed = formatoOriginal.parse(contrato.getDataVencimentoFormatada())
-                        cal.time = parsed ?: baseDate
+            val dataVencimentoBackend = contrato.dataVenc?.takeIf { it.isNotBlank() }
+            if (dataVencimentoBackend != null) {
+                dataVencimentoBackend
+            } else {
+                // Base: data de emissão (ISO) já calculada acima; aceitar múltiplos formatos
+                fun parseDateFlexible(value: String?): Date? {
+                    if (value.isNullOrBlank()) return null
+                    val patterns = listOf(
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS'Z'",
+                        "yyyy-MM-dd'T'HH:mm:ss'Z'",
+                        "yyyy-MM-dd'T'HH:mm:ss.SSS",
+                        "yyyy-MM-dd'T'HH:mm:ss",
+                        "yyyy-MM-dd"
+                    )
+                    for (p in patterns) {
+                        try {
+                            val sdf = SimpleDateFormat(p, Locale.getDefault())
+                            sdf.timeZone = TimeZone.getTimeZone("UTC")
+                            return sdf.parse(value)
+                        } catch (_: Exception) { }
                     }
+                    return null
                 }
+
+                val baseDate: Date = parseDateFlexible(dataEmissao) ?: Date()
+
+                val periodoEfetivo = (contrato.contratoPeriodo ?: "").trim().uppercase(Locale.getDefault())
+                val periodoNormalizado = java.text.Normalizer
+                    .normalize(periodoEfetivo, java.text.Normalizer.Form.NFD)
+                    .replace("[\\p{InCombiningDiacriticalMarks}]".toRegex(), "")
+
+                val cal = java.util.Calendar.getInstance().apply { time = baseDate }
+                when (periodoNormalizado) {
+                    "DIARIA", "DIARIO" -> {
+                        // próximo dia
+                        cal.add(java.util.Calendar.DAY_OF_MONTH, 1)
+                    }
+                    "QUINZENAL" -> cal.add(java.util.Calendar.DAY_OF_MONTH, 15)
+                    "MENSAL" -> cal.add(java.util.Calendar.MONTH, 1)
+                    "ANUAL" -> cal.add(java.util.Calendar.YEAR, 1)
+                    else -> cal.time = baseDate
+                }
+                formatoISO.format(cal.time)
             }
-            formatoISO.format(cal.time)
         } catch (e: Exception) {
             LogUtils.error("PdfService", "Erro ao calcular data de vencimento pelo período", e)
             formatoISO.format(Date())
@@ -462,7 +459,9 @@ class PdfService {
         val observacoes = StringBuilder().apply {
             append("Local da Obra: ${contrato.obraLocal ?: "Não especificado"}\n")
             append("Período do Contrato: ${contrato.contratoPeriodo ?: "Não especificado"}\n")
-            append("Local de Entrega: ${contrato.entregaLocal ?: "Não especificado"}")
+            append("Local de Entrega: ${contrato.entregaLocal ?: "Não especificado"}\n")
+            append("Recebido por Nome: ${contrato.recebidoPor ?: "Não informado"}\n")
+            append("Entregue para CPF/Identidade: ${contrato.entregueCpf ?: "Não informado"}")
             
             // Adicionar informações da assinatura se disponível
             contrato.assinatura?.let { assinatura ->
@@ -498,12 +497,16 @@ class PdfService {
             observacoes = observacoes,
             status = if (contrato.isAssinado()) "FINALIZADO" else "ATIVO",
             assinatura = assinaturaPdfDTO,
-            responsavel = contrato.respPedido
+            responsavel = contrato.respPedido,
+            recebidoPor = contrato.recebidoPor,
+            entregueCpf = contrato.entregueCpf
         )
         
         LogUtils.debug("PdfService", "✅ RESULTADO DO MAPEAMENTO:")
         LogUtils.debug("PdfService", "  - Assinatura no DTO: ${if (assinaturaPdfDTO != null) "SIM (${assinaturaPdfDTO.nome_arquivo})" else "NÃO"}")
         LogUtils.debug("PdfService", "  - Responsável no DTO: ${contrato.respPedido ?: "Não informado"}")
+        LogUtils.debug("PdfService", "  - Recebido por no DTO: ${contrato.recebidoPor ?: "Não informado"}")
+        LogUtils.debug("PdfService", "  - Entregue CPF/Identidade no DTO: ${contrato.entregueCpf ?: "Não informado"}")
         LogUtils.debug("PdfService", "=== FIM DO MAPEAMENTO DO CONTRATO ===")
         
         return contratoPdfDTO
@@ -821,6 +824,7 @@ class PdfService {
             quantidadePendente = devolucao.getQuantidadePendente(),
             status = devolucao.statusItemDevolucao,
             observacao = devolucao.observacaoItemDevolucao,
+            created_at = devolucao.createdAt,
             cliente = clientePdf,
             equipamento = equipamentoPdf,
             contrato = contratoPdf,

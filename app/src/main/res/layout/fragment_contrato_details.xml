@@ -132,6 +132,33 @@
             android:layout_height="wrap_content"
             android:layout_marginBottom="8dp"
             tools:text="João da Silva" />
+        <!-- Recebido por Nome -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Recebido por Nome:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoRecebidoPor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="Joao Silva" />
+
+        <!-- Entregue para CPF/Identidade -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Entregue para CPF/Identidade:"
+            android:textStyle="bold" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoEntregueCpf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="8dp"
+            tools:text="MG-12.345.678" />
 
         <!-- Assinatura -->
         <TextView

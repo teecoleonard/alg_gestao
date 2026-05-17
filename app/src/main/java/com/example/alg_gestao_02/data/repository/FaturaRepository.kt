@@ -132,6 +132,8 @@ class FaturaRepository {
                 quantidade = eq.quantidadeEquip,
                 descricao = eq.equipamentoNome ?: "Equipamento",
                 obra = eq.obraLocal ?: "-",
+                recebidoPor = eq.recebidoPor ?: "",
+                entregueCpf = eq.entregueCpf ?: "",
                 dataDevolucao = eq.dataDevolucao ?: "",
                 periodo = eq.contratoPeriodo?.uppercase(Locale.getDefault()) ?: "",
                 dataEmissaoContrato = eq.dataEmissaoContrato ?: "",
@@ -150,6 +152,7 @@ class FaturaRepository {
                 valorTotal = mat.valorTotal,
             )
         }
+        val materiaisTotal = materiais.sumOf { it.valorTotal }
 
         val info = FaturaPdfInfo(
             numero = fatura.numero,
@@ -167,6 +170,8 @@ class FaturaRepository {
             cliente = cliente,
             equipamentos = equipamentos,
             materiais = materiais,
+            materiaisTotal = materiaisTotal,
+            totalGeral = fatura.valorTotal,
             dataEmissao = fatura.dataEmissao,
             dataVencimento = fatura.dataVencimento,
         )

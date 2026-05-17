@@ -34,6 +34,8 @@ data class FaturaEquipamentoDetalhe(
     val id: Int = 0,
     @SerializedName(value = "contratoId", alternate = ["contrato_id"])
     val contratoId: Int = 0,
+    @SerializedName(value = "cicloId", alternate = ["contratoCicloId", "contrato_ciclo_id"])
+    val cicloId: Int? = null,
     @SerializedName(value = "referenciaCiclo", alternate = ["referencia_ciclo"])
     val referenciaCiclo: String? = null,
     @SerializedName(value = "equipamentoNome", alternate = ["nomeEquip"])
@@ -46,6 +48,10 @@ data class FaturaEquipamentoDetalhe(
     val contratoNumero: String? = null,
     @SerializedName("obraLocal")
     val obraLocal: String? = null,
+    @SerializedName(value = "recebidoPor", alternate = ["recebido_por"])
+    val recebidoPor: String? = null,
+    @SerializedName(value = "entregueCpf", alternate = ["entregue_cpf"])
+    val entregueCpf: String? = null,
     @SerializedName("dataDevolucao")
     val dataDevolucao: String? = null,
     @SerializedName("dataEmissaoContrato")
@@ -62,6 +68,8 @@ data class FaturaMaterialDetalhe(
     val id: Int = 0,
     @SerializedName(value = "contratoId", alternate = ["contrato_id"])
     val contratoId: Int = 0,
+    @SerializedName(value = "cicloId", alternate = ["contratoCicloId", "contrato_ciclo_id"])
+    val cicloId: Int? = null,
     @SerializedName(value = "referenciaCiclo", alternate = ["referencia_ciclo"])
     val referenciaCiclo: String? = null,
     @SerializedName("materialNome")
@@ -176,6 +184,10 @@ data class FaturaPdfEquipamento(
     val descricao: String,
     @SerializedName("obra")
     val obra: String = "-",
+    @SerializedName("recebidoPor")
+    val recebidoPor: String = "",
+    @SerializedName("entregueCpf")
+    val entregueCpf: String = "",
     @SerializedName("dataDevolucao")
     val dataDevolucao: String = "",
     @SerializedName("periodo")
@@ -212,6 +224,10 @@ data class FaturaPdfRequest(
     val equipamentos: List<FaturaPdfEquipamento> = emptyList(),
     @SerializedName("materiais")
     val materiais: List<FaturaPdfMaterial> = emptyList(),
+    @SerializedName("materiaisTotal")
+    val materiaisTotal: Double = 0.0,
+    @SerializedName("totalGeral")
+    val totalGeral: Double = 0.0,
     @SerializedName("dataEmissao")
     val dataEmissao: String? = null,
     @SerializedName("dataVencimento")

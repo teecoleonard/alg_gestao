@@ -36,6 +36,7 @@ class ContratosAdapter(
         private val ivMenuContrato: ImageView = itemView.findViewById(R.id.ivMenuContrato)
         private val ivStatusContrato: ImageView = itemView.findViewById(R.id.ivStatusContrato)
         private val tvStatusContratoCard: TextView = itemView.findViewById(R.id.tvStatusContratoCard)
+        private val tvTagRenovado: TextView = itemView.findViewById(R.id.tvTagRenovado)
         private val llEquipamentos: LinearLayout = itemView.findViewById(R.id.llEquipamentos)
         
         /**
@@ -83,6 +84,13 @@ class ContratosAdapter(
             tvStatusContratoCard.text = "${statusContrato.getIcone()} ${statusContrato.descricao.uppercase()}"
             tvStatusContratoCard.setTextColor(android.graphics.Color.WHITE)
             tvStatusContratoCard.setBackgroundColor(statusContrato.getCor())
+
+            if (contrato.isRenovado()) {
+                tvTagRenovado.visibility = View.VISIBLE
+                tvTagRenovado.text = "RENOVADO"
+            } else {
+                tvTagRenovado.visibility = View.GONE
+            }
             
             // Configura o clique no item
             itemView.setOnClickListener {

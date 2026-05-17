@@ -34,6 +34,11 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="Renovados" />
+
+        <com.google.android.material.tabs.TabItem
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Faturados" />
     </com.google.android.material.tabs.TabLayout>
 
     <!-- Área de filtros (filtro de mês) -->
@@ -75,7 +80,7 @@
             android:id="@+id/etSearch"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:hint="Buscar por cliente, contrato ou obra"
+            android:hint="Buscar por cliente, contrato, obra, equipamento, material ou código"
             android:imeOptions="actionSearch"
             android:inputType="text"
             android:maxLines="1" />

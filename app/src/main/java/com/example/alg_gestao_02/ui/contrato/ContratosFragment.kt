@@ -32,6 +32,8 @@ import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.SessionManager
 import androidx.lifecycle.lifecycleScope
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 import com.example.alg_gestao_02.utils.Resource
 
@@ -55,13 +57,14 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
     
     // Enum para as abas
     enum class ContratoTab {
-        TODOS, EM_ANDAMENTO, RENOVADOS
+        TODOS, EM_ANDAMENTO, RENOVADOS, FATURADOS
     }
     
     private var currentTab: ContratoTab = ContratoTab.TODOS
     private var selectedMonth: Int? = null
     private var selectedYear: Int? = null
     private var hasLoadedData: Boolean = false
+    private var buscaDebounceJob: Job? = null
     
     override fun onCreateView(
         inflater: LayoutInflater,
@@ -108,6 +111,7 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         
         // Limpar qualquer filtro pendente quando sair da tela
         com.example.alg_gestao_02.utils.FilterManager.clearPendingFilter()
+        buscaDebounceJob?.cancel()
         
         // COMENTADO: Não fechar dialogs automaticamente em onPause
         // para permitir que dialogs persistam durante mudanças de orientação
@@ -181,6 +185,10 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
                     2 -> {
                         currentTab = ContratoTab.RENOVADOS
                         LogUtils.debug("ContratosFragment", "Aba selecionada: RENOVADOS")
+                    }
+                    3 -> {
+                        currentTab = ContratoTab.FATURADOS
+                        LogUtils.debug("ContratosFragment", "Aba selecionada: FATURADOS")
                     }
                 }
                 aplicarFiltros()
@@ -275,7 +283,11 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
-                aplicarFiltros()
+                buscaDebounceJob?.cancel()
+                buscaDebounceJob = viewLifecycleOwner.lifecycleScope.launch {
+                    delay(350)
+                    aplicarFiltros()
+                }
             }
         })
     }

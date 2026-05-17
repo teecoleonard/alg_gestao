@@ -47,6 +47,12 @@ data class Devolucao(
     
     @SerializedName("observacao_item_devolucao")
     val observacaoItemDevolucao: String? = null,
+
+    @SerializedName(value = "created_at", alternate = ["createdAt"])
+    val createdAt: String? = null,
+
+    @SerializedName(value = "updated_at", alternate = ["updatedAt"])
+    val updatedAt: String? = null,
     
     // Objeto contrato completo que vem aninhado na resposta da API
     @SerializedName("contrato")

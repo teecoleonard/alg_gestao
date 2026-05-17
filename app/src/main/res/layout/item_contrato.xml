@@ -89,6 +89,23 @@
                     tools:backgroundTint="#66BB6A"
                     tools:textColor="@android:color/white" />
 
+                <TextView
+                    android:id="@+id/tvTagRenovado"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:layout_marginStart="6dp"
+                    android:background="@drawable/bg_status_chip"
+                    android:paddingStart="6dp"
+                    android:paddingTop="2dp"
+                    android:paddingEnd="6dp"
+                    android:paddingBottom="2dp"
+                    android:text="RENOVADO"
+                    android:textColor="@color/primary_color"
+                    android:textSize="9sp"
+                    android:textStyle="bold"
+                    android:visibility="gone"
+                    tools:visibility="visible" />
+
             </LinearLayout>
 
             </LinearLayout>

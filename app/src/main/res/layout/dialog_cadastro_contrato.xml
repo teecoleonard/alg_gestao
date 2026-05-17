@@ -173,6 +173,48 @@
 
             </com.google.android.material.textfield.TextInputLayout>
 
+            <!-- Recebido por Nome (Opcional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilRecebidoPor"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Recebido por Nome"
+                app:endIconMode="clear_text"
+                app:helperText="Opcional"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/tilRespPedido">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etRecebidoPor"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="textPersonName" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
+            <!-- Entregue para CPF/Identidade (Opcional) -->
+            <com.google.android.material.textfield.TextInputLayout
+                android:id="@+id/tilEntregueCpf"
+                style="@style/Widget.ALG.TextInputLayout.Dialog"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="8dp"
+                android:hint="Entregue para CPF/Identidade"
+                app:endIconMode="clear_text"
+                app:helperText="Opcional"
+                app:helperTextEnabled="true"
+                app:layout_constraintTop_toBottomOf="@id/tilRecebidoPor">
+
+                <com.google.android.material.textfield.TextInputEditText
+                    android:id="@+id/etEntregueCpf"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:inputType="text" />
+
+            </com.google.android.material.textfield.TextInputLayout>
+
             <!-- Seção de Equipamentos -->
             <TextView
                 android:id="@+id/tvTituloEquipamentos"
@@ -185,7 +227,7 @@
                 android:textSize="16sp"
                 android:textStyle="bold"
                 app:layout_constraintStart_toStartOf="parent"
-                app:layout_constraintTop_toBottomOf="@id/tilRespPedido" />
+                app:layout_constraintTop_toBottomOf="@id/tilEntregueCpf" />
 
             <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnAddEquipamento"

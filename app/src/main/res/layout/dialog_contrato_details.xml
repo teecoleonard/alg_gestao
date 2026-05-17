@@ -217,6 +217,27 @@
             android:gravity="center_vertical"
             android:textAppearance="@style/TextAppearance.ALG.Body"
             tools:text="Responsável: Nome do Responsável" />
+        <TextView
+            android:id="@+id/tvDetalhesContratoRecebidoPor"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="4dp"
+            android:drawableStart="@drawable/ic_person"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Recebido por Nome: Joao Silva" />
+
+        <TextView
+            android:id="@+id/tvDetalhesContratoEntregueCpf"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="16dp"
+            android:drawableStart="@drawable/ic_person"
+            android:drawablePadding="8dp"
+            android:gravity="center_vertical"
+            android:textAppearance="@style/TextAppearance.ALG.Body"
+            tools:text="Entregue para CPF/Identidade: MG-12.345.678" />
 
          <!-- Assinatura -->
         <TextView

@@ -90,6 +90,8 @@ class ContratoDetailsDialogFragment : DialogFragment() {
         val tvPeriodo: TextView = view.findViewById(R.id.tvDetalhesContratoPeriodo)
         val tvLocalEntrega: TextView = view.findViewById(R.id.tvDetalhesContratoLocalEntrega)
         val tvResponsavel: TextView = view.findViewById(R.id.tvDetalhesContratoResponsavel)
+        val tvRecebidoPor: TextView = view.findViewById(R.id.tvDetalhesContratoRecebidoPor)
+        val tvEntregueCpf: TextView = view.findViewById(R.id.tvDetalhesContratoEntregueCpf)
         val tvAssinatura: TextView = view.findViewById(R.id.tvDetalhesContratoAssinatura)
         val tvNumEquipamentos: TextView = view.findViewById(R.id.tvDetalhesContratoNumEquipamentos)
         val tvValorTotal: TextView = view.findViewById(R.id.tvDetalhesContratoValorTotal)
@@ -144,6 +146,8 @@ class ContratoDetailsDialogFragment : DialogFragment() {
             tvPeriodo.text = "Período: ${c.contratoPeriodo ?: "Não informado"}"
             tvLocalEntrega.text = "Entrega: ${c.entregaLocal ?: "Não informado"}"
             tvResponsavel.text = "Responsável: ${c.respPedido ?: "Não informado"}"
+            tvRecebidoPor.text = "Recebido por Nome: ${c.recebidoPor ?: "Não informado"}"
+            tvEntregueCpf.text = "Entregue para CPF/Identidade: ${c.entregueCpf ?: "Não informado"}"
             
             // Atualizar exibição do status da assinatura
             val statusAssinatura = when {

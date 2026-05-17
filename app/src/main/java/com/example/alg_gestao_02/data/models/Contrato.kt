@@ -18,43 +18,49 @@ data class Contrato(
     @SerializedName("id")
     val id: Int = 0,
     
-    @SerializedName("cliente_id")
+    @SerializedName(value = "cliente_id", alternate = ["clienteId"])
     val clienteId: Int,
     
-    @SerializedName("contratoNum")
+    @SerializedName(value = "contratoNum", alternate = ["numero"])
     val contratoNum: String? = "",
     
-    @SerializedName("dataHoraEmissao")
+    @SerializedName(value = "dataHoraEmissao", alternate = ["dataEmissao"])
     val dataHoraEmissao: String? = "",
     
-    @SerializedName("dataVenc")
+    @SerializedName(value = "dataVenc", alternate = ["dataVencimento"])
     val dataVenc: String? = "",
     
-    @SerializedName("contratoValor")
+    @SerializedName(value = "contratoValor", alternate = ["valorTotal"])
     val contratoValor: Double,
     
-    @SerializedName("obraLocal")
+    @SerializedName(value = "obraLocal", alternate = ["localObra"])
     val obraLocal: String? = "",
     
-    @SerializedName("contratoPeriodo")
+    @SerializedName(value = "contratoPeriodo", alternate = ["periodo"])
     val contratoPeriodo: String? = "",
     
-    @SerializedName("entregaLocal")
+    @SerializedName(value = "entregaLocal", alternate = ["localEntrega"])
     val entregaLocal: String? = "",
     
-    @SerializedName("respPedido")
+    @SerializedName(value = "respPedido", alternate = ["responsavel"])
     val respPedido: String? = null,
+
+    @SerializedName(value = "recebido_por", alternate = ["recebidoPor"])
+    val recebidoPor: String? = null,
+
+    @SerializedName(value = "entregue_cpf", alternate = ["entregueCpf"])
+    val entregueCpf: String? = null,
     
     @SerializedName("contratoAss")
     val contratoAss: String? = null,
 
-    @SerializedName("status_assinatura")
+    @SerializedName(value = "status_assinatura", alternate = ["statusAssinatura"])
     val status_assinatura: String? = null,
 
     @SerializedName("data_assinatura")
     val data_assinatura: String? = null,
 
-    @SerializedName("status_contrato")
+    @SerializedName(value = "status_contrato", alternate = ["statusContrato"])
     val statusContrato: String? = "PENDENTE",
 
     // Campo para arquivamento de contratos
@@ -76,6 +82,10 @@ data class Contrato(
     // Numero do ciclo ativo
     @SerializedName(value = "ciclo_numero", alternate = ["cicloNumero"])
     val cicloNumero: Int? = null,
+
+    // Inicio do ciclo ativo; para contratos renovados, esta e a data de emissao do ciclo no PDF.
+    @SerializedName(value = "data_inicio_ciclo", alternate = ["dataInicioCiclo", "dataInicio"])
+    val dataInicioCiclo: String? = null,
 
     // Campo adicional para nome do cliente
     @SerializedName("cliente_nome")
@@ -217,6 +227,19 @@ data class Contrato(
      */
     fun isEmAndamento(): Boolean {
         return statusContrato == "EM_ANDAMENTO"
+    }
+
+    /**
+     * Verifica se o contrato está faturado.
+     */
+    fun isFaturado(): Boolean {
+        val statusNormalizado = statusContrato.orEmpty().trim().uppercase(Locale.getDefault())
+        if (statusNormalizado == StatusContrato.FATURADO.valor) return true
+
+        val statusTokenizado = statusNormalizado
+            .replace("_", " ")
+            .replace("-", " ")
+        return Regex("\\bFATURAD[OA]S?\\b").containsMatchIn(statusTokenizado)
     }
     
     /**

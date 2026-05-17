@@ -60,6 +60,10 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
     private lateinit var etEntregaLocal: TextInputEditText
     private lateinit var tilRespPedido: TextInputLayout
     private lateinit var etRespPedido: TextInputEditText
+    private lateinit var tilRecebidoPor: TextInputLayout
+    private lateinit var etRecebidoPor: TextInputEditText
+    private lateinit var tilEntregueCpf: TextInputLayout
+    private lateinit var etEntregueCpf: TextInputEditText
     private lateinit var btnCancel: Button
     private lateinit var btnSave: Button
     private lateinit var loadingView: View
@@ -174,6 +178,10 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         etEntregaLocal = view.findViewById(R.id.etEntregaLocal)
         tilRespPedido = view.findViewById(R.id.tilRespPedido)
         etRespPedido = view.findViewById(R.id.etRespPedido)
+        tilRecebidoPor = view.findViewById(R.id.tilRecebidoPor)
+        etRecebidoPor = view.findViewById(R.id.etRecebidoPor)
+        tilEntregueCpf = view.findViewById(R.id.tilEntregueCpf)
+        etEntregueCpf = view.findViewById(R.id.etEntregueCpf)
         btnCancel = view.findViewById(R.id.btnCancel)
         btnSave = view.findViewById(R.id.btnSave)
         loadingView = view.findViewById(R.id.loadingView)
@@ -478,6 +486,8 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             actvContratoPeriodo.setText(contrato.contratoPeriodo, false)
             etEntregaLocal.setText(contrato.entregaLocal)
             etRespPedido.setText(contrato.respPedido)
+            etRecebidoPor.setText(contrato.recebidoPor)
+            etEntregueCpf.setText(contrato.entregueCpf)
             
             // Preencher equipamentos
             equipamentosContrato.clear()
@@ -851,6 +861,8 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
         val contratoPeriodo = actvContratoPeriodo.text.toString()
         val entregaLocal = etEntregaLocal.text.toString()
         val respPedido = etRespPedido.text.toString().takeIf { it.isNotBlank() }
+        val recebidoPor = etRecebidoPor.text.toString().takeIf { it.isNotBlank() }
+        val entregueCpf = etEntregueCpf.text.toString().takeIf { it.isNotBlank() }
         
         // Atualizar o contratoId dos equipamentos para garantir que eles sejam associados ao contrato correto
         val contratoIdAtual = contratoParaEdicao?.id ?: 0
@@ -951,6 +963,8 @@ class CadastroContratoDialogFragment : BaseDialogFragment() {
             contratoPeriodo = contratoPeriodo,
             entregaLocal = entregaLocal,
             respPedido = respPedido,
+            recebidoPor = recebidoPor,
+            entregueCpf = entregueCpf,
             materiais = materiaisAtualizados
         )
         
