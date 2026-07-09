@@ -106,7 +106,8 @@ data class ContratoMes(
         }
         
         /**
-         * Cria um ContratoMes a partir de uma string de data no formato "yyyy-MM-dd'T'HH:mm:ss"
+         * Cria um ContratoMes a partir de uma string de data no formato "yyyy-MM-dd'T'HH:mm:ss",
+         * aceitando também o formato "yyyy-MM-dd" (a API varia entre os dois)
          */
         fun fromDateTimeString(dateTimeString: String): ContratoMes? {
             return try {
@@ -114,7 +115,7 @@ data class ContratoMes(
                 val date = formato.parse(dateTimeString)
                 if (date != null) fromDate(date) else null
             } catch (e: Exception) {
-                null
+                fromDateString(dateTimeString)
             }
         }
     }

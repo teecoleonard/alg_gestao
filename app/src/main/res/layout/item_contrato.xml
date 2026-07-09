@@ -261,6 +261,34 @@
 
         </LinearLayout>
 
+        <!-- Seção de Materiais -->
+        <LinearLayout
+            android:id="@+id/llMateriaisSection"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:layout_marginTop="8dp">
+
+            <!-- Título da Seção -->
+            <TextView
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Materiais"
+                android:textAppearance="@style/TextAppearance.ALG.Caption"
+                android:textSize="11sp"
+                android:textStyle="bold"
+                android:textColor="@color/text_secondary"
+                android:layout_marginBottom="4dp" />
+
+            <!-- Lista de Materiais (vertical) -->
+            <LinearLayout
+                android:id="@+id/llMateriais"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="vertical" />
+
+        </LinearLayout>
+
         <!-- Campos ocultos para compatibilidade (para não quebrar o código existente) -->
         <TextView
             android:id="@+id/tvValorLabel"

@@ -38,6 +38,8 @@ class ContratosAdapter(
         private val tvStatusContratoCard: TextView = itemView.findViewById(R.id.tvStatusContratoCard)
         private val tvTagRenovado: TextView = itemView.findViewById(R.id.tvTagRenovado)
         private val llEquipamentos: LinearLayout = itemView.findViewById(R.id.llEquipamentos)
+        private val llMateriais: LinearLayout = itemView.findViewById(R.id.llMateriais)
+        private val llMateriaisSection: LinearLayout = itemView.findViewById(R.id.llMateriaisSection)
         
         /**
          * Vincula os dados do contrato ao ViewHolder
@@ -69,6 +71,9 @@ class ContratosAdapter(
             
             // Popular equipamentos
             populateEquipamentos(contrato)
+
+            // Popular materiais
+            populateMateriais(contrato)
             
             // Define o status visual do contrato (assinado/não assinado) - ícone
             if (contrato.isAssinado()) {
@@ -112,8 +117,8 @@ class ContratosAdapter(
             // Limpar equipamentos existentes (exceto os exemplos)
             llEquipamentos.removeAllViews()
             
-            val equipamentos = contrato.equipamentos
-            if (equipamentos != null && equipamentos.isNotEmpty()) {
+            val equipamentos = contrato.equipamentosParaExibicao
+            if (equipamentos.isNotEmpty()) {
                 // Mostrar apenas os primeiros 2 equipamentos para manter o layout compacto
                 val equipamentosParaMostrar = equipamentos.take(2)
                 
@@ -133,7 +138,7 @@ class ContratosAdapter(
                 llEquipamentos.addView(semEquipamentosView)
                 
                 // Log para debug
-                LogUtils.debug("ContratosAdapter", "Contrato ${contrato.contratoNum}: equipamentos é ${if (equipamentos == null) "null" else "vazio"}")
+                LogUtils.debug("ContratosAdapter", "Contrato ${contrato.contratoNum}: sem equipamentos para exibir")
             }
         }
         
@@ -161,9 +166,9 @@ class ContratosAdapter(
                 alpha = 0.6f
             }
             
-            // Nome do equipamento
+            // Nome do equipamento (usa fallback p/ nome aninhado em equipamento.nomeEquip)
             val nomeEquipamento = TextView(itemView.context).apply {
-                text = equipamento.equipamentoNome ?: "Equipamento"
+                text = equipamento.nomeEquipamentoExibicao
                 textSize = 10f
                 setTextColor(itemView.context.getColor(R.color.text_primary))
                 maxLines = 1
@@ -275,6 +280,133 @@ class ContratosAdapter(
             
             layout.addView(bullet)
             layout.addView(semEquipamentos)
+            return layout
+        }
+
+        /**
+         * Popula a lista de materiais do contrato.
+         * Oculta toda a seção quando não há materiais.
+         */
+        private fun populateMateriais(contrato: Contrato) {
+            llMateriais.removeAllViews()
+
+            val materiais = contrato.materiaisParaExibicao
+            if (materiais.isEmpty()) {
+                llMateriaisSection.visibility = View.GONE
+                return
+            }
+
+            llMateriaisSection.visibility = View.VISIBLE
+
+            // Mostrar apenas os primeiros 2 materiais para manter o layout compacto
+            val materiaisParaMostrar = materiais.take(2)
+            materiaisParaMostrar.forEach { material ->
+                llMateriais.addView(createMaterialView(material))
+            }
+
+            // Se há mais de 2 materiais, mostrar indicador
+            if (materiais.size > 2) {
+                llMateriais.addView(createMaisMateriaisView(materiais.size - 2))
+            }
+        }
+
+        /**
+         * Cria uma view para um material (mesmo estilo visual dos equipamentos)
+         */
+        private fun createMaterialView(material: com.example.alg_gestao_02.data.models.MaterialContrato): View {
+            val layout = LinearLayout(itemView.context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 6 // 2dp em pixels
+                }
+            }
+
+            // Bullet point
+            val bullet = View(itemView.context).apply {
+                layoutParams = LinearLayout.LayoutParams(9, 9).apply {
+                    marginEnd = 18 // 6dp em pixels
+                }
+                setBackgroundResource(R.drawable.circle_background_primary)
+                alpha = 0.6f
+            }
+
+            // Nome do material
+            val nomeMaterial = TextView(itemView.context).apply {
+                text = material.nomeMaterialExibicao
+                textSize = 10f
+                setTextColor(itemView.context.getColor(R.color.text_primary))
+                maxLines = 1
+                ellipsize = android.text.TextUtils.TruncateAt.END
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f // layout_weight = 1
+                )
+            }
+
+            // Quantidade
+            val quantidade = TextView(itemView.context).apply {
+                text = "x${material.quantidade}"
+                textSize = 9f
+                setTextColor(itemView.context.getColor(R.color.text_secondary))
+                setTypeface(null, android.graphics.Typeface.BOLD)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    marginStart = 24 // 8dp em pixels
+                }
+            }
+
+            layout.addView(bullet)
+            layout.addView(nomeMaterial)
+            layout.addView(quantidade)
+
+            return layout
+        }
+
+        /**
+         * Cria uma view para indicar mais materiais
+         */
+        private fun createMaisMateriaisView(quantidade: Int): View {
+            val layout = LinearLayout(itemView.context).apply {
+                orientation = LinearLayout.HORIZONTAL
+                gravity = android.view.Gravity.CENTER_VERTICAL
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    bottomMargin = 6 // 2dp em pixels
+                }
+            }
+
+            // Bullet point
+            val bullet = View(itemView.context).apply {
+                layoutParams = LinearLayout.LayoutParams(9, 9).apply {
+                    marginEnd = 18 // 6dp em pixels
+                }
+                setBackgroundResource(R.drawable.circle_background_primary)
+                alpha = 0.6f
+            }
+
+            val maisMateriais = TextView(itemView.context).apply {
+                text = "+ $quantidade materiais"
+                textSize = 9f
+                setTextColor(itemView.context.getColor(R.color.primary_color))
+                setTypeface(null, android.graphics.Typeface.ITALIC)
+                layoutParams = LinearLayout.LayoutParams(
+                    0,
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    1f // layout_weight = 1
+                )
+            }
+
+            layout.addView(bullet)
+            layout.addView(maisMateriais)
             return layout
         }
     }

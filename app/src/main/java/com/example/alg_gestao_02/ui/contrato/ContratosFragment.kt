@@ -88,7 +88,13 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
         viewModel.limparContratoDetalhado()
         
         observeViewModel()
-        
+
+        // O ViewModel tem escopo da Activity e sobrevive à navegação; sem esta
+        // sincronização, a lista voltaria filtrada pelo último critério enquanto
+        // os controles (aba/chip/busca) mostrariam o estado padrão
+        restaurarFiltrosDoViewModel()
+        aplicarFiltroPendenteDeCliente()
+
         // Carregar contratos e clientes
         viewModel.loadContratos()
         viewModel.loadClientes()
@@ -250,6 +256,68 @@ class ContratosFragment : Fragment(), ContratoDetailsDialogFragment.OnEditReques
      */
     private fun aplicarFiltros() {
         viewModel.aplicarFiltros(currentTab, selectedYear, selectedMonth, etSearch.text.toString())
+    }
+
+    /**
+     * Restaura aba, chip de mês e busca a partir do estado memorizado no ViewModel,
+     * mantendo os controles consistentes com a lista após a view ser recriada
+     */
+    private fun restaurarFiltrosDoViewModel() {
+        currentTab = viewModel.filtroTabAtual
+        selectedYear = viewModel.filtroAnoAtual
+        selectedMonth = viewModel.filtroMesAtual
+
+        tabLayout.getTabAt(currentTab.ordinal)?.select()
+        sincronizarChipsComFiltro()
+
+        val busca = viewModel.filtroBuscaAtual
+        if (etSearch.text.toString() != busca) {
+            etSearch.setText(busca)
+        }
+
+        aplicarFiltros()
+    }
+
+    /**
+     * Marca o chip correspondente ao filtro de mês atual; se o mês não está mais
+     * entre os 12 exibidos, descarta o filtro e volta para "Todos os meses"
+     */
+    private fun sincronizarChipsComFiltro() {
+        val ano = selectedYear
+        val mes = selectedMonth
+        if (ano != null && mes != null) {
+            for (i in 0 until chipGroupFilters.childCount) {
+                val chip = chipGroupFilters.getChildAt(i) as? Chip ?: continue
+                if (chip.tag == Pair(ano, mes)) {
+                    chip.isChecked = true
+                    return
+                }
+            }
+            selectedYear = null
+            selectedMonth = null
+        }
+        (chipGroupFilters.getChildAt(0) as? Chip)?.isChecked = true
+    }
+
+    /**
+     * Consome o filtro definido por "ver contratos deste cliente" (ClientDetailsFragment)
+     * e aplica o nome do cliente como busca
+     */
+    private fun aplicarFiltroPendenteDeCliente() {
+        val pendingFilter = com.example.alg_gestao_02.utils.FilterManager.consumePendingContractsFilter() ?: return
+        LogUtils.info("ContratosFragment", "Aplicando filtro pendente de cliente: ${pendingFilter.clienteNome}")
+
+        // Intenção explícita vinda de outra tela: parte da visão padrão (aba Todos, sem mês)
+        currentTab = ContratoTab.TODOS
+        selectedYear = null
+        selectedMonth = null
+        tabLayout.getTabAt(0)?.select()
+        sincronizarChipsComFiltro()
+
+        etSearch.setText(pendingFilter.clienteNome)
+        aplicarFiltros()
+
+        Toast.makeText(requireContext(), "Mostrando contratos de: ${pendingFilter.clienteNome}", Toast.LENGTH_SHORT).show()
     }
     
     private fun setupListeners() {

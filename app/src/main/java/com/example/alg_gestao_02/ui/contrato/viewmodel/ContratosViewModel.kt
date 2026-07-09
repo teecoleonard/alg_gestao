@@ -13,6 +13,7 @@ import com.example.alg_gestao_02.data.repository.ClienteRepository
 import com.example.alg_gestao_02.data.repository.ContratoRepository
 import com.example.alg_gestao_02.data.repository.EquipamentoContratoRepository
 import com.example.alg_gestao_02.ui.common.ErrorViewModel
+import com.example.alg_gestao_02.ui.contrato.ContratosFragment
 import com.example.alg_gestao_02.ui.state.UiState
 import com.example.alg_gestao_02.utils.LogUtils
 import com.example.alg_gestao_02.utils.Resource
@@ -62,17 +63,17 @@ class ContratosViewModel(
     private val equipamentosCache = mutableMapOf<Int, List<EquipamentoContrato>>()
     private var preCargaEquipamentosJob: Job? = null
     
-    // Termo de busca atual
-    private val _searchTerm = MutableLiveData<String>("")
-    val searchTerm: LiveData<String> = _searchTerm
-    
-    // Filtro por mês ativo
-    private var filtroMesAtivo: Pair<Int, Int>? = null // (ano, mes)
-    private var filtroTabAtual: com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab =
-        com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.TODOS
-    private var filtroAnoAtual: Int? = null
-    private var filtroMesAtual: Int? = null
-    private var filtroBuscaAtual: String = ""
+    // Último contexto de filtros aplicado pela UI (aba/mês/busca).
+    // Exposto como leitura para o Fragment restaurar os controles ao recriar
+    // a view, já que este ViewModel tem escopo da Activity e sobrevive à navegação.
+    var filtroTabAtual: ContratosFragment.ContratoTab = ContratosFragment.ContratoTab.TODOS
+        private set
+    var filtroAnoAtual: Int? = null
+        private set
+    var filtroMesAtual: Int? = null
+        private set
+    var filtroBuscaAtual: String = ""
+        private set
     
     // LiveData para equipamentos de contrato
     private val _equipamentosContratoState = MutableLiveData<UiState<List<EquipamentoContrato>>>()
@@ -449,115 +450,10 @@ class ContratosViewModel(
     }
     
     /**
-     * Define o termo de busca e aplica o filtro
-     */
-    fun setSearchTerm(term: String) {
-        _searchTerm.value = term
-        
-        // Se há termo de busca, remover filtro por mês
-        if (term.isNotEmpty()) {
-            filtroMesAtivo = null
-        }
-        
-        applySearchFilter(term)
-    }
-    
-    /**
-     * Define filtro por mês/ano e aplica aos contratos
-     */
-    fun setFiltroPorMes(ano: Int, mes: Int) {
-        LogUtils.debug("ContratosViewModel", "Aplicando filtro por mês: $mes/$ano")
-        
-        // Armazenar o filtro ativo
-        filtroMesAtivo = Pair(ano, mes)
-        
-        // Limpar busca quando aplicar filtro por mês
-        _searchTerm.value = ""
-        
-        // Carregar contratos primeiro, depois aplicar o filtro
-        loadContratos()
-    }
-    
-    /**
-     * Aplica o filtro por mês usando o filtro ativo
-     */
-    private fun aplicarFiltroPorMes() {
-        val filtro = filtroMesAtivo ?: return
-        
-        val ano = filtro.first
-        val mes = filtro.second
-        
-        val contratosFiltrados = allContratos.filter { contrato ->
-            val contratoMes = if (!contrato.dataHoraEmissao.isNullOrEmpty()) {
-                ContratoMes.fromDateTimeString(contrato.dataHoraEmissao)
-            } else {
-                null
-            }
-            
-            contratoMes?.ano == ano && contratoMes.mes == mes
-        }
-        
-        LogUtils.info("ContratosViewModel", "Filtro aplicado: ${contratosFiltrados.size} contratos encontrados para $mes/$ano")
-        
-        if (contratosFiltrados.isNotEmpty()) {
-            _uiState.value = UiState.Success(contratosFiltrados)
-        } else {
-            _uiState.value = UiState.Empty()
-        }
-    }
-    
-    /**
-     * Remove o filtro por mês e mostra todos os contratos
-     */
-    fun removerFiltroPorMes() {
-        LogUtils.debug("ContratosViewModel", "Removendo filtro por mês")
-        filtroMesAtivo = null
-        filtroAnoAtual = null
-        filtroMesAtual = null
-        aplicarFiltros(
-            tab = filtroTabAtual,
-            ano = filtroAnoAtual,
-            mes = filtroMesAtual,
-            searchTerm = filtroBuscaAtual
-        )
-    }
-    
-    /**
-     * Aplica o filtro de busca por nome de cliente
-     */
-    private fun applySearchFilter(term: String) {
-        if (allContratos.isEmpty()) {
-            _uiState.value = UiState.Empty()
-            return
-        }
-
-        // Se há filtro por mês ativo, não aplicar busca aqui
-        if (filtroMesAtivo != null) {
-            return
-        }
-
-        if (term.isEmpty()) {
-            _uiState.value = UiState.Success(allContratos.filter { !it.isArquivado() && !it.isFaturado() })
-            return
-        }
-
-        val filteredList = allContratos
-            .filter { !it.isArquivado() && !it.isFaturado() }
-            .filter { contratoMatchesSearch(it, term) }
-
-        if (filteredList.isEmpty()) {
-            _uiState.value = UiState.Empty()
-        } else {
-            val sortedFilteredList = ordenarContratosPorDataEmissao(filteredList)
-            _uiState.value = UiState.Success(sortedFilteredList)
-        }
-    }
-
-    /**
      * Aplica filtros combinados de aba, mes e busca
      */
     fun aplicarFiltros(
-        tab: com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab,
+        tab: ContratosFragment.ContratoTab,
         ano: Int?,
         mes: Int?,
         searchTerm: String
@@ -568,7 +464,11 @@ class ContratosViewModel(
         filtroBuscaAtual = searchTerm
 
         if (allContratos.isEmpty()) {
-            _uiState.value = UiState.Empty()
+            // Não sobrescrever o Loading: os dados podem estar a caminho e,
+            // ao chegarem, loadContratos reaplica este contexto de filtros
+            if (_uiState.value !is UiState.Loading) {
+                _uiState.value = UiState.Empty()
+            }
             return
         }
         
@@ -582,19 +482,19 @@ class ContratosViewModel(
         
         // Filtro por aba
         contratosFiltrados = when (tab) {
-            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.TODOS -> {
+            ContratosFragment.ContratoTab.TODOS -> {
                 // Mostra todos os contratos não arquivados e não faturados
                 val filtrados = contratosFiltrados.filter { !it.isArquivado() && !it.isFaturado() }
                 LogUtils.debug("ContratosViewModel", "  ✓ Filtro TODOS: ${filtrados.size} contratos")
                 filtrados
             }
-            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.EM_ANDAMENTO -> {
+            ContratosFragment.ContratoTab.EM_ANDAMENTO -> {
                 // Mostra apenas contratos em andamento
                 val filtrados = contratosFiltrados.filter { it.isEmAndamento() && !it.isArquivado() }
                 LogUtils.debug("ContratosViewModel", "  ✓ Filtro EM_ANDAMENTO: ${filtrados.size} contratos")
                 filtrados
             }
-            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.RENOVADOS -> {
+            ContratosFragment.ContratoTab.RENOVADOS -> {
                 // Mostra apenas contratos renovados (sem usar aba de arquivados)
                 val renovados = allContratos.filter { it.isRenovado() }
                 LogUtils.debug("ContratosViewModel", "  📊 DEBUG FILTRO RENOVADOS:")
@@ -613,7 +513,7 @@ class ContratosViewModel(
                 LogUtils.debug("ContratosViewModel", "  ✓ Filtro RENOVADOS: ${filtrados.size} contratos")
                 filtrados
             }
-            com.example.alg_gestao_02.ui.contrato.ContratosFragment.ContratoTab.FATURADOS -> {
+            ContratosFragment.ContratoTab.FATURADOS -> {
                 val filtrados = contratosFiltrados.filter { it.isFaturado() && !it.isArquivado() }
                 LogUtils.debug("ContratosViewModel", "  ✓ Filtro FATURADOS: ${filtrados.size} contratos")
                 filtrados

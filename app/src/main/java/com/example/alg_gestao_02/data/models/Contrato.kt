@@ -216,17 +216,29 @@ data class Contrato(
     }
     
     /**
+     * Normaliza o status para comparação, tolerando variações de caixa e
+     * separador vindas do backend (ex.: "em andamento", "Em-Andamento")
+     */
+    private fun statusContratoNormalizado(): String {
+        return statusContrato.orEmpty()
+            .trim()
+            .uppercase(Locale.getDefault())
+            .replace(" ", "_")
+            .replace("-", "_")
+    }
+
+    /**
      * Verifica se o contrato está finalizado (todos equipamentos devolvidos)
      */
     fun isFinalizado(): Boolean {
-        return statusContrato == "FINALIZADO"
+        return statusContratoNormalizado() == StatusContrato.FINALIZADO.valor
     }
-    
+
     /**
      * Verifica se o contrato está em andamento
      */
     fun isEmAndamento(): Boolean {
-        return statusContrato == "EM_ANDAMENTO"
+        return statusContratoNormalizado() == StatusContrato.EM_ANDAMENTO.valor
     }
 
     /**

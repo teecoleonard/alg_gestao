@@ -58,6 +58,7 @@
             android:layout_height="wrap_content"
             android:paddingHorizontal="16dp"
             android:paddingVertical="8dp"
+            app:selectionRequired="true"
             app:singleSelection="true">
 
             <!-- Chips serão adicionados dinamicamente -->
