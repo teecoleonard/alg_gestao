@@ -80,5 +80,11 @@
         android:id="@+id/rvCatalogo"
         android:layout_width="match_parent"
         android:layout_height="320dp"
-        android:layout_marginTop="8dp" />
+        android:layout_marginTop="8dp"
+        android:scrollbars="vertical"
+        android:scrollbarStyle="outsideOverlay"
+        android:fadeScrollbars="false"
+        android:scrollbarSize="6dp"
+        android:requiresFadingEdge="vertical"
+        android:fadingEdgeLength="24dp" />
 </LinearLayout>
