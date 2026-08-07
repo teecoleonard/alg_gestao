@@ -7,8 +7,8 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ArrayAdapter
 import android.widget.Button
+import android.widget.CheckBox
 import android.widget.EditText
-import android.widget.ListView
 import android.widget.Spinner
 import android.widget.TextView
 import android.widget.Toast
@@ -21,6 +21,7 @@ import com.example.alg_gestao_02.data.models.Material
 import com.example.alg_gestao_02.service.PdfResponse
 import com.example.alg_gestao_02.ui.common.BaseFragment
 import com.example.alg_gestao_02.ui.common.ErrorViewModel
+import com.example.alg_gestao_02.ui.orcamento.adapter.CatalogoMultiAdapter
 import com.example.alg_gestao_02.ui.orcamento.adapter.OrcamentoEquipAdapter
 import com.example.alg_gestao_02.ui.orcamento.adapter.OrcamentoMaterialAdapter
 import com.example.alg_gestao_02.ui.orcamento.viewmodel.OrcamentoEquipLinha
@@ -131,16 +132,37 @@ class OrcamentoFragment : BaseFragment() {
         btnAddMaterial.setOnClickListener { abrirCatalogoMateriais() }
         btnGerar.setOnClickListener { gerarPdf() }
         btnVisualizar.setOnClickListener {
-            arquivoPdfGerado?.let { ShareUtils.openPdfFile(requireContext(), it) }
+            val arquivo = arquivoPdfGerado
+            if (arquivo == null) {
+                toast("Gere o PDF primeiro")
+                return@setOnClickListener
+            }
+            try {
+                ShareUtils.openPdfFile(requireContext(), arquivo)
+            } catch (e: Exception) {
+                LogUtils.error("OrcamentoFragment", "Erro ao abrir PDF", e)
+                toast("Não foi possível abrir o PDF")
+            }
         }
         btnCompartilhar.setOnClickListener {
-            arquivoPdfGerado?.let {
-                PdfUtils.compartilharPdf(
-                    requireContext(),
-                    it,
-                    "Compartilhar orçamento",
-                    "Segue o orçamento - ALG Gestão"
+            val arquivo = arquivoPdfGerado
+            if (arquivo == null) {
+                toast("Gere o PDF primeiro")
+                return@setOnClickListener
+            }
+            val resultado = PdfUtils.compartilharPdf(
+                requireContext(),
+                arquivo,
+                "Compartilhar orçamento",
+                "Segue o orçamento - ALG Gestão"
+            )
+            if (resultado.isFailure) {
+                LogUtils.error(
+                    "OrcamentoFragment",
+                    "Erro ao compartilhar",
+                    resultado.exceptionOrNull()
                 )
+                toast("Não foi possível compartilhar o PDF")
             }
         }
     }
@@ -159,9 +181,7 @@ class OrcamentoFragment : BaseFragment() {
                     toast("Nenhum equipamento no catálogo")
                     return@carregarCatalogoEquipamentos
                 }
-                mostrarPicker("Selecionar equipamento", lista.map { it.nomeEquip }) { indice ->
-                    mostrarDialogEquip(lista[indice], null)
-                }
+                mostrarPickerMultiEquip(lista)
             },
             onError = { toast(it) }
         )
@@ -175,52 +195,99 @@ class OrcamentoFragment : BaseFragment() {
                     toast("Nenhum material no catálogo")
                     return@carregarCatalogoMateriais
                 }
-                mostrarPicker("Selecionar material", lista.map { it.nome }) { indice ->
-                    mostrarDialogMaterial(lista[indice], null)
-                }
+                mostrarPickerMultiMaterial(lista)
             },
             onError = { toast(it) }
         )
     }
 
-    private fun mostrarPicker(titulo: String, nomes: List<String>, onPick: (Int) -> Unit) {
-        val view = layoutInflater.inflate(R.layout.dialog_orcamento_picker, null)
+    private fun mostrarPickerMultiEquip(equipamentos: List<Equipamento>) {
+        val view = layoutInflater.inflate(R.layout.dialog_orcamento_multi, null)
         val etBusca = view.findViewById<EditText>(R.id.etBuscaCatalogo)
-        val lv = view.findViewById<ListView>(R.id.lvCatalogo)
+        val rv = view.findViewById<RecyclerView>(R.id.rvCatalogo)
+        val periodContainer = view.findViewById<View>(R.id.periodContainer)
+        val cbDiario = view.findViewById<CheckBox>(R.id.cbDiario)
+        val cbSemanal = view.findViewById<CheckBox>(R.id.cbSemanal)
+        val cbQuinzenal = view.findViewById<CheckBox>(R.id.cbQuinzenal)
+        val cbMensal = view.findViewById<CheckBox>(R.id.cbMensal)
+        periodContainer.visibility = View.VISIBLE
 
-        var indicesFiltrados: List<Int> = nomes.indices.toList()
-        val adapter = ArrayAdapter(
-            requireContext(),
-            android.R.layout.simple_list_item_1,
-            nomes.toMutableList()
-        )
-        lv.adapter = adapter
-
-        val dialog = MaterialAlertDialogBuilder(requireContext())
-            .setTitle(titulo)
-            .setView(view)
-            .setNegativeButton("Cancelar", null)
-            .create()
+        val selecionados = linkedSetOf<Int>()
+        val adapter = CatalogoMultiAdapter(selecionados)
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.adapter = adapter
+        val todos = equipamentos.map { it.id to it.nomeEquip }
+        adapter.update(todos)
 
         etBusca.addTextChangedListener(object : android.text.TextWatcher {
             override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
             override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
             override fun afterTextChanged(s: android.text.Editable?) {
                 val termo = s?.toString().orEmpty().trim()
-                indicesFiltrados = nomes.indices.filter { nomes[it].contains(termo, ignoreCase = true) }
-                adapter.clear()
-                adapter.addAll(indicesFiltrados.map { nomes[it] })
-                adapter.notifyDataSetChanged()
+                adapter.update(todos.filter { it.second.contains(termo, ignoreCase = true) })
             }
         })
 
-        lv.setOnItemClickListener { _, _, pos, _ ->
-            val indiceReal = indicesFiltrados.getOrNull(pos)
-            dialog.dismiss()
-            if (indiceReal != null) onPick(indiceReal)
-        }
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Adicionar equipamentos")
+            .setView(view)
+            .setPositiveButton("Adicionar") { _, _ ->
+                val periodos = buildList {
+                    if (cbDiario.isChecked) add(PeriodoOrcamento.DIARIO)
+                    if (cbSemanal.isChecked) add(PeriodoOrcamento.SEMANAL)
+                    if (cbQuinzenal.isChecked) add(PeriodoOrcamento.QUINZENAL)
+                    if (cbMensal.isChecked) add(PeriodoOrcamento.MENSAL)
+                }
+                val escolhidos = equipamentos.filter { selecionados.contains(it.id) }
+                when {
+                    escolhidos.isEmpty() -> toast("Selecione ao menos um equipamento")
+                    periodos.isEmpty() -> toast("Selecione ao menos um período")
+                    else -> {
+                        viewModel.adicionarEquipamentosLote(escolhidos, periodos)
+                        toast("${escolhidos.size * periodos.size} item(ns) adicionado(s)")
+                    }
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
+    }
 
-        dialog.show()
+    private fun mostrarPickerMultiMaterial(materiais: List<Material>) {
+        val view = layoutInflater.inflate(R.layout.dialog_orcamento_multi, null)
+        val etBusca = view.findViewById<EditText>(R.id.etBuscaCatalogo)
+        val rv = view.findViewById<RecyclerView>(R.id.rvCatalogo)
+        // periodContainer permanece oculto para materiais (sem período).
+
+        val selecionados = linkedSetOf<Int>()
+        val adapter = CatalogoMultiAdapter(selecionados)
+        rv.layoutManager = LinearLayoutManager(requireContext())
+        rv.adapter = adapter
+        val todos = materiais.map { it.id to it.nome }
+        adapter.update(todos)
+
+        etBusca.addTextChangedListener(object : android.text.TextWatcher {
+            override fun beforeTextChanged(s: CharSequence?, start: Int, count: Int, after: Int) {}
+            override fun onTextChanged(s: CharSequence?, start: Int, before: Int, count: Int) {}
+            override fun afterTextChanged(s: android.text.Editable?) {
+                val termo = s?.toString().orEmpty().trim()
+                adapter.update(todos.filter { it.second.contains(termo, ignoreCase = true) })
+            }
+        })
+
+        MaterialAlertDialogBuilder(requireContext())
+            .setTitle("Adicionar materiais")
+            .setView(view)
+            .setPositiveButton("Adicionar") { _, _ ->
+                val escolhidos = materiais.filter { selecionados.contains(it.id) }
+                if (escolhidos.isEmpty()) {
+                    toast("Selecione ao menos um material")
+                } else {
+                    viewModel.adicionarMateriaisLote(escolhidos)
+                    toast("${escolhidos.size} material(is) adicionado(s)")
+                }
+            }
+            .setNegativeButton("Cancelar", null)
+            .show()
     }
 
     // ---------- Diálogos de item ----------

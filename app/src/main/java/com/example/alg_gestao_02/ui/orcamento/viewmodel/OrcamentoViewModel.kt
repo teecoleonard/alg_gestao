@@ -126,6 +126,49 @@ class OrcamentoViewModel(
         _equipItens.value = _equipItens.value.orEmpty() + linha
     }
 
+    /**
+     * Adição em lote: para cada equipamento selecionado e cada período escolhido, cria uma linha
+     * (quantidade 1, valor do catálogo para o período). Atualiza a LiveData uma única vez.
+     */
+    fun adicionarEquipamentosLote(equipamentos: List<Equipamento>, periodos: List<PeriodoOrcamento>) {
+        if (equipamentos.isEmpty() || periodos.isEmpty()) return
+        val atual = _equipItens.value.orEmpty().toMutableList()
+        for (eq in equipamentos) {
+            for (p in periodos) {
+                atual.add(
+                    OrcamentoEquipLinha(
+                        uid = novoUid(),
+                        equipamentoId = eq.id,
+                        nome = eq.nomeEquip,
+                        periodo = p,
+                        quantidade = 1,
+                        valorUnitario = valorPorPeriodo(eq, p).coerceAtLeast(0.0)
+                    )
+                )
+            }
+        }
+        _equipItens.value = atual
+    }
+
+    /** Adição em lote de materiais (quantidade 1, valor do catálogo). Atualiza a LiveData uma vez. */
+    fun adicionarMateriaisLote(materiais: List<Material>) {
+        if (materiais.isEmpty()) return
+        val atual = _materialItens.value.orEmpty().toMutableList()
+        for (m in materiais) {
+            atual.add(
+                OrcamentoMaterialLinha(
+                    uid = novoUid(),
+                    materialId = m.id,
+                    nome = m.nome,
+                    codigo = m.codigo,
+                    quantidade = 1,
+                    valorUnitario = m.valorUnitario.coerceAtLeast(0.0)
+                )
+            )
+        }
+        _materialItens.value = atual
+    }
+
     fun atualizarEquipamento(
         uid: Long,
         periodo: PeriodoOrcamento,
