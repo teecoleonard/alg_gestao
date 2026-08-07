@@ -30,7 +30,41 @@ interface PdfApiService {
     // Novo endpoint para devoluções
     @POST("api/pdf-proxy/devolucao")
     suspend fun gerarPdfDevolucao(@Body request: DevolucaoRequestDTO): Response<DevolucaoPdfResponse>
+
+    // Endpoint para orçamentos (sem persistência, sem vínculo com cliente)
+    @POST("api/pdf-proxy/orcamento")
+    suspend fun gerarPdfOrcamento(@Body request: OrcamentoRequestDTO): Response<PdfResponse>
 }
+
+/**
+ * Item (equipamento ou material) para o gerador de PDF de orçamento
+ */
+data class OrcamentoItemDTO(
+    val descricao: String,
+    val periodo: String? = null,
+    val codigo: String? = null,
+    val quantidade: Int,
+    val valorUnitario: Double,
+    val valorTotal: Double
+)
+
+/**
+ * Metadados opcionais do orçamento
+ */
+data class OrcamentoMetaDTO(
+    val destinatario: String? = null,
+    val validadeDias: Int? = null,
+    val observacoes: String? = null
+)
+
+/**
+ * DTO para a requisição de geração de PDF de orçamento
+ */
+data class OrcamentoRequestDTO(
+    val orcamento: OrcamentoMetaDTO,
+    val equipamentos: List<OrcamentoItemDTO>,
+    val materiais: List<OrcamentoItemDTO>
+)
 
 /**
  * Dados do cliente para o gerador de PDF
@@ -950,4 +984,55 @@ class PdfService {
             Result.failure(e)
         }
     }
-} 
+
+    // =================== MÉTODO PARA ORÇAMENTOS ===================
+
+    /**
+     * Gera um PDF de orçamento (reaproveita o gerador-pdf via pdf-proxy).
+     * Não persiste nada e não vincula a cliente.
+     */
+    suspend fun gerarPdfOrcamento(request: OrcamentoRequestDTO): Result<PdfResponse> {
+        return try {
+            LogUtils.debug("PdfService", "🚀 INICIANDO GERAÇÃO DE PDF DE ORÇAMENTO")
+            LogUtils.debug("PdfService", "  🎯 Servidor destino: $baseUrl")
+            LogUtils.debug(
+                "PdfService",
+                "  📦 Itens: ${request.equipamentos.size} equip. / ${request.materiais.size} mat."
+            )
+
+            if (request.equipamentos.isEmpty() && request.materiais.isEmpty()) {
+                val error = "Orçamento sem itens"
+                LogUtils.error("PdfService", error)
+                return Result.failure(Exception(error))
+            }
+
+            val response = pdfApiService.gerarPdfOrcamento(request)
+
+            if (response.isSuccessful) {
+                val pdfResponse = response.body()
+                if (pdfResponse != null) {
+                    if (pdfResponse.success) {
+                        LogUtils.info("PdfService", "✅ PDF DE ORÇAMENTO GERADO COM SUCESSO!")
+                        Result.success(pdfResponse)
+                    } else {
+                        val errorMsg = "Erro retornado pela API: ${pdfResponse.message}"
+                        LogUtils.error("PdfService", errorMsg)
+                        Result.failure(Exception(errorMsg))
+                    }
+                } else {
+                    val errorMsg = "Resposta vazia da API de PDF"
+                    LogUtils.error("PdfService", errorMsg)
+                    Result.failure(Exception(errorMsg))
+                }
+            } else {
+                val errorBody = response.errorBody()?.string() ?: response.message()
+                val errorMsg = "Erro HTTP ${response.code()}: $errorBody"
+                LogUtils.error("PdfService", errorMsg)
+                Result.failure(Exception(errorMsg))
+            }
+        } catch (e: Exception) {
+            LogUtils.error("PdfService", "❌ ERRO CRÍTICO NA GERAÇÃO DE PDF DE ORÇAMENTO", e)
+            Result.failure(e)
+        }
+    }
+}

@@ -183,6 +183,9 @@ class DashboardActivity : AppCompatActivity(), NavigationView.OnNavigationItemSe
             R.id.nav_faturas -> {
                 navController.navigate(R.id.faturasFragment)
             }
+            R.id.nav_orcamento -> {
+                navController.navigate(R.id.orcamentoFragment)
+            }
             R.id.nav_devolucoes -> {
                 navController.navigate(R.id.devolucoesFragment)
             }

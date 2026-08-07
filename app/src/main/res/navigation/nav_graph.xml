@@ -94,6 +94,12 @@
         tools:layout="@layout/fragment_faturas" />
 
     <fragment
+        android:id="@+id/orcamentoFragment"
+        android:name="com.example.alg_gestao_02.ui.orcamento.OrcamentoFragment"
+        android:label="Orçamento"
+        tools:layout="@layout/fragment_orcamento" />
+
+    <fragment
         android:id="@+id/financialFragment"
         android:name="com.example.alg_gestao_02.ui.financial.FinancialFragment"
         android:label="Financeiro"

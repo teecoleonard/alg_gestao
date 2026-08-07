@@ -38,6 +38,11 @@
             android:title="@string/invoices"
             android:fontFamily="@font/poppins" />
         <item
+            android:id="@+id/nav_orcamento"
+            android:icon="@drawable/ic_pdf"
+            android:title="@string/orcamento"
+            android:fontFamily="@font/poppins" />
+        <item
             android:id="@+id/nav_devolucoes"
             android:icon="@drawable/ic_devolucoes"
             android:title="@string/returns"
